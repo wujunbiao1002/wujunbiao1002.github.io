@@ -1,0 +1,564 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MySQL高级功能与新特性：从JSON到窗口函数的全面解析 | Junly</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言MySQL作为全球最流行的开源关系型数据库管理系统，一直在不断发展和演进。随着MySQL 8.0版本的发布，引入了许多令人兴奋的新特性和高级功能，这些功能极大地增强了MySQL的能力，使其更加现代化、高效和灵活。本文将深入探讨MySQL的高级功能与新特性，包括JSON数据类型支持、窗口函数、分区表技术以及高可用性方案等，帮助开发者和数据库管理员更好地利用这些强大功能，提升数据库应用的性能和可靠">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL高级功能与新特性：从JSON到窗口函数的全面解析">
+<meta property="og:url" content="https://junly.top/posts/20200425/index.html">
+<meta property="og:site_name" content="Junly">
+<meta property="og:description" content="前言MySQL作为全球最流行的开源关系型数据库管理系统，一直在不断发展和演进。随着MySQL 8.0版本的发布，引入了许多令人兴奋的新特性和高级功能，这些功能极大地增强了MySQL的能力，使其更加现代化、高效和灵活。本文将深入探讨MySQL的高级功能与新特性，包括JSON数据类型支持、窗口函数、分区表技术以及高可用性方案等，帮助开发者和数据库管理员更好地利用这些强大功能，提升数据库应用的性能和可靠">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/images/profile-photo.jpg">
+<meta property="article:published_time" content="2020-04-25T02:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-18T04:57:54.182Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="JSON">
+<meta property="article:tag" content="窗口函数">
+<meta property="article:tag" content="分区表">
+<meta property="article:tag" content="高可用性">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MySQL高级功能与新特性：从JSON到窗口函数的全面解析",
+  "url": "https://junly.top/posts/20200425/",
+  "image": "https://junly.top/images/profile-photo.jpg",
+  "datePublished": "2020-04-25T02:00:00.000Z",
+  "dateModified": "2025-03-18T04:57:54.182Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20200425/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL高级功能与新特性：从JSON到窗口函数的全面解析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://unpkg.com/mermaid@10.6.0/dist/mermaid.min.js"></script>[object Object]<meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">61</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly</span></a><a class="nav-page-title" href="/"><span class="site-name">MySQL高级功能与新特性：从JSON到窗口函数的全面解析</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">MySQL高级功能与新特性：从JSON到窗口函数的全面解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-25T02:00:00.000Z" title="发表于 2020-04-25 10:00:00">2020-04-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-18T04:57:54.182Z" title="更新于 2025-03-18 12:57:54">2025-03-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>MySQL作为全球最流行的开源关系型数据库管理系统，一直在不断发展和演进。随着MySQL 8.0版本的发布，引入了许多令人兴奋的新特性和高级功能，这些功能极大地增强了MySQL的能力，使其更加现代化、高效和灵活。本文将深入探讨MySQL的高级功能与新特性，包括JSON数据类型支持、窗口函数、分区表技术以及高可用性方案等，帮助开发者和数据库管理员更好地利用这些强大功能，提升数据库应用的性能和可靠性。</p>
+<h1 id="MySQL-8-0主要新特性概览"><a href="#MySQL-8-0主要新特性概览" class="headerlink" title="MySQL 8.0主要新特性概览"></a>MySQL 8.0主要新特性概览</h1><p>MySQL 8.0是自5.7版本以来的重大更新，带来了许多革命性的变化和改进。下面是主要新特性的概览：</p>
+<pre class="mermaid">mindmap
+  root((MySQL 8.0<br>新特性))
+    SQL增强
+      窗口函数
+      通用表表达式(CTE)
+      降序索引
+      不可见索引
+    数据类型增强
+      JSON增强
+      UTF-8编码改进
+    InnoDB改进
+      原子DDL
+      自增持久化
+    安全增强
+      角色管理
+      密码强度评估
+    管理优化
+      资源组
+      重做日志优化
+    性能提升
+      读/写锁优化
+      优化器增强</pre>
+
+<p>接下来，我们将详细介绍这些特性以及它们如何帮助我们构建更强大的数据库应用。</p>
+<h1 id="JSON数据类型与功能"><a href="#JSON数据类型与功能" class="headerlink" title="JSON数据类型与功能"></a>JSON数据类型与功能</h1><h2 id="JSON数据类型概述"><a href="#JSON数据类型概述" class="headerlink" title="JSON数据类型概述"></a>JSON数据类型概述</h2><p>MySQL 5.7开始引入JSON数据类型，而在MySQL 8.0中对其进行了显著增强。JSON数据类型允许我们在关系型数据库中存储和处理半结构化数据，为传统的关系型数据库带来了NoSQL的灵活性。</p>
+<p>JSON数据类型的主要优势：</p>
+<ol>
+<li><strong>灵活的模式</strong>：不需要预先定义固定的列，可以根据需要动态增减字段</li>
+<li><strong>直接存储复杂数据</strong>：可以直接存储嵌套的数据结构</li>
+<li><strong>原生函数支持</strong>：提供丰富的函数用于JSON数据操作和查询</li>
+<li><strong>类型验证</strong>：确保存储的是有效的JSON文档</li>
+</ol>
+<h2 id="JSON函数详解"><a href="#JSON函数详解" class="headerlink" title="JSON函数详解"></a>JSON函数详解</h2><p>MySQL提供了丰富的JSON操作函数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建JSON文档</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">JSON_OBJECT</span>(<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;John&#x27;</span>, <span class="string">&#x27;age&#x27;</span>, <span class="number">30</span>, <span class="string">&#x27;skills&#x27;</span>, <span class="built_in">JSON_ARRAY</span>(<span class="string">&#x27;SQL&#x27;</span>, <span class="string">&#x27;Java&#x27;</span>, <span class="string">&#x27;Python&#x27;</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 提取JSON值</span></span><br><span class="line"><span class="keyword">SELECT</span> JSON_EXTRACT(<span class="string">&#x27;&#123;&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30&#125;&#x27;</span>, <span class="string">&#x27;$.name&#x27;</span>); <span class="comment">-- 返回 &quot;John&quot;</span></span><br><span class="line"><span class="keyword">SELECT</span> JSON_EXTRACT(<span class="string">&#x27;&#123;&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30&#125;&#x27;</span>, <span class="string">&#x27;$.age&#x27;</span>);  <span class="comment">-- 返回 30</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用-&gt;操作符(简化写法)</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;&#123;&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30&#125;&#x27;</span><span class="operator">-</span><span class="operator">&gt;</span><span class="string">&#x27;$.name&#x27;</span>; <span class="comment">-- 返回 &quot;John&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用-&gt;&gt;操作符(去掉引号)</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;&#123;&quot;name&quot;: &quot;John&quot;, &quot;age&quot;: 30&#125;&#x27;</span><span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.name&#x27;</span>; <span class="comment">-- 返回 John</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="JSON索引优化"><a href="#JSON索引优化" class="headerlink" title="JSON索引优化"></a>JSON索引优化</h2><p>虽然JSON提供了灵活性，但查询性能可能会受到影响。MySQL提供了几种优化JSON查询的方法：</p>
+<ol>
+<li><strong>函数索引</strong>：在MySQL 8.0中，可以对从JSON列提取的值创建函数索引</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> customers (</span><br><span class="line">    id <span class="type">INT</span> <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    profile JSON</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建函数索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_customer_email <span class="keyword">ON</span> customers ((<span class="built_in">CAST</span>(profile<span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.email&#x27;</span> <span class="keyword">AS</span> <span class="type">CHAR</span>(<span class="number">50</span>))));</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>虚拟列索引</strong>：为JSON数据创建虚拟列，然后在虚拟列上创建索引</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> products (</span><br><span class="line">    id <span class="type">INT</span> <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    attributes JSON,</span><br><span class="line">    <span class="comment">-- 创建虚拟列</span></span><br><span class="line">    product_name <span class="type">VARCHAR</span>(<span class="number">100</span>) GENERATED ALWAYS <span class="keyword">AS</span> (attributes<span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.name&#x27;</span>) STORED,</span><br><span class="line">    price <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>) GENERATED ALWAYS <span class="keyword">AS</span> (attributes<span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.price&#x27;</span>) VIRTUAL</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 在虚拟列上创建索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_product_name <span class="keyword">ON</span> products(product_name);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_product_price <span class="keyword">ON</span> products(price);</span><br></pre></td></tr></table></figure>
+
+<h2 id="实际应用场景"><a href="#实际应用场景" class="headerlink" title="实际应用场景"></a>实际应用场景</h2><p>JSON数据类型非常适合以下场景：</p>
+<ol>
+<li><strong>用户配置和偏好存储</strong>：不同用户可能有不同的偏好设置</li>
+<li><strong>产品属性管理</strong>：产品可能有各种不同的属性</li>
+<li><strong>日志和事件数据</strong>：结构可能随时间变化的事件数据</li>
+<li><strong>API集成</strong>：处理来自外部API的JSON数据</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 电子商务产品表示例</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> products (</span><br><span class="line">    id <span class="type">INT</span> AUTO_INCREMENT <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    sku <span class="type">VARCHAR</span>(<span class="number">50</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">    basic_info JSON,</span><br><span class="line">    specifications JSON,</span><br><span class="line">    variants JSON,</span><br><span class="line">    created_at <span class="type">TIMESTAMP</span> <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 插入产品数据</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> products (sku, basic_info, specifications, variants)</span><br><span class="line"><span class="keyword">VALUES</span> (</span><br><span class="line">    <span class="string">&#x27;LAPTOP-001&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&#123;&quot;name&quot;: &quot;Ultimate Laptop&quot;, &quot;brand&quot;: &quot;TechPro&quot;, &quot;category&quot;: &quot;Electronics&quot;, &quot;description&quot;: &quot;High performance laptop for professionals&quot;&#125;&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&#123;&quot;processor&quot;: &quot;Intel i9&quot;, &quot;ram&quot;: &quot;32GB&quot;, &quot;storage&quot;: &quot;1TB SSD&quot;, &quot;display&quot;: &quot;15.6 inch 4K&quot;, &quot;battery&quot;: &quot;8 hours&quot;&#125;&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;[</span></span><br><span class="line"><span class="string">        &#123;&quot;color&quot;: &quot;Silver&quot;, &quot;price&quot;: 1299.99, &quot;stock&quot;: 45&#125;,</span></span><br><span class="line"><span class="string">        &#123;&quot;color&quot;: &quot;Space Gray&quot;, &quot;price&quot;: 1349.99, &quot;stock&quot;: 30&#125;</span></span><br><span class="line"><span class="string">    ]&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查询示例：查找所有Intel处理器的产品</span></span><br><span class="line"><span class="keyword">SELECT</span> id, sku, basic_info<span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.name&#x27;</span> <span class="keyword">AS</span> product_name</span><br><span class="line"><span class="keyword">FROM</span> products</span><br><span class="line"><span class="keyword">WHERE</span> specifications<span class="operator">-</span><span class="operator">&gt;&gt;</span><span class="string">&#x27;$.processor&#x27;</span> <span class="keyword">LIKE</span> <span class="string">&#x27;%Intel%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h1><h2 id="窗口函数基础"><a href="#窗口函数基础" class="headerlink" title="窗口函数基础"></a>窗口函数基础</h2><p>窗口函数(Window Functions)是MySQL 8.0引入的一项重要特性，它允许我们在查询中执行复杂的分析计算，而无需使用复杂的自连接或子查询。窗口函数对于数据分析和报表生成特别有用。</p>
+<p>窗口函数的基本语法：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function_name() <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> column_list]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> column_list]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>主要组成部分：</p>
+<ul>
+<li><strong>函数部分</strong>：如SUM(), AVG(), ROW_NUMBER()等</li>
+<li><strong>PARTITION BY子句</strong>：定义数据分组</li>
+<li><strong>ORDER BY子句</strong>：定义数据排序</li>
+<li><strong>框架子句</strong>：定义当前行的窗口范围</li>
+</ul>
+<h2 id="常用窗口函数"><a href="#常用窗口函数" class="headerlink" title="常用窗口函数"></a>常用窗口函数</h2><h3 id="排名函数"><a href="#排名函数" class="headerlink" title="排名函数"></a>排名函数</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 为销售额排名</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    employee_id, </span><br><span class="line">    sales_amount,</span><br><span class="line">    <span class="built_in">ROW_NUMBER</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sales_amount <span class="keyword">DESC</span>) <span class="keyword">as</span> <span class="string">&#x27;row_num&#x27;</span>,</span><br><span class="line">    <span class="built_in">RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sales_amount <span class="keyword">DESC</span>) <span class="keyword">as</span> <span class="string">&#x27;rank&#x27;</span>,</span><br><span class="line">    <span class="built_in">DENSE_RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sales_amount <span class="keyword">DESC</span>) <span class="keyword">as</span> <span class="string">&#x27;dense_rank&#x27;</span></span><br><span class="line"><span class="keyword">FROM</span> sales;</span><br></pre></td></tr></table></figure>
+
+<p>排名函数的区别：</p>
+<ul>
+<li><strong>ROW_NUMBER()</strong>：唯一的顺序数字(1,2,3,4…)</li>
+<li><strong>RANK()</strong>：相同值获得相同排名，但会造成间隔(1,2,2,4…)</li>
+<li><strong>DENSE_RANK()</strong>：相同值获得相同排名，无间隔(1,2,2,3…)</li>
+</ul>
+<h3 id="分析函数"><a href="#分析函数" class="headerlink" title="分析函数"></a>分析函数</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 计算每个员工销售额占部门总销售额的百分比</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    department_id,</span><br><span class="line">    employee_id,</span><br><span class="line">    sales_amount,</span><br><span class="line">    sales_amount <span class="operator">/</span> <span class="built_in">SUM</span>(sales_amount) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department_id) <span class="operator">*</span> <span class="number">100</span> <span class="keyword">as</span> percentage</span><br><span class="line"><span class="keyword">FROM</span> sales;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 计算累计销售额</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    sale_date,</span><br><span class="line">    sales_amount,</span><br><span class="line">    <span class="built_in">SUM</span>(sales_amount) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sale_date) <span class="keyword">as</span> running_total</span><br><span class="line"><span class="keyword">FROM</span> daily_sales;</span><br></pre></td></tr></table></figure>
+
+<h3 id="偏移函数"><a href="#偏移函数" class="headerlink" title="偏移函数"></a>偏移函数</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 比较当前行与前一行的销售额</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    sale_date,</span><br><span class="line">    sales_amount,</span><br><span class="line">    <span class="built_in">LAG</span>(sales_amount, <span class="number">1</span>, <span class="number">0</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sale_date) <span class="keyword">as</span> previous_day_sales,</span><br><span class="line">    sales_amount <span class="operator">-</span> <span class="built_in">LAG</span>(sales_amount, <span class="number">1</span>, <span class="number">0</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> sale_date) <span class="keyword">as</span> sales_difference</span><br><span class="line"><span class="keyword">FROM</span> daily_sales;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 同时获取前一行和后一行的值</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    product_id,</span><br><span class="line">    <span class="keyword">month</span>,</span><br><span class="line">    sales,</span><br><span class="line">    <span class="built_in">LAG</span>(sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">month</span>) <span class="keyword">as</span> prev_month_sales,</span><br><span class="line">    <span class="built_in">LEAD</span>(sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">month</span>) <span class="keyword">as</span> next_month_sales</span><br><span class="line"><span class="keyword">FROM</span> monthly_product_sales;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实际应用场景-1"><a href="#实际应用场景-1" class="headerlink" title="实际应用场景"></a>实际应用场景</h2><p>窗口函数在实际业务中的应用非常广泛：</p>
+<ol>
+<li><strong>销售数据分析</strong>：计算环比增长、同比增长、市场份额等</li>
+<li><strong>用户行为分析</strong>：分析用户活动序列、留存率</li>
+<li><strong>财务报表</strong>：计算累计收入、移动平均等</li>
+<li><strong>排名与分组</strong>：产品销量排名、客户价值分级等</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 示例：分析每个产品每月销售额的环比增长率</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    product_id,</span><br><span class="line">    product_name,</span><br><span class="line">    year_month,</span><br><span class="line">    monthly_sales,</span><br><span class="line">    <span class="built_in">LAG</span>(monthly_sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> year_month) <span class="keyword">as</span> prev_month_sales,</span><br><span class="line">    <span class="keyword">CASE</span> </span><br><span class="line">        <span class="keyword">WHEN</span> <span class="built_in">LAG</span>(monthly_sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> year_month) <span class="keyword">IS</span> <span class="keyword">NULL</span> </span><br><span class="line">            <span class="keyword">OR</span> <span class="built_in">LAG</span>(monthly_sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> year_month) <span class="operator">=</span> <span class="number">0</span> <span class="keyword">THEN</span> <span class="keyword">NULL</span></span><br><span class="line">        <span class="keyword">ELSE</span> (monthly_sales <span class="operator">-</span> <span class="built_in">LAG</span>(monthly_sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> year_month)) </span><br><span class="line">            <span class="operator">/</span> <span class="built_in">LAG</span>(monthly_sales, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> product_id <span class="keyword">ORDER</span> <span class="keyword">BY</span> year_month) <span class="operator">*</span> <span class="number">100</span></span><br><span class="line">    <span class="keyword">END</span> <span class="keyword">as</span> growth_rate</span><br><span class="line"><span class="keyword">FROM</span> monthly_sales;</span><br></pre></td></tr></table></figure>
+
+<h1 id="分区表技术"><a href="#分区表技术" class="headerlink" title="分区表技术"></a>分区表技术</h1><h2 id="分区表基础"><a href="#分区表基础" class="headerlink" title="分区表基础"></a>分区表基础</h2><p>分区表是MySQL中用于管理和组织大型表的强大功能，它允许将一个大表分成多个物理部分，同时在逻辑上仍作为一个表进行操作。分区可以显著提高查询性能、简化数据管理，并支持更大规模的数据存储。</p>
+<p>分区的主要优势：</p>
+<ol>
+<li><strong>查询性能提升</strong>：通过分区剪枝(Partition Pruning)实现，只访问包含所需数据的分区</li>
+<li><strong>大数据管理</strong>：更容易管理大型表，单个分区的操作更高效</li>
+<li><strong>维护便利</strong>：可以单独备份、恢复、优化或重建分区</li>
+<li><strong>分散I&#x2F;O</strong>：可以将分区存储在不同的物理设备上，分散I&#x2F;O负载</li>
+</ol>
+<h2 id="分区类型"><a href="#分区类型" class="headerlink" title="分区类型"></a>分区类型</h2><p>MySQL支持多种分区类型：</p>
+<h3 id="RANGE分区"><a href="#RANGE分区" class="headerlink" title="RANGE分区"></a>RANGE分区</h3><p>基于连续区间的列值进行分区，适合日期或ID等连续数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 按日期范围分区的订单表</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> orders (</span><br><span class="line">    order_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    customer_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    order_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    total_amount <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>),</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (order_id, order_date)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">RANGE</span> (<span class="keyword">YEAR</span>(order_date)) (</span><br><span class="line">    <span class="keyword">PARTITION</span> p2018 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2019</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p2019 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2020</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p2020 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2021</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> future <span class="keyword">VALUES</span> LESS THAN MAXVALUE</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h3 id="LIST分区"><a href="#LIST分区" class="headerlink" title="LIST分区"></a>LIST分区</h3><p>基于离散值列表进行分区，适合地区代码、分类代码等离散数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 按地区分区的销售表</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> region_sales (</span><br><span class="line">    sale_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    region_code <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    sale_date <span class="type">DATE</span>,</span><br><span class="line">    amount <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>),</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (sale_id, region_code)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> LIST (region_code) (</span><br><span class="line">    <span class="keyword">PARTITION</span> p_east <span class="keyword">VALUES</span> <span class="keyword">IN</span> (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p_west <span class="keyword">VALUES</span> <span class="keyword">IN</span> (<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p_central <span class="keyword">VALUES</span> <span class="keyword">IN</span> (<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p_south <span class="keyword">VALUES</span> <span class="keyword">IN</span> (<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h3 id="HASH分区"><a href="#HASH分区" class="headerlink" title="HASH分区"></a>HASH分区</h3><p>基于哈希函数的值均匀分布数据，适合需要均匀分布I&#x2F;O的场景。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 按客户ID哈希分区</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> customer_data (</span><br><span class="line">    customer_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    email <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    signup_date <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (customer_id)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> HASH (customer_id)</span><br><span class="line">PARTITIONS <span class="number">4</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="KEY分区"><a href="#KEY分区" class="headerlink" title="KEY分区"></a>KEY分区</h3><p>类似于HASH分区，但使用MySQL内部哈希函数，可以对多列进行分区。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用多列KEY分区</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> employees (</span><br><span class="line">    id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    department_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    hired_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    salary <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>),</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (id, department_id)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> KEY (id, department_id)</span><br><span class="line">PARTITIONS <span class="number">4</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="子分区"><a href="#子分区" class="headerlink" title="子分区"></a>子分区</h2><p>MySQL还支持子分区(复合分区)，可以将各个分区进一步划分为子分区。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- RANGE分区并使用HASH子分区</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> sales_data (</span><br><span class="line">    sale_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    sale_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    store_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    product_id <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">    amount <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>),</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (sale_id, sale_date, store_id)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">RANGE</span> (<span class="keyword">YEAR</span>(sale_date))</span><br><span class="line">SUBPARTITION <span class="keyword">BY</span> HASH (store_id)</span><br><span class="line">SUBPARTITIONS <span class="number">4</span> (</span><br><span class="line">    <span class="keyword">PARTITION</span> p2019 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2020</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p2020 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2021</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p2021 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2022</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="分区管理"><a href="#分区管理" class="headerlink" title="分区管理"></a>分区管理</h2><p>MySQL提供了多种管理分区的工具和语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查看表分区信息</span></span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    TABLE_SCHEMA, </span><br><span class="line">    TABLE_NAME, </span><br><span class="line">    PARTITION_NAME, </span><br><span class="line">    PARTITION_ORDINAL_POSITION, </span><br><span class="line">    PARTITION_METHOD, </span><br><span class="line">    PARTITION_EXPRESSION</span><br><span class="line"><span class="keyword">FROM</span> information_schema.PARTITIONS</span><br><span class="line"><span class="keyword">WHERE</span> TABLE_NAME <span class="operator">=</span> <span class="string">&#x27;orders&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 添加新分区(RANGE分区)</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> orders <span class="keyword">ADD</span> <span class="keyword">PARTITION</span> (<span class="keyword">PARTITION</span> p2022 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2023</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 删除分区(同时删除数据)</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> orders <span class="keyword">DROP</span> <span class="keyword">PARTITION</span> p2018;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 重组分区</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> orders REORGANIZE <span class="keyword">PARTITION</span> p2019, p2020 <span class="keyword">INTO</span> (</span><br><span class="line">    <span class="keyword">PARTITION</span> p2019_2020 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2021</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 拆分分区</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> orders REORGANIZE <span class="keyword">PARTITION</span> p2019_2020 <span class="keyword">INTO</span> (</span><br><span class="line">    <span class="keyword">PARTITION</span> p2019 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2020</span>),</span><br><span class="line">    <span class="keyword">PARTITION</span> p2020 <span class="keyword">VALUES</span> LESS THAN (<span class="number">2021</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="分区使用最佳实践"><a href="#分区使用最佳实践" class="headerlink" title="分区使用最佳实践"></a>分区使用最佳实践</h2><ol>
+<li><strong>选择合适的分区键</strong>：分区键应与WHERE子句中的过滤条件对应</li>
+<li><strong>分区数量控制</strong>：分区过多会增加管理开销，一般建议不超过50-100个</li>
+<li><strong>均衡分区大小</strong>：尽量使各分区的数据量大致相等</li>
+<li><strong>考虑使用自动分区管理工具</strong>：对于需要定期管理的分区表，可以实现自动化</li>
+<li><strong>避免跨分区操作</strong>：跨分区操作可能降低性能</li>
+<li><strong>测试查询计划</strong>：使用EXPLAIN验证查询是否使用了分区剪枝</li>
+</ol>
+<h1 id="MySQL高可用性解决方案"><a href="#MySQL高可用性解决方案" class="headerlink" title="MySQL高可用性解决方案"></a>MySQL高可用性解决方案</h1><h2 id="高可用性概述"><a href="#高可用性概述" class="headerlink" title="高可用性概述"></a>高可用性概述</h2><p>在企业环境中，数据库的高可用性(High Availability, HA)至关重要，它确保数据库服务在硬件故障、网络问题或计划维护时仍能正常提供服务。MySQL提供了多种高可用性解决方案，以满足不同规模和需求的系统。</p>
+<p>高可用性的核心指标：</p>
+<ol>
+<li><strong>RTO(Recovery Time Objective)</strong>: 故障后恢复服务的目标时间</li>
+<li><strong>RPO(Recovery Point Objective)</strong>: 数据丢失的可接受程度</li>
+<li><strong>可扩展性</strong>: 系统处理负载增长的能力</li>
+<li><strong>一致性</strong>: 在故障转移过程中保证数据一致性的程度</li>
+</ol>
+<h2 id="主从复制-Master-Slave-Replication"><a href="#主从复制-Master-Slave-Replication" class="headerlink" title="主从复制(Master-Slave Replication)"></a>主从复制(Master-Slave Replication)</h2><p>主从复制是MySQL最基本的高可用性解决方案，它通过将主服务器(Master)上的数据变更复制到一个或多个从服务器(Slave)上来实现。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/%5Cimages%5Cposts%5C2020%5C04-25-MySQL%5C%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6.png" alt="主从复制"></p>
+<p>主从复制配置步骤：</p>
+<ol>
+<li><strong>配置主服务器</strong>：</li>
+</ol>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 主服务器my.cnf配置</span></span><br><span class="line"><span class="section">[mysqld]</span></span><br><span class="line"><span class="attr">server-id</span> = <span class="number">1</span></span><br><span class="line"><span class="attr">log_bin</span> = mysql-bin</span><br><span class="line"><span class="attr">binlog_format</span> = ROW</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>配置从服务器</strong>：</li>
+</ol>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从服务器my.cnf配置</span></span><br><span class="line"><span class="section">[mysqld]</span></span><br><span class="line"><span class="attr">server-id</span> = <span class="number">2</span></span><br><span class="line"><span class="attr">relay_log</span> = mysql-relay-bin</span><br><span class="line"><span class="attr">log_slave_updates</span> = <span class="number">1</span></span><br><span class="line"><span class="attr">read_only</span> = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><strong>在主服务器上创建复制用户</strong>：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> <span class="string">&#x27;repl&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED <span class="keyword">BY</span> <span class="string">&#x27;password&#x27;</span>;</span><br><span class="line"><span class="keyword">GRANT</span> REPLICATION SLAVE <span class="keyword">ON</span> <span class="operator">*</span>.<span class="operator">*</span> <span class="keyword">TO</span> <span class="string">&#x27;repl&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><strong>获取主服务器状态</strong>：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> MASTER STATUS;</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><strong>在从服务器上配置主从关系</strong>：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CHANGE MASTER <span class="keyword">TO</span></span><br><span class="line">    MASTER_HOST<span class="operator">=</span><span class="string">&#x27;master_host&#x27;</span>,</span><br><span class="line">    MASTER_USER<span class="operator">=</span><span class="string">&#x27;repl&#x27;</span>,</span><br><span class="line">    MASTER_PASSWORD<span class="operator">=</span><span class="string">&#x27;password&#x27;</span>,</span><br><span class="line">    MASTER_LOG_FILE<span class="operator">=</span><span class="string">&#x27;recorded_log_file&#x27;</span>,</span><br><span class="line">    MASTER_LOG_POS<span class="operator">=</span>recorded_log_position;</span><br><span class="line"></span><br><span class="line"><span class="keyword">START</span> SLAVE;</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li><strong>验证复制状态</strong>：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> SLAVE STATUS\G</span><br></pre></td></tr></table></figure>
+
+<h2 id="组复制-Group-Replication"><a href="#组复制-Group-Replication" class="headerlink" title="组复制(Group Replication)"></a>组复制(Group Replication)</h2><p>组复制是MySQL 5.7引入的新型复制技术，它采用了分布式一致性协议来确保数据一致性。在组复制中，服务器组成一个复制组，所有的写操作必须在大多数节点上达成一致才能提交。</p>
+<p>组复制的两种模式：</p>
+<ol>
+<li><strong>单主模式(Single-Primary Mode)</strong>：只有一个主节点接受写操作</li>
+<li><strong>多主模式(Multi-Primary Mode)</strong>：所有节点都可以接受写操作</li>
+</ol>
+<p>组复制配置示例(单主模式)：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 组复制配置</span></span><br><span class="line"><span class="section">[mysqld]</span></span><br><span class="line"><span class="comment"># 基本设置</span></span><br><span class="line"><span class="attr">server_id</span> = <span class="number">1</span></span><br><span class="line"><span class="attr">gtid_mode</span> = <span class="literal">ON</span></span><br><span class="line"><span class="attr">enforce_gtid_consistency</span> = <span class="literal">ON</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 组复制插件设置</span></span><br><span class="line"><span class="attr">plugin_load</span> = <span class="string">&#x27;group_replication.so&#x27;</span></span><br><span class="line"><span class="attr">group_replication_group_name</span> = <span class="string">&quot;aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee&quot;</span></span><br><span class="line"><span class="attr">group_replication_start_on_boot</span> = <span class="literal">OFF</span></span><br><span class="line"><span class="attr">group_replication_local_address</span> = <span class="string">&quot;server1:33061&quot;</span></span><br><span class="line"><span class="attr">group_replication_group_seeds</span> = <span class="string">&quot;server1:33061,server2:33061,server3:33061&quot;</span></span><br><span class="line"><span class="attr">group_replication_bootstrap_group</span> = <span class="literal">OFF</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="MySQL-InnoDB-Cluster"><a href="#MySQL-InnoDB-Cluster" class="headerlink" title="MySQL InnoDB Cluster"></a>MySQL InnoDB Cluster</h2><p>MySQL InnoDB Cluster是MySQL官方提供的高可用性解决方案，它结合了MySQL Group Replication、MySQL Router和MySQL Shell，提供了完整的高可用性架构。</p>
+<p>InnoDB Cluster的主要组件：</p>
+<ol>
+<li><strong>MySQL Group Replication</strong>：提供数据复制和一致性保证</li>
+<li><strong>MySQL Router</strong>：提供自动读写分离和故障转移</li>
+<li><strong>MySQL Shell</strong>：提供管理和监控工具</li>
+</ol>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/%5Cimages%5Cposts%5C2020%5C04-25-MySQL%5CInnoDB-Cluste.png" alt="InnoDB Cluster"></p>
+<p>InnoDB Cluster部署示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># 使用MySQL Shell创建InnoDB Cluster</span><br><span class="line">mysqlsh</span><br><span class="line"></span><br><span class="line"># 连接到第一个实例</span><br><span class="line">\connect root@server1:3306</span><br><span class="line"></span><br><span class="line"># 创建集群</span><br><span class="line">cluster = dba.createCluster(&#x27;myCluster&#x27;);</span><br><span class="line"></span><br><span class="line"># 添加实例到集群</span><br><span class="line">cluster.addInstance(&#x27;root@server2:3306&#x27;);</span><br><span class="line">cluster.addInstance(&#x27;root@server3:3306&#x27;);</span><br><span class="line"></span><br><span class="line"># 检查集群状态</span><br><span class="line">cluster.status();</span><br><span class="line"></span><br><span class="line"># 配置MySQL Router</span><br><span class="line"># 在应用服务器上执行</span><br><span class="line">mysqlrouter --bootstrap root@server1:3306 --user=mysqlrouter</span><br></pre></td></tr></table></figure>
+
+<h2 id="读写分离优化"><a href="#读写分离优化" class="headerlink" title="读写分离优化"></a>读写分离优化</h2><p>结合主从复制实现读写分离可以大幅提升系统性能：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/%5Cimages%5Cposts%5C2020%5C04-25-MySQL%5C%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB%E4%BC%98%E5%8C%96.png" alt="读写分离"></p>
+<p>实现读写分离的常用工具：</p>
+<ol>
+<li><strong>ProxySQL</strong>：高性能的MySQL代理</li>
+<li><strong>MySQL Router</strong>：官方提供的路由工具</li>
+<li><strong>MaxScale</strong>：MariaDB开发的数据库代理</li>
+</ol>
+<p>ProxySQL配置示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># ProxySQL配置文件示例</span><br><span class="line">mysql_servers =</span><br><span class="line">(</span><br><span class="line">    &#123; address=&quot;master-host&quot;, port=3306, hostgroup=0, max_connections=100 &#125;,</span><br><span class="line">    &#123; address=&quot;slave1-host&quot;, port=3306, hostgroup=1, max_connections=100 &#125;,</span><br><span class="line">    &#123; address=&quot;slave2-host&quot;, port=3306, hostgroup=1, max_connections=100 &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">mysql_users =</span><br><span class="line">(</span><br><span class="line">    &#123; username=&quot;app_user&quot;, password=&quot;password&quot;, default_hostgroup=0, active=1 &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">mysql_query_rules =</span><br><span class="line">(</span><br><span class="line">    &#123;</span><br><span class="line">        rule_id=1,</span><br><span class="line">        active=1,</span><br><span class="line">        match_pattern=&quot;^SELECT&quot;,</span><br><span class="line">        destination_hostgroup=1,</span><br><span class="line">        apply=1</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        rule_id=2,</span><br><span class="line">        active=1,</span><br><span class="line">        match_pattern=&quot;^INSERT|^UPDATE|^DELETE&quot;,</span><br><span class="line">        destination_hostgroup=0,</span><br><span class="line">        apply=1</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="高可用性最佳实践"><a href="#高可用性最佳实践" class="headerlink" title="高可用性最佳实践"></a>高可用性最佳实践</h2><ol>
+<li><strong>监控复制状态</strong>：实时监控复制延迟和状态</li>
+<li><strong>自动故障检测与转移</strong>：配置自动故障检测和转移机制</li>
+<li><strong>定期备份</strong>：即使有高可用性架构，仍需定期备份</li>
+<li><strong>测试故障转移</strong>：定期测试故障转移流程</li>
+<li><strong>地理分布</strong>：考虑跨数据中心部署以防区域性故障</li>
+<li><strong>数据一致性验证</strong>：定期验证主从数据一致性</li>
+<li><strong>性能监控</strong>：监控复制带宽和资源使用情况</li>
+</ol>
+<h1 id="其他MySQL-8-0重要特性"><a href="#其他MySQL-8-0重要特性" class="headerlink" title="其他MySQL 8.0重要特性"></a>其他MySQL 8.0重要特性</h1><h2 id="通用表表达式-CTE"><a href="#通用表表达式-CTE" class="headerlink" title="通用表表达式(CTE)"></a>通用表表达式(CTE)</h2><p>MySQL 8.0引入了通用表表达式(Common Table Expressions, CTEs)，使得复杂查询更加清晰和可维护。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用WITH子句的递归查询</span></span><br><span class="line"><span class="keyword">WITH</span> <span class="keyword">RECURSIVE</span> employee_hierarchy <span class="keyword">AS</span> (</span><br><span class="line">    <span class="comment">-- 基础查询(锚点)</span></span><br><span class="line">    <span class="keyword">SELECT</span> id, name, manager_id, <span class="number">1</span> <span class="keyword">AS</span> level</span><br><span class="line">    <span class="keyword">FROM</span> employees</span><br><span class="line">    <span class="keyword">WHERE</span> manager_id <span class="keyword">IS</span> <span class="keyword">NULL</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">UNION</span> <span class="keyword">ALL</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">-- 递归查询</span></span><br><span class="line">    <span class="keyword">SELECT</span> e.id, e.name, e.manager_id, eh.level <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">FROM</span> employees e</span><br><span class="line">    <span class="keyword">JOIN</span> employee_hierarchy eh <span class="keyword">ON</span> e.manager_id <span class="operator">=</span> eh.id</span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> employee_hierarchy <span class="keyword">ORDER</span> <span class="keyword">BY</span> level, id;</span><br></pre></td></tr></table></figure>
+
+<h2 id="原子DDL"><a href="#原子DDL" class="headerlink" title="原子DDL"></a>原子DDL</h2><p>MySQL 8.0引入了原子DDL(Data Definition Language)，使得数据库结构变更操作要么完全成功，要么完全失败，不会留下中间状态。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 在早期版本中，如果在执行过程中发生错误，表可能处于不一致状态</span></span><br><span class="line"><span class="comment">-- 在MySQL 8.0中，整个操作是原子的</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> customers</span><br><span class="line">    <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> date_of_birth <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">ADD</span> INDEX idx_dob (date_of_birth);</span><br></pre></td></tr></table></figure>
+
+<h2 id="资源组管理"><a href="#资源组管理" class="headerlink" title="资源组管理"></a>资源组管理</h2><p>MySQL 8.0引入了资源组(Resource Groups)功能，允许对不同的连接和查询进行CPU资源的分配和优先级设置。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建资源组</span></span><br><span class="line"><span class="keyword">CREATE</span> RESOURCE <span class="keyword">GROUP</span> reporting</span><br><span class="line">    TYPE <span class="operator">=</span> <span class="keyword">USER</span></span><br><span class="line">    VCPU <span class="operator">=</span> <span class="number">2</span><span class="number">-3</span></span><br><span class="line">    THREAD_PRIORITY <span class="operator">=</span> <span class="number">-20</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 将用户分配到资源组</span></span><br><span class="line"><span class="keyword">ALTER</span> RESOURCE <span class="keyword">GROUP</span> reporting <span class="keyword">ADD</span> <span class="keyword">USER</span> report_user;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 将线程分配到资源组</span></span><br><span class="line"><span class="keyword">SET</span> RESOURCE <span class="keyword">GROUP</span> reporting;</span><br></pre></td></tr></table></figure>
+
+<h2 id="改进的数据字典"><a href="#改进的数据字典" class="headerlink" title="改进的数据字典"></a>改进的数据字典</h2><p>MySQL 8.0重新设计了数据字典，将其从基于文件(.frm文件)转变为事务性的数据字典表，提高了可靠性和性能。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>MySQL 8.0引入的高级功能和新特性极大地增强了这一流行数据库系统的能力。JSON数据类型支持使MySQL能够更好地处理半结构化数据；窗口函数简化了复杂的分析查询；分区表技术提供了管理大规模数据的有效方法；而各种高可用性解决方案则确保了数据库服务的连续性和可靠性。</p>
+<p>这些功能共同使MySQL在现代应用开发中保持竞争力，能够满足从小型应用到大型企业系统的各种需求。随着数据量和复杂性的不断增加，熟练掌握这些高级功能将帮助开发者和数据库管理员构建更高效、更可靠的数据库应用。</p>
+<p>在实际应用中，应根据具体场景选择合适的功能和特性，并进行适当的性能测试和调优，以充分发挥MySQL的潜力。随着MySQL的不断发展，我们可以期待更多创新功能的出现，进一步增强这一开源数据库系统的能力。</p>
+<h1 id="参考资源"><a href="#参考资源" class="headerlink" title="参考资源"></a>参考资源</h1><ol>
+<li>MySQL官方文档: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/">https://dev.mysql.com/doc/</a></li>
+<li>MySQL 8.0参考手册: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/">https://dev.mysql.com/doc/refman/8.0/en/</a></li>
+<li>MySQL JSON文档: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/json.html">https://dev.mysql.com/doc/refman/8.0/en/json.html</a></li>
+<li>MySQL Window Functions文档: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/window-functions.html">https://dev.mysql.com/doc/refman/8.0/en/window-functions.html</a></li>
+<li>MySQL InnoDB Cluster文档: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/mysql-innodb-cluster-introduction.html">https://dev.mysql.com/doc/refman/8.0/en/mysql-innodb-cluster-introduction.html</a></li>
+<li>MySQL分区表文档: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/partitioning.html">https://dev.mysql.com/doc/refman/8.0/en/partitioning.html</a></li>
+</ol>
+<hr>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20200425/">https://junly.top/posts/20200425/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a><a class="post-meta__tags" href="/tags/JSON/">JSON</a><a class="post-meta__tags" href="/tags/%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0/">窗口函数</a><a class="post-meta__tags" href="/tags/%E5%88%86%E5%8C%BA%E8%A1%A8/">分区表</a><a class="post-meta__tags" href="/tags/%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7/">高可用性</a></div><div class="post-share"><div class="social-share" data-image="/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20200403/" title="MySQL性能优化与调优：提升数据库效率的完全指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">MySQL性能优化与调优：提升数据库效率的完全指南</div></div><div class="info-2"><div class="info-item-1">前言在如今的高并发、大数据量应用环境下，数据库性能已成为系统整体表现的关键瓶颈之一。MySQL作为全球最流行的开源关系型数据库，广泛应用于各类互联网应用和企业系统中。然而，默认配置下的MySQL往往无法满足生产环境的性能需求，需要通过专业的性能优化与调优来充分发挥其潜力。本文将全面介绍MySQL性能优化的各个方面，从硬件选择、系统配置到SQL查询优化，帮助读者构建高效、稳定的MySQL数据库系统。 MySQL性能的关键影响因素影响MySQL性能的因素可以分为以下几个层面： graph TD     A[MySQL性能影响因素] --> B[硬件因素]     A --> C[系统配置]     A --> D[数据库设计]     A --> E[查询优化]     A --> F[业务应用层]          B --> B1[CPU]     B --> B2[内存]     B --> B3[磁盘I/O]     B --> B4[网络]          C --> C1[MySQL配置参数]     C --> C2[操作系统优化]          D -->...</div></div></div></a><a class="pagination-related" href="/posts/20200514/" title="MySQL与MongoDB对比：关系型与非关系型数据库的抉择"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MySQL与MongoDB对比：关系型与非关系型数据库的抉择</div></div><div class="info-2"><div class="info-item-1">前言在当今数据驱动的世界中，选择合适的数据库系统对于应用程序的成功至关重要。MySQL作为经典的关系型数据库代表，与MongoDB作为流行的非关系型数据库代表，各自具有显著的特点和应用场景。本文将深入对比这两种数据库系统的核心特性、性能表现、适用场景等方面，帮助开发者和架构师在项目中做出明智的技术选择。无论是传统的企业应用还是现代的Web服务，了解这两种数据库的优缺点将有助于构建更高效、更可靠的数据存储解决方案。 MySQL与MongoDB基础概念对比MySQL和MongoDB代表了两种截然不同的数据库设计理念和实现方式，下面从基本概念开始对比它们的异同： graph TB     subgraph MySQL     A[关系型数据库] --> B[表结构化存储]     B --> C[SQL查询语言]     C --> D[ACID事务]     D --> E[强一致性]     end          subgraph MongoDB     F[非关系型数据库] --> G[文档型存储]     G --> H[JSON/BSON格式]     H -->...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20200125/" title="Linux下MySQL安装配置指南：从基础到优化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-01-25</div><div class="info-item-2">Linux下MySQL安装配置指南：从基础到优化</div></div><div class="info-2"><div class="info-item-1">前言MySQL是世界上最流行的开源关系型数据库管理系统之一，广泛应用于Web应用、企业级应用和云服务等场景。本文将详细介绍MySQL在Linux环境下的安装、配置和基本优化，帮助读者快速部署一个高性能、安全可靠的MySQL服务。 安装前准备在安装MySQL之前，我们需要了解不同的安装方式和版本选择，并做好相应的准备工作。 版本选择MySQL目前主要有以下几个常用版本：    版本 特点 适用场景    MySQL Community 开源免费，社区维护 个人项目、中小型网站   MySQL Enterprise 商业版，提供额外支持和工具 企业级应用   MySQL Cluster 高可用性集群版本 需要高可用的场景   MariaDB MySQL的开源分支，完全兼容 寻求更开放替代方案   本教程将以MySQL Community 8.0版本为例进行安装。 系统要求 Linux操作系统(CentOS 7&#x2F;8, Ubuntu 18.04&#x2F;20.04等) 至少1GB...</div></div></div></a><a class="pagination-related" href="/posts/20200215/" title="MySQL基础知识与入门：从零开始学习数据库"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-02-15</div><div class="info-item-2">MySQL基础知识与入门：从零开始学习数据库</div></div><div class="info-2"><div class="info-item-1">前言在现代应用开发中，数据库是不可或缺的核心组件。MySQL作为全球最流行的开源关系型数据库之一，以其可靠性、易用性和强大的功能赢得了广泛应用。无论是个人博客、电子商务网站还是大型企业应用，MySQL都能提供稳定高效的数据存储解决方案。本文将带领初学者了解MySQL的基础知识，从安装到基本操作，帮助你迈出学习数据库的第一步。 什么是MySQL？MySQL是一个开源的关系型数据库管理系统(RDBMS)，由瑞典MySQL AB公司开发，现在属于Oracle公司。作为一个关系型数据库，MySQL使用表格存储数据，并通过SQL(结构化查询语言)进行数据管理和操作。 graph TD     A[数据库类型] --> B[关系型数据库]     A --> C[非关系型数据库]     B --> D[MySQL]     B --> E[PostgreSQL]     B --> F[Oracle]     B --> G[SQL Server]     C --> H[MongoDB]     C --> I[Redis]     C -->...</div></div></div></a><a class="pagination-related" href="/posts/20200321/" title="MySQL实际应用与案例：从企业实践到解决方案"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-03-21</div><div class="info-item-2">MySQL实际应用与案例：从企业实践到解决方案</div></div><div class="info-2"><div class="info-item-1">前言MySQL作为全球最流行的开源关系型数据库系统之一，已经成为各行各业数据存储和管理的核心基础设施。它不仅仅是一个简单的数据存储工具，更是驱动无数企业业务增长的关键技术之一。从小型初创公司到大型互联网巨头，从传统行业到新兴科技企业，MySQL都在其业务系统中扮演着至关重要的角色。本文将通过实际案例和应用场景，深入探讨MySQL在各个领域的实际应用，并分享优化策略和最佳实践，帮助读者更好地理解和应用MySQL技术。 MySQL在各行业的应用现状MySQL因其高性能、高可靠性和易用性，已在多个行业广泛应用。下图展示了MySQL在不同行业的应用分布： pie title MySQL在各行业的应用占比     "电子商务" : 28     "金融服务" : 21     "社交媒体" : 18     "在线教育" : 12     "医疗健康" : 8     "制造业" : 7     "其他行业" : 6  各行业对MySQL的依赖程度和应用方式各有特点，下面将通过具体案例进行详细分析。 MySQL在电子商务中的应用1....</div></div></div></a><a class="pagination-related" href="/posts/20200305/" title="MySQL核心功能与技术特性：深入理解数据库引擎"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-03-05</div><div class="info-item-2">MySQL核心功能与技术特性：深入理解数据库引擎</div></div><div class="info-2"><div class="info-item-1">前言MySQL作为世界上最受欢迎的开源关系型数据库之一，凭借其强大的功能和灵活的架构在各类应用场景中广泛应用。从小型网站到大型企业级应用，MySQL都展现出卓越的性能和可靠性。要充分利用MySQL的强大功能，深入理解其核心技术特性至关重要。本文将深入探讨MySQL的存储引擎、事务处理、索引机制等核心功能，帮助开发者和数据库管理员更好地优化和管理MySQL数据库。 MySQL核心架构MySQL采用了客户端&#x2F;服务器架构，其核心架构可以分为以下几个主要组件： graph TD     A[客户端] --> B[连接池]     B --> C[查询缓存]     B --> D[解析器]     D --> E[优化器]     E --> F[执行器]     F --> G[存储引擎]     G -->...</div></div></div></a><a class="pagination-related" href="/posts/20200403/" title="MySQL性能优化与调优：提升数据库效率的完全指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-03</div><div class="info-item-2">MySQL性能优化与调优：提升数据库效率的完全指南</div></div><div class="info-2"><div class="info-item-1">前言在如今的高并发、大数据量应用环境下，数据库性能已成为系统整体表现的关键瓶颈之一。MySQL作为全球最流行的开源关系型数据库，广泛应用于各类互联网应用和企业系统中。然而，默认配置下的MySQL往往无法满足生产环境的性能需求，需要通过专业的性能优化与调优来充分发挥其潜力。本文将全面介绍MySQL性能优化的各个方面，从硬件选择、系统配置到SQL查询优化，帮助读者构建高效、稳定的MySQL数据库系统。 MySQL性能的关键影响因素影响MySQL性能的因素可以分为以下几个层面： graph TD     A[MySQL性能影响因素] --> B[硬件因素]     A --> C[系统配置]     A --> D[数据库设计]     A --> E[查询优化]     A --> F[业务应用层]          B --> B1[CPU]     B --> B2[内存]     B --> B3[磁盘I/O]     B --> B4[网络]          C --> C1[MySQL配置参数]     C --> C2[操作系统优化]          D -->...</div></div></div></a><a class="pagination-related" href="/posts/20200527/" title="MySQL运维与管理：数据库管理员的实用指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-05-27</div><div class="info-item-2">MySQL运维与管理：数据库管理员的实用指南</div></div><div class="info-2"><div class="info-item-1">前言在企业级应用系统中，MySQL数据库作为核心的数据存储组件，其稳定性和性能直接影响着整个业务系统的运行。对于数据库管理员（DBA）和系统运维人员来说，掌握MySQL的运维与管理技巧至关重要。本文将从备份恢复、性能监控、故障排查等多个维度，分享MySQL数据库的日常运维管理经验和最佳实践，帮助读者构建一套完整的MySQL运维体系，确保数据库系统的高可用性、安全性和性能表现。无论是传统的单机部署还是复杂的集群环境，这些实用指南都将为数据库运维工作提供有力支持。 MySQL运维管理的核心领域MySQL运维管理工作涵盖多个核心领域，每个领域都需要专业的知识和技能。以下是MySQL运维管理的主要方面： mindmap   root((MySQL运维管理))     备份与恢复       逻辑备份       物理备份       时间点恢复       灾难恢复     监控与告警       性能指标监控       资源使用监控       慢查询监控       主从状态监控     安全管理       用户权限管理       网络安全       数据加密      ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">日积月累，技术笔记，分享交流，共创进步！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">61</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">日积月累，技术笔记，分享交流，共创进步！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL-8-0%E4%B8%BB%E8%A6%81%E6%96%B0%E7%89%B9%E6%80%A7%E6%A6%82%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">MySQL 8.0主要新特性概览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JSON%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8A%9F%E8%83%BD"><span class="toc-number">3.</span> <span class="toc-text">JSON数据类型与功能</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#JSON%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%A6%82%E8%BF%B0"><span class="toc-number">3.1.</span> <span class="toc-text">JSON数据类型概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JSON%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.2.</span> <span class="toc-text">JSON函数详解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JSON%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96"><span class="toc-number">3.3.</span> <span class="toc-text">JSON索引优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.4.</span> <span class="toc-text">实际应用场景</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0"><span class="toc-number">4.</span> <span class="toc-text">窗口函数</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0%E5%9F%BA%E7%A1%80"><span class="toc-number">4.1.</span> <span class="toc-text">窗口函数基础</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0"><span class="toc-number">4.2.</span> <span class="toc-text">常用窗口函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%92%E5%90%8D%E5%87%BD%E6%95%B0"><span class="toc-number">4.2.1.</span> <span class="toc-text">排名函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0"><span class="toc-number">4.2.2.</span> <span class="toc-text">分析函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%81%8F%E7%A7%BB%E5%87%BD%E6%95%B0"><span class="toc-number">4.2.3.</span> <span class="toc-text">偏移函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF-1"><span class="toc-number">4.3.</span> <span class="toc-text">实际应用场景</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E8%A1%A8%E6%8A%80%E6%9C%AF"><span class="toc-number">5.</span> <span class="toc-text">分区表技术</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E8%A1%A8%E5%9F%BA%E7%A1%80"><span class="toc-number">5.1.</span> <span class="toc-text">分区表基础</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.2.</span> <span class="toc-text">分区类型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RANGE%E5%88%86%E5%8C%BA"><span class="toc-number">5.2.1.</span> <span class="toc-text">RANGE分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LIST%E5%88%86%E5%8C%BA"><span class="toc-number">5.2.2.</span> <span class="toc-text">LIST分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HASH%E5%88%86%E5%8C%BA"><span class="toc-number">5.2.3.</span> <span class="toc-text">HASH分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#KEY%E5%88%86%E5%8C%BA"><span class="toc-number">5.2.4.</span> <span class="toc-text">KEY分区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E5%88%86%E5%8C%BA"><span class="toc-number">5.3.</span> <span class="toc-text">子分区</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E7%AE%A1%E7%90%86"><span class="toc-number">5.4.</span> <span class="toc-text">分区管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E4%BD%BF%E7%94%A8%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.5.</span> <span class="toc-text">分区使用最佳实践</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">6.</span> <span class="toc-text">MySQL高可用性解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7%E6%A6%82%E8%BF%B0"><span class="toc-number">6.1.</span> <span class="toc-text">高可用性概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6-Master-Slave-Replication"><span class="toc-number">6.2.</span> <span class="toc-text">主从复制(Master-Slave Replication)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E5%A4%8D%E5%88%B6-Group-Replication"><span class="toc-number">6.3.</span> <span class="toc-text">组复制(Group Replication)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL-InnoDB-Cluster"><span class="toc-number">6.4.</span> <span class="toc-text">MySQL InnoDB Cluster</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB%E4%BC%98%E5%8C%96"><span class="toc-number">6.5.</span> <span class="toc-text">读写分离优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8%E6%80%A7%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.6.</span> <span class="toc-text">高可用性最佳实践</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B6%E4%BB%96MySQL-8-0%E9%87%8D%E8%A6%81%E7%89%B9%E6%80%A7"><span class="toc-number">7.</span> <span class="toc-text">其他MySQL 8.0重要特性</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E7%94%A8%E8%A1%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F-CTE"><span class="toc-number">7.1.</span> <span class="toc-text">通用表表达式(CTE)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E5%AD%90DDL"><span class="toc-number">7.2.</span> <span class="toc-text">原子DDL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%84%E6%BA%90%E7%BB%84%E7%AE%A1%E7%90%86"><span class="toc-number">7.3.</span> <span class="toc-text">资源组管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%97%E5%85%B8"><span class="toc-number">7.4.</span> <span class="toc-text">改进的数据字典</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="toc-number">9.</span> <span class="toc-text">参考资源</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20241202/" title="探索AI技术领域的核心术语：从模型到部署再到应用">探索AI技术领域的核心术语：从模型到部署再到应用</a><time datetime="2024-12-01T16:00:00.000Z" title="发表于 2024-12-02 00:00:00">2024-12-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20220210/" title="Neo4j上手教程与实践指南">Neo4j上手教程与实践指南</a><time datetime="2022-02-10T02:00:00.000Z" title="发表于 2022-02-10 10:00:00">2022-02-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20220205/" title="Neo4j应用场景与实战案例解析">Neo4j应用场景与实战案例解析</a><time datetime="2022-02-05T02:00:00.000Z" title="发表于 2022-02-05 10:00:00">2022-02-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20220121/" title="Neo4j技术特性与功能深度解析">Neo4j技术特性与功能深度解析</a><time datetime="2022-01-21T02:00:00.000Z" title="发表于 2022-01-21 10:00:00">2022-01-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20220120/" title="Neo4j与图数据库基础概念详解">Neo4j与图数据库基础概念详解</a><time datetime="2022-01-20T02:00:00.000Z" title="发表于 2022-01-20 10:00:00">2022-01-20</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Junly</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/20200425/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://junly.top/posts/20200425/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'MySQL高级功能与新特性：从JSON到窗口函数的全面解析'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Disqus' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Disqus' === 'Disqus' || !false) {
+    if (false) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
