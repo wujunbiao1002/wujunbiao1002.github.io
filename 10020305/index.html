@@ -1,11 +1,269 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我们的时光轴 - 甜蜜记忆</title>
-    <link rel="stylesheet" href="/polly/css/style.css">
+    <title>我们的时光轴</title>
+    <style>
+        :root {
+            --primary-color: #ffb6c1;
+            --secondary-color: #fff0f5;
+            --accent-color: #ff69b4;
+            --text-color: #333;
+            --light-text: #666;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            color: var(--light-text);
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: var(--primary-color);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+        
+        .memory {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            margin-bottom: 30px;
+        }
+        
+        .memory::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid var(--accent-color);
+            border-radius: 50%;
+            top: 15px;
+            z-index: 1;
+        }
+        
+        .left {
+            left: 0;
+        }
+        
+        .right {
+            left: 50%;
+        }
+        
+        .left::after {
+            right: -10px;
+        }
+        
+        .right::after {
+            left: -10px;
+        }
+        
+        .content {
+            padding: 20px;
+            background-color: white;
+            position: relative;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        .date {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .text {
+            margin-bottom: 15px;
+        }
+        
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .gallery img {
+            width: 100%;
+            max-width: 150px;
+            height: auto;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery img:hover {
+            transform: scale(1.05);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .pagination button:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            margin-top: 10px;
+            text-align: center;
+            color: var(--light-text);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 0;
+            color: var(--accent-color);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+        
+        /* 响应式设计 */
+        @media screen and (max-width: 768px) {
+            .timeline::before {
+                left: 31px;
+            }
+            
+            .memory {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .memory::after {
+                left: 21px;
+            }
+            
+            .left::after, .right::after {
+                left: 21px;
+            }
+            
+            .right {
+                left: 0;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 20px 0;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .gallery img {
+                max-width: 120px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,70 +272,150 @@
             <p>记录每一个美好瞬间</p>
         </header>
         
-        <div class="timeline">
-            <!-- 时间轴项目示例 -->
-            <div class="timeline-item">
-                <div class="timeline-date">
-                    <span class="date">2023年12月25日</span>
-                </div>
-                <div class="timeline-content">
-                    <h3>xxxx</h3>
-                    <p>xxx</p>
-                    <div class="timeline-gallery">
-                        <img src="/polly/images/placeholder.jpg" alt="圣诞节照片" class="timeline-image">
-                    </div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-date">
-                    <span class="date">2011年09月29日</span>
-                </div>
-                <div class="timeline-content">
-                    <h3>我们加了QQ</h3>
-                    <p>那天四周，已经记不清是你加的我还是我家的你了</p>
-                    <div class="timeline-gallery">
-                        <img src="/polly/images/placeholder.jpg" alt="约会照片" class="timeline-image">
-                    </div>
-                </div>
-            </div>
+        <div class="timeline" id="timeline">
+            <!-- 内容将通过JavaScript动态加载 -->
         </div>
         
-        <div class="add-memory">
-            <button id="addMemoryBtn">我们的开始</button>
+        <div class="pagination">
+            <button id="prevBtn" disabled>上一页</button>
+            <button id="nextBtn">下一页</button>
         </div>
-
-        <div id="memoryForm" class="memory-form hidden">
-            <h3>添加新回忆</h3>
-            <form id="newMemoryForm">
-                <div class="form-group">
-                    <label for="memoryDate">日期</label>
-                    <input type="date" id="memoryDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="memoryTitle">标题</label>
-                    <input type="text" id="memoryTitle" placeholder="这一天发生了什么特别的事情?" required>
-                </div>
-                <div class="form-group">
-                    <label for="memoryDesc">描述</label>
-                    <textarea id="memoryDesc" placeholder="记录下这个美好瞬间..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="memoryImage">上传照片</label>
-                    <input type="file" id="memoryImage" accept="image/*">
-                </div>
-                <div class="form-buttons">
-                    <button type="submit">保存</button>
-                    <button type="button" id="cancelBtn">取消</button>
-                </div>
-            </form>
+        
+        <div class="page-info" id="pageInfo"></div>
+        
+        <div class="footer">
+            用爱创造的回忆
         </div>
     </div>
-
-    <footer>
-        <p>用爱创造的回忆</p>
-    </footer>
-
-    <script src="/polly/js/script.js"></script>
+    
+    <div class="modal" id="imageModal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+    
+    <script>
+        let memories = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        
+        // 获取数据
+        fetch('/polly/data.json')
+            .then(response => response.json())
+            .then(data => {
+                // 按日期倒序排序
+                memories = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderMemories();
+                updatePagination();
+            })
+            .catch(error => {
+                console.error('加载数据失败:', error);
+                document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
+            });
+        
+        // 渲染时光轴内容
+        function renderMemories() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            // 计算当前页的起始和结束索引
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
+            
+            // 获取当前页要显示的数据
+            const currentPageData = memories.slice(startIndex, endIndex);
+            
+            currentPageData.forEach((memory, index) => {
+                const memoryDiv = document.createElement('div');
+                memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
+                
+                const formattedDate = formatDate(memory.date);
+                
+                let imagesHTML = '';
+                if (memory.image && memory.image.length > 0) {
+                    imagesHTML = '<div class="gallery">';
+                    memory.image.forEach((img, i) => {
+                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i+1}" onclick="openModal('${img}')">`;
+                    });
+                    imagesHTML += '</div>';
+                }
+                
+                memoryDiv.innerHTML = `
+                    <div class="content">
+                        <div class="date">${formattedDate}</div>
+                        <h2 class="title">${memory.title}</h2>
+                        <p class="text">${memory.content}</p>
+                        ${imagesHTML}
+                    </div>
+                `;
+                
+                timeline.appendChild(memoryDiv);
+            });
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}年${month}月${day}日`;
+        }
+        
+        // 更新分页信息
+        function updatePagination() {
+            const totalPages = Math.ceil(memories.length / itemsPerPage);
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            
+            document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+        }
+        
+        // 上一页
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderMemories();
+                updatePagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        
+        // 下一页
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(memories.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderMemories();
+                updatePagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        
+        // 打开图片模态框
+        function openModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `<img src="${imageSrc}" alt="放大图片">`;
+            modal.style.display = 'flex';
+            
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+        }
+        
+        // 点击模态框外部关闭
+        document.getElementById('imageModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+    </script>
 </body>
-</html> 
+</html>
