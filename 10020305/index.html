@@ -62,7 +62,8 @@
             top: 0;
             bottom: 0;
             left: 50%;
-            margin-left: -2px;
+            transform: translateX(-50%);
+            margin-left: 0;
         }
         
         .memory {
@@ -94,11 +95,11 @@
         }
         
         .left::after {
-            right: -10px;
+            right: -14px;
         }
         
         .right::after {
-            left: -10px;
+            left: -14px;
         }
         
         .content {
@@ -113,29 +114,33 @@
             font-weight: bold;
             color: var(--accent-color);
             margin-bottom: 10px;
+            font-size: 0.9rem;
         }
         
         .title {
-            font-size: 1.4rem;
+            font-size: 1rem;
             margin-bottom: 10px;
             color: var(--text-color);
         }
         
         .text {
             margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--light-text);
+            line-height: 1.5;
         }
         
         .gallery {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 15px;
         }
         
         .gallery img {
             width: 100%;
-            max-width: 150px;
-            height: auto;
+            aspect-ratio: 1;
+            object-fit: cover;
             border-radius: 5px;
             cursor: pointer;
             transition: transform 0.3s ease;
@@ -217,32 +222,100 @@
             margin-top: 40px;
             padding: 20px 0;
             color: var(--accent-color);
-            font-style: italic;
-            font-size: 1.1rem;
+            font-size: 1rem;
+        }
+        
+        /* 密码验证模态框样式 */
+        .password-modal {
+            display: flex;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .password-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .password-content h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .password-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .password-button:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
         }
         
         /* 响应式设计 */
         @media screen and (max-width: 768px) {
             .timeline::before {
-                left: 31px;
+                left: 33px;
+                transform: none;
             }
             
             .memory {
                 width: 100%;
-                padding-left: 70px;
+                padding-left: 75px;
                 padding-right: 25px;
+                left: 0;
             }
             
             .memory::after {
-                left: 21px;
+                left: 35px;
+                transform: translateX(-50%);
             }
             
             .left::after, .right::after {
-                left: 21px;
+                left: 35px;
+                transform: translateX(-50%);
+                right: auto;
             }
             
             .right {
                 left: 0;
+            }
+
+            .content {
+                margin-left: 0;
             }
         }
         
@@ -259,8 +332,20 @@
                 font-size: 2rem;
             }
             
-            .gallery img {
-                max-width: 120px;
+            .gallery {
+                gap: 8px;
+            }
+            
+            .date {
+                font-size: 0.9rem;
+            }
+            
+            .title {
+                font-size: 1rem;
+            }
+            
+            .text {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -269,7 +354,7 @@
     <div class="container">
         <header>
             <h1>我们的时光轴</h1>
-            <p>记录每一个美好瞬间</p>
+            <p>记录每一个瞬间</p>
         </header>
         
         <div class="timeline" id="timeline">
@@ -288,6 +373,16 @@
         </div>
     </div>
     
+    <!-- 密码验证模态框 -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h2>请输入访问密码</h2>
+            <input type="password" class="password-input" id="passwordInput" placeholder="请输入密码">
+            <button class="password-button" onclick="verifyPassword()">确认</button>
+            <p class="error-message" id="errorMessage">密码错误，请重试</p>
+        </div>
+    </div>
+    
     <div class="modal" id="imageModal">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-content" id="modalContent"></div>
@@ -297,20 +392,48 @@
         let memories = [];
         let currentPage = 1;
         const itemsPerPage = 10;
+        const CORRECT_PASSWORD = '10020305';
         
-        // 获取数据
-        fetch('/polly/data.json')
-            .then(response => response.json())
-            .then(data => {
-                // 按日期倒序排序
-                memories = data.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderMemories();
-                updatePagination();
-            })
-            .catch(error => {
-                console.error('加载数据失败:', error);
-                document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
-            });
+        // 页面加载时显示密码验证模态框
+        window.onload = function() {
+            document.getElementById('passwordModal').style.display = 'flex';
+        };
+        
+        // 验证密码
+        function verifyPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (password === CORRECT_PASSWORD) {
+                document.getElementById('passwordModal').style.display = 'none';
+                loadMemories();
+            } else {
+                errorMessage.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+        
+        // 按回车键验证密码
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+        
+        // 加载数据
+        function loadMemories() {
+            fetch('/polly/data.json')
+                .then(response => response.json())
+                .then(data => {
+                    memories = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    renderMemories();
+                    updatePagination();
+                })
+                .catch(error => {
+                    console.error('加载数据失败:', error);
+                    document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
+                });
+        }
         
         // 渲染时光轴内容
         function renderMemories() {
