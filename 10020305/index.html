@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我们的时光轴</title>
+    <!-- 添加MD5库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     <style>
         :root {
             --primary-color: #ffb6c1;
@@ -20,17 +22,30 @@
             box-sizing: border-box;
         }
         
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* 密码验证前防止滚动 */
+        }
+        
         body {
             font-family: 'Arial', sans-serif;
-            background-color: var(--secondary-color);
+            background-color: #8a8a8a; /* 验证前使用中性背景色 */
             color: var(--text-color);
             line-height: 1.6;
+            transition: background-color 0.5s ease; /* 平滑过渡到实际背景 */
+        }
+        
+        body.authenticated {
+            background-color: var(--secondary-color); /* 验证后显示实际背景 */
+            overflow: auto; /* 验证后允许滚动 */
         }
         
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
+            display: none; /* 隐藏主内容，直到密码验证通过 */
         }
         
         header {
@@ -351,7 +366,10 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 验证前的遮罩层 -->
+    <div id="authMask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #8a8a8a; z-index: 999;"></div>
+    
+    <div class="container" id="mainContent">
         <header>
             <h1>我们的时光轴</h1>
             <p>记录每一个瞬间</p>
@@ -392,20 +410,42 @@
         let memories = [];
         let currentPage = 1;
         const itemsPerPage = 10;
-        const CORRECT_PASSWORD = '10020305';
+        const PASSWORD_HASH = '5081320c57655a1533a5ad9fc839e854';
         
         // 页面加载时显示密码验证模态框
         window.onload = function() {
             document.getElementById('passwordModal').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none'; // 确保内容被隐藏
+            document.getElementById('imageModal').style.display = 'none'; // 确保图片模态框被隐藏
+            
+            // 添加事件监听器以防止在密码验证前查看页面源代码
+            document.addEventListener('contextmenu', function(e) {
+                if (!isAuthenticated) {
+                    e.preventDefault();
+                }
+            });
+            
+            // 防止在密码验证前使用键盘快捷键查看源代码
+            document.addEventListener('keydown', function(e) {
+                if (!isAuthenticated && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                }
+            });
         };
+        
+        // 跟踪是否已通过身份验证
+        let isAuthenticated = false;
         
         // 验证密码
         function verifyPassword() {
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-            
-            if (password === CORRECT_PASSWORD) {
+            if (md5(password) === PASSWORD_HASH) {
                 document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('authMask').style.display = 'none'; // 移除遮罩层
+                document.getElementById('mainContent').style.display = 'block'; // 显示主内容
+                document.body.classList.add('authenticated'); // 添加验证通过的样式类
+                isAuthenticated = true; // 更新身份验证状态
                 loadMemories();
             } else {
                 errorMessage.style.display = 'block';
