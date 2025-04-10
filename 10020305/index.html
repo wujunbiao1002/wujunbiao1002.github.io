@@ -50,11 +50,11 @@
         
         header {
             text-align: center;
-            padding: 40px 0;
+            padding: 5px 0 40px 0;
         }
         
         header h1 {
-            font-size: 2.5rem;
+            font-size: 2rem;
             color: var(--accent-color);
             margin-bottom: 10px;
         }
@@ -62,6 +62,26 @@
         header p {
             font-size: 1.2rem;
             color: var(--light-text);
+        }
+        
+        .current-time {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            margin-top: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .time-counter {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            margin-top: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
         }
         
         .timeline {
@@ -232,10 +252,38 @@
             color: var(--light-text);
         }
         
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--light-text);
+            display: none;
+        }
+        
+        .load-more {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .load-more button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .load-more button:hover {
+            background-color: var(--accent-color);
+        }
+        
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding: 20px 0;
+            margin-top: 20px;
+            padding: 10px 0;
             color: var(--accent-color);
             font-size: 1rem;
         }
@@ -363,6 +411,13 @@
                 font-size: 0.9rem;
             }
         }
+        
+        .observer {
+            height: 1px;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
     </style>
 </head>
 <body>
@@ -373,18 +428,19 @@
         <header>
             <h1>我们的时光轴</h1>
             <p>记录每一个瞬间</p>
+            <div class="current-time" id="currentTime"></div>
+            <div class="time-counter" id="timeCounter"></div>
         </header>
         
         <div class="timeline" id="timeline">
             <!-- 内容将通过JavaScript动态加载 -->
         </div>
         
-        <div class="pagination">
-            <button id="prevBtn" disabled>上一页</button>
-            <button id="nextBtn">下一页</button>
+        <div class="load-more" id="loadMore">
+            <button onclick="loadMoreClick()">加载更多</button>
         </div>
         
-        <div class="page-info" id="pageInfo"></div>
+        <div class="loading" id="loading">加载中...</div>
         
         <div class="footer">
             用爱创造的回忆
@@ -410,6 +466,9 @@
         let memories = [];
         let currentPage = 1;
         const itemsPerPage = 10;
+        let isLoading = false;
+        let hasMore = true;
+        let scrollHandlerAdded = false; // 标记是否已添加滚动处理器
         const PASSWORD_HASH = '828591d462674bdd332dbc730a439fd1';
         
         // 页面加载时显示密码验证模态框
@@ -447,6 +506,10 @@
                 document.body.classList.add('authenticated'); // 添加验证通过的样式类
                 isAuthenticated = true; // 更新身份验证状态
                 loadMemories();
+                updateCurrentTime(); // 初始化当前时间
+                updateTimeCounter(); // 初始化时间计数器
+                setInterval(updateCurrentTime, 1000); // 每秒更新一次时间
+                setInterval(updateTimeCounter, 1000); // 每秒更新一次计数器
             } else {
                 errorMessage.style.display = 'block';
                 document.getElementById('passwordInput').value = '';
@@ -465,9 +528,12 @@
             fetch('/polly/data.json')
                 .then(response => response.json())
                 .then(data => {
-                    memories = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
                     renderMemories();
-                    updatePagination();
+                    // 更新计数器显示
+                    updateTimeCounter();
+                    // 检查是否有更多数据
+                    checkHasMore();
                 })
                 .catch(error => {
                     console.error('加载数据失败:', error);
@@ -475,28 +541,54 @@
                 });
         }
         
-        // 渲染时光轴内容
-        function renderMemories() {
-            const timeline = document.getElementById('timeline');
-            timeline.innerHTML = '';
+        // 检查是否还有更多数据
+        function checkHasMore() {
+            const startIndex = currentPage * itemsPerPage;
+            hasMore = startIndex < memories.length;
             
-            // 计算当前页的起始和结束索引
-            const startIndex = (currentPage - 1) * itemsPerPage;
+            if (!hasMore) {
+                document.getElementById('loadMore').style.display = 'none';
+            }
+        }
+        
+        // 点击加载更多
+        function loadMoreClick() {
+            if (!isLoading && hasMore) {
+                loadMore();
+            }
+        }
+        
+        // 加载更多内容
+        function loadMore() {
+            if (isLoading || !hasMore) return;
+            
+            isLoading = true;
+            document.getElementById('loading').style.display = 'block';
+            
+            const startIndex = currentPage * itemsPerPage;
             const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
             
-            // 获取当前页要显示的数据
+            if (startIndex >= memories.length) {
+                hasMore = false;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('loadMore').style.display = 'none';
+                isLoading = false;
+                return;
+            }
+            
+            // 直接加载
             const currentPageData = memories.slice(startIndex, endIndex);
             
             currentPageData.forEach((memory, index) => {
                 const memoryDiv = document.createElement('div');
-                memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
+                memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
                 
-                const formattedDate = formatDate(memory.date);
+                const formattedDate = formatDate(memory.d);
                 
                 let imagesHTML = '';
-                if (memory.image && memory.image.length > 0) {
+                if (memory.i && memory.i.length > 0) {
                     imagesHTML = '<div class="gallery">';
-                    memory.image.forEach((img, i) => {
+                    memory.i.forEach((img, i) => {
                         imagesHTML += `<img src="${img}" alt="记忆图片 ${i+1}" onclick="openModal('${img}')">`;
                     });
                     imagesHTML += '</div>';
@@ -505,8 +597,51 @@
                 memoryDiv.innerHTML = `
                     <div class="content">
                         <div class="date">${formattedDate}</div>
-                        <h2 class="title">${memory.title}</h2>
-                        <p class="text">${memory.content}</p>
+                        <h2 class="title">${memory.t}</h2>
+                        <p class="text">${memory.c}</p>
+                        ${imagesHTML}
+                    </div>
+                `;
+                
+                document.getElementById('timeline').appendChild(memoryDiv);
+            });
+            
+            currentPage++;
+            isLoading = false;
+            document.getElementById('loading').style.display = 'none';
+            
+            // 检查是否还有更多数据
+            checkHasMore();
+        }
+        
+        // 渲染时光轴内容
+        function renderMemories() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            // 只显示第一页数据
+            const currentPageData = memories.slice(0, itemsPerPage);
+            
+            currentPageData.forEach((memory, index) => {
+                const memoryDiv = document.createElement('div');
+                memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
+                
+                const formattedDate = formatDate(memory.d);
+                
+                let imagesHTML = '';
+                if (memory.i && memory.i.length > 0) {
+                    imagesHTML = '<div class="gallery">';
+                    memory.i.forEach((img, i) => {
+                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i+1}" onclick="openModal('${img}')">`;
+                    });
+                    imagesHTML += '</div>';
+                }
+                
+                memoryDiv.innerHTML = `
+                    <div class="content">
+                        <div class="date">${formattedDate}</div>
+                        <h2 class="title">${memory.t}</h2>
+                        <p class="text">${memory.c}</p>
                         ${imagesHTML}
                     </div>
                 `;
@@ -523,36 +658,6 @@
             const day = date.getDate().toString().padStart(2, '0');
             return `${year}年${month}月${day}日`;
         }
-        
-        // 更新分页信息
-        function updatePagination() {
-            const totalPages = Math.ceil(memories.length / itemsPerPage);
-            document.getElementById('prevBtn').disabled = currentPage === 1;
-            document.getElementById('nextBtn').disabled = currentPage === totalPages;
-            
-            document.getElementById('pageInfo').textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-        }
-        
-        // 上一页
-        document.getElementById('prevBtn').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderMemories();
-                updatePagination();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-        
-        // 下一页
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            const totalPages = Math.ceil(memories.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderMemories();
-                updatePagination();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
         
         // 打开图片模态框
         function openModal(imageSrc) {
@@ -579,6 +684,40 @@
                 closeModal();
             }
         });
+        
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            document.getElementById('currentTime').textContent ="幸运"+ now.toLocaleString('zh-CN', options) + '我们还在';
+        }
+        
+        // 更新时间计数器
+        function updateTimeCounter() {
+            const startDate = new Date('2011-09-29T19:45:00');
+            const now = new Date();
+            const diffTime = Math.abs(now - startDate);
+            
+            // 计算天数、小时、分钟和秒数
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+            
+            // 包含瞬间数量的信息
+            const memoryCount = memories ? memories.length : 0;
+            
+            document.getElementById('timeCounter').textContent = 
+                `自我们相识的 ${memoryCount} 个瞬间 已经历 ${days}天 ${hours}小时 ${minutes}分 ${seconds}秒`;
+        }
     </script>
 </body>
 </html>
