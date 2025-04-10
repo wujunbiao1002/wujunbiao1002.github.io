@@ -754,10 +754,19 @@
             
             // 特别针对iOS设备做额外处理
             if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                // 确保清除任何可能的锁定状态
-                const bodyHTML = document.body.innerHTML;
-                if (bodyHTML.includes('检测到不安全操作，页面已被锁定')) {
-                    location.reload(); // 自动刷新以恢复正常状态
+                // 避免无限刷新循环
+                const reloadKey = 'ios_reload_attempted';
+                if (sessionStorage.getItem(reloadKey)) {
+                    // 如果已经尝试过刷新，不再继续刷新
+                    sessionStorage.removeItem(reloadKey);
+                } else {
+                    // 检查是否需要刷新
+                    const bodyHTML = document.body.innerHTML;
+                    if (bodyHTML.includes('检测到不安全操作，页面已被锁定')) {
+                        // 标记已尝试刷新
+                        sessionStorage.setItem(reloadKey, 'true');
+                        location.reload(); // 自动刷新以恢复正常状态
+                    }
                 }
                 
                 // 添加iOS特定的保护措施
@@ -1464,6 +1473,10 @@
         
         // 显示截图警告
         function showScreenshotAlert() {
+            // 检查是否是iOS设备，如果是则不执行
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) return;
+            
             const alertDiv = document.getElementById('screenshotProtect');
             alertDiv.style.display = 'flex';
             
@@ -1562,6 +1575,10 @@
         
         // 增强的屏幕截图检测
         function enhancedScreenshotDetection() {
+            // 检查是否是iOS设备，如果是则不执行这些检测
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) return;
+            
             // 监控屏幕亮度变化（可能是截图操作）
             if ('AmbientLightSensor' in window) {
                 try {
@@ -1595,6 +1612,10 @@
         }
         
         function checkForScreenCapture() {
+            // 检查是否是iOS设备，如果是则不执行
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) return;
+            
             // 检测全屏后的截图可能
             if (!document.fullscreenElement && 
                 !document.webkitFullscreenElement && 
@@ -1606,6 +1627,10 @@
         
         // 监控剪贴板变化
         function monitorClipboard() {
+            // 检查是否是iOS设备，如果是则不执行这些检测
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) return;
+            
             if (navigator.clipboard && navigator.clipboard.addEventListener) {
                 try {
                     navigator.clipboard.addEventListener('clipboardchange', function() {
@@ -1618,6 +1643,10 @@
             
             // 定期检查剪贴板内容
             setInterval(function() {
+                // 再次检查是否是iOS设备
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS) return;
+                
                 if (navigator.clipboard && navigator.clipboard.readText) {
                     navigator.clipboard.readText().then(function(text) {
                         // 检查剪贴板上的内容是否来自我们的页面
