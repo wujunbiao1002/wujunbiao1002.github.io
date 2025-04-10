@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我们的时光轴</title>
-    <!-- 添加MD5库 -->
+    <title>我们的秘密花园</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     <style>
         :root {
@@ -27,15 +26,15 @@
         html, body {
             height: 100%;
             width: 100%;
-            overflow: hidden; /* 密码验证前防止滚动 */
-            font-family: 'Arial', 'Microsoft YaHei', sans-serif; /* 添加中文字体支持 */
+            overflow: hidden; 
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
         }
         
         body {
-            background-color: #8a8a8a; /* 验证前使用中性背景色 */
+            background-color: #8a8a8a;
             color: var(--text-color);
             line-height: 1.6;
-            transition: background-color 0.5s ease; /* 平滑过渡到实际背景 */
+            transition: background-color 0.5s ease;
         }
         
         body.authenticated {
@@ -358,7 +357,6 @@
             box-shadow: var(--shadow);
         }
         
-        /* 密码验证模态框样式 */
         .password-modal {
             display: flex;
             position: fixed;
@@ -440,13 +438,28 @@
             animation: shake 0.5s ease;
         }
         
+        .locked-message {
+            color: #ff4757;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+            background-color: rgba(255, 71, 87, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .timer {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
             20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
         
-        /* 响应式设计 */
         @media screen and (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -572,7 +585,6 @@
     </style>
 </head>
 <body>
-    <!-- 验证前的遮罩层 -->
     <div id="authMask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #8a8a8a; z-index: 999;"></div>
     
     <div class="container" id="mainContent">
@@ -584,7 +596,6 @@
         </header>
         
         <div class="timeline" id="timeline">
-            <!-- 内容将通过JavaScript动态加载 -->
         </div>
         
         <div class="load-more" id="loadMore">
@@ -598,13 +609,17 @@
         </div>
     </div>
     
-    <!-- 密码验证模态框 -->
     <div class="password-modal" id="passwordModal">
         <div class="password-content">
             <h2>爱的开始</h2>
             <input type="password" class="password-input" id="passwordInput" placeholder="请输入密码">
             <button class="password-button" onclick="verifyPassword()">爱你😘</button>
-            <p class="error-message" id="errorMessage">你猜错了，再想想。</p>
+            <p class="error-message" id="errorMessage">再想想。</p>
+            <div class="locked-message" id="lockedMessage">
+                哼😡！我很生气。<br><br>
+                <span id="lockText"></span><br><br>
+                <span class="timer" id="lockTimer"></span>
+            </div>
         </div>
     </div>
     
@@ -626,75 +641,212 @@
         const itemsPerPage = 10;
         let isLoading = false;
         let hasMore = true;
-        let scrollHandlerAdded = false; // 标记是否已添加滚动处理器
+        let scrollHandlerAdded = false; 
         const PASSWORD_HASH = '828591d462674bdd332dbc730a439fd1';
         
-        // 以下变量用于记录当前显示的图片信息
         let currentGallery = [];
         let currentImageIndex = 0;
         
-        // 页面加载时显示密码验证模态框
         window.onload = function() {
             document.getElementById('passwordModal').style.display = 'flex';
-            document.getElementById('mainContent').style.display = 'none'; // 确保内容被隐藏
-            document.getElementById('imageModal').style.display = 'none'; // 确保图片模态框被隐藏
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('imageModal').style.display = 'none';
             
-            // 添加事件监听器以防止在密码验证前查看页面源代码
             document.addEventListener('contextmenu', function(e) {
                 if (!isAuthenticated) {
                     e.preventDefault();
                 }
             });
             
-            // 防止在密码验证前使用键盘快捷键查看源代码
             document.addEventListener('keydown', function(e) {
                 if (!isAuthenticated && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
                 }
             });
+            
+            // 检查是否处于锁定状态
+            checkLockStatus();
         };
         
-        // 跟踪是否已通过身份验证
         let isAuthenticated = false;
         
-        // 验证密码
-        function verifyPassword() {
-            const password = document.getElementById('passwordInput').value;
-            const errorMessage = document.getElementById('errorMessage');
-            if (md5(password) === PASSWORD_HASH) {
-                document.getElementById('passwordModal').style.display = 'none';
-                document.getElementById('authMask').style.display = 'none'; // 移除遮罩层
-                document.getElementById('mainContent').style.display = 'block'; // 显示主内容
-                document.body.classList.add('authenticated'); // 添加验证通过的样式类
-                isAuthenticated = true; // 更新身份验证状态
-                loadMemories();
-                updateCurrentTime(); // 初始化当前时间
-                updateTimeCounter(); // 初始化时间计数器
-                setInterval(updateCurrentTime, 1000); // 每秒更新一次时间
-                setInterval(updateTimeCounter, 1000); // 每秒更新一次计数器
-            } else {
-                errorMessage.style.display = 'block';
-                document.getElementById('passwordInput').value = '';
+        let passwordAttempts = 0;
+        let isLocked = false;
+        let lockEndTime = 0;
+        let lockTimerInterval = null;
+        
+        const errorMessages = [
+            "你猜错了。",
+            "再想想。",
+            "你确定？",
+            "你不爱我了？",
+            "我要惩罚你。"
+        ];
+        
+        // 检查锁定状态
+        function checkLockStatus() {
+            const storedLockEndTime = localStorage.getItem('lockEndTime');
+            const storedPasswordAttempts = localStorage.getItem('passwordAttempts');
+            
+            if (storedLockEndTime) {
+                const lockEnd = parseInt(storedLockEndTime, 10);
+                const now = new Date().getTime();
+                
+                if (now < lockEnd) {
+                    // 仍在锁定期内
+                    isLocked = true;
+                    lockEndTime = lockEnd;
+                    passwordAttempts = parseInt(storedPasswordAttempts || '5', 10);
+                    
+                    const passwordInput = document.getElementById('passwordInput');
+                    const passwordButton = document.querySelector('.password-button');
+                    const errorMessage = document.getElementById('errorMessage');
+                    const lockedMessage = document.getElementById('lockedMessage');
+                    
+                    errorMessage.style.display = 'none';
+                    lockedMessage.style.display = 'block';
+                    document.getElementById('lockText').textContent = errorMessages[4];
+                    
+                    passwordInput.disabled = true;
+                    passwordInput.value = '';
+                    passwordInput.placeholder = '已锁定';
+                    passwordButton.disabled = true;
+                    
+                    updateLockTimer();
+                    lockTimerInterval = setInterval(updateLockTimer, 1000);
+                } else {
+                    // 锁定期已过
+                    clearLockStatus();
+                }
+            } else if (storedPasswordAttempts) {
+                // 有错误尝试但未锁定
+                passwordAttempts = parseInt(storedPasswordAttempts, 10);
             }
         }
         
-        // 按回车键验证密码
+        // 清除锁定状态
+        function clearLockStatus() {
+            localStorage.removeItem('lockEndTime');
+            localStorage.removeItem('passwordAttempts');
+            isLocked = false;
+            passwordAttempts = 0;
+        }
+        
+        function verifyPassword() {
+            if (isLocked) return;
+            
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (md5(password) === PASSWORD_HASH) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('authMask').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.body.classList.add('authenticated');
+                isAuthenticated = true;
+                passwordAttempts = 0;
+                
+                // 清除锁定状态
+                clearLockStatus();
+                
+                loadMemories();
+                updateCurrentTime();
+                updateTimeCounter();
+                setInterval(updateCurrentTime, 1000);
+                setInterval(updateTimeCounter, 1000);
+            } else {
+                passwordAttempts++;
+                
+                // 保存错误尝试次数
+                localStorage.setItem('passwordAttempts', passwordAttempts.toString());
+                
+                if (passwordAttempts >= 5) {
+                    lockAccount();
+                } else {
+                    errorMessage.textContent = errorMessages[passwordAttempts - 1];
+                    errorMessage.style.display = 'block';
+                    
+                    document.getElementById('passwordInput').value = '';
+                    errorMessage.style.animation = 'none';
+                    void errorMessage.offsetWidth;
+                    errorMessage.style.animation = 'shake 0.5s ease';
+                }
+            }
+        }
+        
+        function lockAccount() {
+            isLocked = true;
+            const lockedMessage = document.getElementById('lockedMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordButton = document.querySelector('.password-button');
+            
+            lockEndTime = new Date().getTime() + 5 * 60 * 1000;
+            
+            // 保存锁定结束时间到本地存储
+            localStorage.setItem('lockEndTime', lockEndTime.toString());
+            localStorage.setItem('passwordAttempts', passwordAttempts.toString());
+            
+            errorMessage.style.display = 'none';
+            lockedMessage.style.display = 'block';
+            document.getElementById('lockText').textContent = errorMessages[4];
+            
+            passwordInput.disabled = true;
+            passwordInput.value = '';
+            passwordInput.placeholder = '已锁定';
+            passwordButton.disabled = true;
+            
+            updateLockTimer();
+            lockTimerInterval = setInterval(updateLockTimer, 1000);
+        }
+        
+        function updateLockTimer() {
+            const now = new Date().getTime();
+            const timeLeft = lockEndTime - now;
+            
+            if (timeLeft <= 0) {
+                clearInterval(lockTimerInterval);
+                unlockAccount();
+            } else {
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                document.getElementById('lockTimer').textContent = 
+                    `请在 ${minutes}:${seconds < 10 ? '0' : ''}${seconds} 后再试`;
+            }
+        }
+        
+        function unlockAccount() {
+            isLocked = false;
+            passwordAttempts = 0;
+            
+            // 清除锁定状态
+            clearLockStatus();
+            
+            const lockedMessage = document.getElementById('lockedMessage');
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordButton = document.querySelector('.password-button');
+            
+            lockedMessage.style.display = 'none';
+            
+            passwordInput.disabled = false;
+            passwordInput.placeholder = '请输入密码';
+            passwordButton.disabled = false;
+        }
+        
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !isLocked) {
                 verifyPassword();
             }
         });
         
-        // 加载数据
         function loadMemories() {
             fetch('/polly/data.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
                     renderMemories();
-                    // 更新计数器显示
                     updateTimeCounter();
-                    // 检查是否有更多数据
                     checkHasMore();
                 })
                 .catch(error => {
@@ -703,7 +855,6 @@
                 });
         }
         
-        // 检查是否还有更多数据
         function checkHasMore() {
             const startIndex = currentPage * itemsPerPage;
             hasMore = startIndex < memories.length;
@@ -713,14 +864,12 @@
             }
         }
         
-        // 点击加载更多
         function loadMoreClick() {
             if (!isLoading && hasMore) {
                 loadMore();
             }
         }
         
-        // 加载更多内容
         function loadMore() {
             if (isLoading || !hasMore) return;
             
@@ -738,7 +887,6 @@
                 return;
             }
             
-            // 直接加载
             const currentPageData = memories.slice(startIndex, endIndex);
             
             currentPageData.forEach((memory, index) => {
@@ -772,16 +920,13 @@
             isLoading = false;
             document.getElementById('loading').style.display = 'none';
             
-            // 检查是否还有更多数据
             checkHasMore();
         }
         
-        // 渲染时光轴内容
         function renderMemories() {
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
-            
-            // 只显示第一页数据
+
             const currentPageData = memories.slice(0, itemsPerPage);
             
             currentPageData.forEach((memory, index) => {
@@ -812,7 +957,6 @@
             });
         }
         
-        // 格式化日期
         function formatDate(dateString) {
             const date = new Date(dateString);
             const year = date.getFullYear();
@@ -821,56 +965,79 @@
             return `${year}年${month}月${day}日`;
         }
         
-        // 打开图片模态框
         function openModal(imageSrc) {
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const imageCounter = document.getElementById('imageCounter');
             
-            // 找到当前图片所属的画廊
-            const clickedImage = document.querySelector(`img[src="${imageSrc}"]`);
-            const galleryElement = clickedImage.closest('.gallery');
-            
-            // 获取当前画廊中的所有图片
             currentGallery = [];
-            if (galleryElement) {
-                const images = galleryElement.querySelectorAll('img');
-                images.forEach(img => currentGallery.push(img.src));
-                currentImageIndex = currentGallery.indexOf(imageSrc);
-            } else {
-                // 如果没有找到画廊（单张图片），则只显示当前图片
-                currentGallery = [imageSrc];
-                currentImageIndex = 0;
+            currentImageIndex = 0;
+            
+            const clickedImage = document.querySelector(`img[src="${imageSrc}"]`);
+            if (!clickedImage) {
+                console.error("找不到点击的图片元素:", imageSrc);
+                return;
             }
             
-            // 更新图片和计数器
+            const galleryElement = clickedImage.closest('.gallery');
+            if (!galleryElement) {
+                currentGallery = [imageSrc];
+                currentImageIndex = 0;
+                console.log("单张图片模式");
+            } else {
+                const images = Array.from(galleryElement.querySelectorAll('img'));
+                
+                for (let i = 0; i < images.length; i++) {
+                    currentGallery.push(images[i].src);
+                }
+                
+                for (let i = 0; i < images.length; i++) {
+                    if (images[i] === clickedImage) {
+                        currentImageIndex = i;
+                        console.log("找到精确匹配的图片元素，索引:", i);
+                        break;
+                    }
+                }
+                
+                if (currentImageIndex === 0 && images[0] !== clickedImage) {
+                    for (let i = 0; i < currentGallery.length; i++) {
+                        if (currentGallery[i] === imageSrc) {
+                            currentImageIndex = i;
+                            console.log("通过src找到匹配的图片，索引:", i);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            console.log("打开图片: ", imageSrc);
+            console.log("当前索引: ", currentImageIndex);
+            console.log("画廊图片数: ", currentGallery.length);
+            console.log("当前画廊:", currentGallery);
+            
             modalImage.src = imageSrc;
             updateImageCounter();
             
-            // 更新导航按钮状态
             updateNavigationButtons();
             
-            // 显示模态框
             modal.style.display = 'flex';
             
-            // 禁止背景滚动
             document.body.style.overflow = 'hidden';
         }
         
-        // 关闭模态框
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
-            // 恢复背景滚动
             document.body.style.overflow = 'auto';
+            
+            currentGallery = [];
+            currentImageIndex = 0;
         }
         
-        // 导航到上一张或下一张图片
         function navigateImage(direction) {
             if (currentGallery.length <= 1) return;
             
             currentImageIndex += direction;
             
-            // 确保索引在有效范围内
             if (currentImageIndex < 0) {
                 currentImageIndex = 0;
                 return;
@@ -880,15 +1047,12 @@
                 return;
             }
             
-            // 更新图片
             document.getElementById('modalImage').src = currentGallery[currentImageIndex];
             
-            // 更新导航按钮状态和计数器
             updateNavigationButtons();
             updateImageCounter();
         }
         
-        // 更新导航按钮状态
         function updateNavigationButtons() {
             const prevButton = document.getElementById('prevImageBtn');
             const nextButton = document.getElementById('nextImageBtn');
@@ -896,7 +1060,6 @@
             prevButton.disabled = currentImageIndex === 0;
             nextButton.disabled = currentImageIndex === currentGallery.length - 1;
             
-            // 如果只有一张图片，隐藏导航按钮
             if (currentGallery.length <= 1) {
                 prevButton.style.display = 'none';
                 nextButton.style.display = 'none';
@@ -906,7 +1069,6 @@
             }
         }
         
-        // 更新图片计数器
         function updateImageCounter() {
             const counter = document.getElementById('imageCounter');
             if (currentGallery.length <= 1) {
@@ -917,14 +1079,12 @@
             }
         }
         
-        // 点击模态框外部关闭
         document.getElementById('imageModal').addEventListener('click', function(event) {
             if (event.target === this) {
                 closeModal();
             }
         });
         
-        // 添加键盘导航支持
         document.addEventListener('keydown', function(e) {
             if (document.getElementById('imageModal').style.display === 'flex') {
                 if (e.key === 'ArrowLeft') {
@@ -937,7 +1097,6 @@
             }
         });
         
-        // 更新当前时间
         function updateCurrentTime() {
             const now = new Date();
             const options = { 
@@ -952,23 +1111,20 @@
             document.getElementById('currentTime').textContent ="幸运"+ now.toLocaleString('zh-CN', options) + '我们还在';
         }
         
-        // 更新时间计数器
         function updateTimeCounter() {
             const startDate = new Date('2011-09-29T19:45:00');
             const now = new Date();
             const diffTime = Math.abs(now - startDate);
             
-            // 计算天数、小时、分钟和秒数
             const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
-            
-            // 包含瞬间数量的信息
+
             const memoryCount = memories ? memories.length : 0;
             
             document.getElementById('timeCounter').textContent = 
-                `自我们相识的 ${memoryCount} 个瞬间 已经历 ${days}天 ${hours}小时 ${minutes}分 ${seconds}秒`;
+                `自我们相识的${memoryCount}个瞬间 已经${days}天${hours}小时${minutes}分${seconds}秒`;
         }
     </script>
 </body>
