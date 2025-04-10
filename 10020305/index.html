@@ -731,6 +731,39 @@
     </div>
     
     <script>
+        // Safari浏览器兼容性修复
+        (function safariCompatibilityFix() {
+            // 检测是否为Safari浏览器
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if (!isSafari) return;
+            
+            // 保存原始的console.debug方法
+            const originalDebug = console.debug;
+            
+            // 重写console.debug，防止在Safari中引发问题
+            console.debug = function() {
+                // 不执行任何操作，或者执行安全版本
+                try {
+                    // 安全版本
+                    if (arguments.length > 0 && arguments[0] && arguments[0].toString && 
+                        typeof arguments[0].toString === 'function') {
+                        // 跳过可能触发安全锁定的调试
+                        return;
+                    }
+                    originalDebug.apply(console, arguments);
+                } catch(e) {
+                    // 如果出错，忽略它
+                }
+            };
+            
+            // 禁用Safari特有的安全检查
+            document.addEventListener('beforeunload', function(e) {
+                // 阻止Safari的某些安全检查
+                e.preventDefault();
+                return;
+            });
+        })();
+        
         let memories = [];
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -749,6 +782,9 @@
             
             // 检测设备类型
             detectDeviceType();
+            
+            // 恢复被锁定的页面
+            recoverLockedPage();
             
             // 禁用右键菜单
             document.addEventListener('contextmenu', function(e) {
@@ -796,9 +832,6 @@
             document.addEventListener('cut', preventCopyAction);
             document.addEventListener('copy', preventCopyAction);
             document.addEventListener('paste', preventCopyAction);
-            
-            // 检测开发者工具
-            detectDevTools();
             
             // 监听剪贴板事件
             document.addEventListener('copy', function(e) {
@@ -1621,26 +1654,49 @@
         
         // 检测开发者工具的函数
         function detectDevTools() {
+            // Safari浏览器可能误触发检测，添加安全检查
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            
             const devtoolsDebugger = /./;
             devtoolsDebugger.toString = function() {
-                if (isAuthenticated) {
-                    document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
-                }
+                // 不再锁定页面，只做提示
+                console.log('开发者工具可能已打开');
                 return '';
             };
             
+            // 仍然打印调试信息，但不执行任何锁定操作
             console.debug(devtoolsDebugger);
             
+            // 检测窗口大小差异，但不再锁定页面
             setInterval(function() {
                 const widthThreshold = window.outerWidth - window.innerWidth > 160;
                 const heightThreshold = window.outerHeight - window.innerHeight > 160;
                 
                 if (widthThreshold || heightThreshold) {
-                    if (isAuthenticated) {
-                        document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
-                    }
+                    // 不再锁定页面，只记录日志
+                    console.log('检测到窗口尺寸变化');
                 }
             }, 1000);
+        }
+        
+        // 恢复被锁定的页面
+        function recoverLockedPage() {
+            // 检查页面是否被锁定
+            if (document.body.innerHTML.includes('检测到不安全操作，页面已被锁定')) {
+                console.log('检测到页面被锁定，正在尝试恢复...');
+                // 强制重新加载页面
+                location.reload();
+                return;
+            }
+            
+            // 添加错误处理，在页面加载后恢复任何可能的问题
+            window.addEventListener('error', function(e) {
+                console.log('捕获到错误，尝试恢复:', e.message);
+                // 如果出现严重错误，尝试重新加载
+                if (e.message && (e.message.includes('security') || e.message.includes('权限') || e.message.includes('安全'))) {
+                    location.reload();
+                }
+            });
         }
     </script>
 </body>
