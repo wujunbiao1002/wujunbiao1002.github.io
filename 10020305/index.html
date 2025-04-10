@@ -606,11 +606,7 @@
             }
         }
         
-        /* Canvas 图片容器样式 */
-        .canvas-container {
-            position: relative;
-            display: inline-block;
-        }
+        /* 删除Canvas图片容器样式 */
         
         .secure-image {
             position: relative;
@@ -631,12 +627,21 @@
         
         /* 移动端保护样式 */
         body.mobile-device {
-            touch-action: pan-y; /* 仅允许垂直滚动 */
+            touch-action: auto; /* 修改为auto，允许所有触摸操作 */
         }
         
-        /* 禁止iOS长按操作 */
+        /* 修改iOS长按操作，允许图片点击 */
         * { 
             -webkit-touch-callout: none;
+        }
+        
+        img {
+            -webkit-touch-callout: none;
+            pointer-events: auto !important; /* 确保图片可点击 */
+        }
+        
+        .secure-image img {
+            pointer-events: auto !important; /* 确保安全容器中的图片可点击 */
         }
         
         /* 内容保护提示 */
@@ -848,12 +853,16 @@
             lastTouchPoint.x = e.touches[0].clientX;
             lastTouchPoint.y = e.touches[0].clientY;
             
-            // 检测长按操作
+            // 如果是图片元素，不阻止默认行为
+            if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
+                clearTimeout(touchTimeout);
+                return true; // 允许默认行为
+            }
+            
+            // 检测长按操作（非图片元素）
             touchTimeout = setTimeout(function() {
-                // 长按操作禁止
-                e.preventDefault();
-                if (e.target.tagName === 'IMG') {
-                    alert('图片保存已禁用');
+                if (e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
+                    e.preventDefault();
                 }
             }, 500);
         }
@@ -862,8 +871,8 @@
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
-            // 防止双指缩放
-            if (e.touches.length > 1) {
+            // 仅对非图片元素阻止双指缩放
+            if (e.touches.length > 1 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
                 e.preventDefault();
                 return false;
             }
@@ -873,9 +882,14 @@
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
-            // 检测点击图片
+            // 图片元素不阻止点击
+            if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
+                return true;
+            }
+            
+            // 检测其他元素的长按
             const touchDuration = Date.now() - touchStartTime;
-            if (touchDuration > 500 && e.target.tagName === 'IMG') {
+            if (touchDuration > 500 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
                 e.preventDefault();
                 return false;
             }
@@ -897,10 +911,11 @@
                     img {
                         -webkit-user-select: none;
                         -webkit-touch-callout: none;
+                        pointer-events: auto !important;
                     }
-                    /* 修复iOS 9+ 特定问题 */
+                    /* 移除影响图片点击的CSS */
                     img:not([draggable="true"]) {
-                        pointer-events: none;
+                        pointer-events: auto !important;
                     }
                     /* 添加 iOS 视频保护 */
                     video::-webkit-media-controls-enclosure {
@@ -909,9 +924,11 @@
                 `;
                 document.head.appendChild(style);
                 
-                // 监听特定手势
+                // 监听特定手势但不阻止图片相关操作
                 document.addEventListener('gesturestart', function(e) {
-                    e.preventDefault();
+                    if (e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
+                        e.preventDefault();
+                    }
                 });
             }
         }
@@ -1426,19 +1443,14 @@
             // 对所有图片禁用右键菜单和拖拽
             const images = document.querySelectorAll('img');
             images.forEach(img => {
-                // 添加透明保护层
+                // 简化保护层，确保不影响点击
                 if (!img.dataset.protected) {
                     img.dataset.protected = "true";
                     
-                    // 使用Canvas替代原始图片显示（增强保护）
-                    if (img.complete) {
-                        convertImgToSecureCanvas(img);
-                    } else {
-                        img.onload = function() {
-                            convertImgToSecureCanvas(img);
-                        };
-                    }
+                    // 为移动端设备，确保图片可点击
+                    img.style.pointerEvents = 'auto';
                     
+                    // 仅使用简化版包装而不使用覆盖层
                     const parent = img.parentNode;
                     const wrapper = document.createElement('div');
                     wrapper.className = 'secure-image';
@@ -1448,6 +1460,8 @@
                     parent.replaceChild(wrapper, img);
                     wrapper.appendChild(img);
                     
+                    // 移除覆盖层，它可能阻止点击
+                    /* 
                     const overlay = document.createElement('div');
                     overlay.style.position = 'absolute';
                     overlay.style.top = '0';
@@ -1469,32 +1483,28 @@
                     };
                     
                     wrapper.appendChild(overlay);
+                    */
                 }
                 
-                // 禁用右键菜单
+                // 保留右键菜单保护
                 img.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     return false;
                 });
                 
-                // 禁用拖拽
+                // 保留拖拽保护
                 img.addEventListener('dragstart', e => {
                     e.preventDefault();
                     return false;
                 });
-                
-                // 禁用保存图片
-                img.addEventListener('mousedown', e => {
-                    if (e.button === 1) { // 中键点击
-                        e.preventDefault();
-                        return false;
-                    }
-                });
             });
             
-            // 对模态框中的图片特别处理
+            // 对模态框中的图片仅保留最基本的保护
             const modalImage = document.getElementById('modalImage');
             if (modalImage) {
+                // 确保模态图片可点击
+                modalImage.style.pointerEvents = 'auto';
+                
                 modalImage.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     return false;
@@ -1505,15 +1515,7 @@
                     return false;
                 });
                 
-                // 对模态图片添加额外安全保护措施
-                modalImage.style.opacity = '0.99'; // 透明度微调，防止某些抓取工具
-                
-                // 如果支持，使用CSS混合模式增加截图难度
-                if ('mix-blend-mode' in document.body.style) {
-                    modalImage.style.mixBlendMode = 'normal';
-                }
-                
-                // 为模态图片添加不可见水印
+                // 保留水印功能但确保不影响点击
                 if (modalImage.complete) {
                     addInvisibleWatermark(modalImage);
                 } else {
@@ -1521,70 +1523,6 @@
                         addInvisibleWatermark(modalImage);
                     };
                 }
-            }
-        }
-        
-        // 将图片转换为Canvas显示，增加保存难度
-        function convertImgToSecureCanvas(img) {
-            // 仅对小图处理，模态大图不处理，避免性能问题
-            if (img.width > 300 || img.height > 300) {
-                return;
-            }
-            
-            try {
-                // 创建Canvas元素替代图片
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                canvas.className = 'canvas-image';
-                canvas.style.width = img.width + 'px';
-                canvas.style.height = img.height + 'px';
-                canvas.style.borderRadius = getComputedStyle(img).borderRadius;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                
-                // 添加轻微扰动，使得图片仍然可见但难以被程序识别
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                
-                for (let i = 0; i < data.length; i += 4) {
-                    // 在RGB值上添加微小扰动
-                    data[i] = data[i] + (Math.random() * 2 - 1); // R
-                    data[i + 1] = data[i + 1] + (Math.random() * 2 - 1); // G
-                    data[i + 2] = data[i + 2] + (Math.random() * 2 - 1); // B
-                }
-                
-                ctx.putImageData(imageData, 0, 0);
-                
-                // 替代原始图片
-                const container = document.createElement('div');
-                container.className = 'canvas-container';
-                container.style.width = img.width + 'px';
-                container.style.height = img.height + 'px';
-                container.style.display = 'inline-block';
-                container.style.overflow = 'hidden';
-                container.style.borderRadius = getComputedStyle(img).borderRadius;
-                
-                container.appendChild(canvas);
-                
-                // 保存原始的点击处理函数
-                if (img.onclick) {
-                    canvas.onclick = img.onclick;
-                } else if (img.getAttribute('onclick')) {
-                    canvas.setAttribute('onclick', img.getAttribute('onclick'));
-                }
-                
-                // 保留原始图片用于查看大图
-                const imgClone = img.cloneNode(true);
-                imgClone.style.display = 'none';
-                container.appendChild(imgClone);
-                
-                if (img.parentNode) {
-                    img.parentNode.replaceChild(container, img);
-                }
-            } catch (e) {
-                console.error('转换图片到Canvas失败:', e);
             }
         }
         
@@ -1672,131 +1610,57 @@
         // 为图片添加隐形水印
         function addInvisibleWatermark(img) {
             try {
-                // 创建一个临时Canvas来处理水印
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                // 绘制原始图片
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                
-                // 添加不可见文本水印
-                ctx.font = '14px Arial';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.01)'; // 几乎不可见
-                
-                // 生成唯一标识（会话ID + 时间戳）
-                const sessionId = generateSessionId();
-                const timestamp = new Date().toISOString();
-                const watermarkText = `禁止复制 ${sessionId} ${timestamp}`;
-                
-                // 斜向水印
-                ctx.save();
-                ctx.translate(img.width / 2, img.height / 2);
-                ctx.rotate(-Math.PI / 6); // 30度角
-                
-                // 重复水印
-                for (let i = -img.height; i < img.height * 2; i += 40) {
-                    for (let j = -img.width; j < img.width * 2; j += 300) {
-                        ctx.fillText(watermarkText, j - img.width / 2, i);
-                    }
-                }
-                
-                ctx.restore();
-                
-                // 添加QR码格式的隐形水印（模拟，实际实现需要更多代码）
-                addQRPattern(ctx, img.width, img.height, sessionId);
-                
-                // 应用轻微的像素操作使水印更难被清除
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                
-                // 使用更复杂的隐写术算法在图片中隐藏水印
-                applyStealthWatermark(data, sessionId, canvas.width, canvas.height);
-                
-                ctx.putImageData(imageData, 0, 0);
-                
-                // 由于我们不能直接替换原图（会导致循环），我们在图片前面添加一个Canvas层
-                if (img.parentNode && !img.dataset.watermarked) {
+                // 简化版水印 - 不使用Canvas和像素操作
+                if (!img.dataset.watermarked) {
                     img.dataset.watermarked = "true";
-                    const container = document.createElement('div');
-                    container.className = 'watermarked-container';
-                    container.style.position = 'relative';
-                    container.style.display = 'inline-block';
                     
-                    // 克隆原始图片的尺寸和样式
-                    const computedStyle = getComputedStyle(img);
-                    container.style.width = computedStyle.width;
-                    container.style.height = computedStyle.height;
+                    // 生成唯一标识
+                    const sessionId = generateSessionId();
+                    const timestamp = new Date().toISOString();
                     
-                    // 创建带水印的canvas并设置样式
-                    const newCanvas = document.createElement('canvas');
-                    newCanvas.width = canvas.width;
-                    newCanvas.height = canvas.height;
-                    newCanvas.style.width = '100%';
-                    newCanvas.style.height = '100%';
-                    newCanvas.style.objectFit = computedStyle.objectFit;
-                    newCanvas.style.borderRadius = computedStyle.borderRadius;
+                    // 在图片元素中存储标识数据
+                    img.dataset.sessionId = sessionId;
+                    img.dataset.timestamp = timestamp;
                     
-                    // 复制处理后的图像到新画布
-                    const newCtx = newCanvas.getContext('2d');
-                    newCtx.drawImage(canvas, 0, 0);
+                    // 添加CSS效果作为水印替代
+                    img.style.position = 'relative';
                     
-                    // 把原图隐藏并保持引用
-                    img.style.display = 'none';
-                    container.appendChild(newCanvas);
-                    container.appendChild(img);
+                    // 创建一个几乎不可见的文本水印覆盖层
+                    const watermarkOverlay = document.createElement('div');
+                    watermarkOverlay.className = 'image-watermark-overlay';
+                    watermarkOverlay.style.position = 'absolute';
+                    watermarkOverlay.style.top = '0';
+                    watermarkOverlay.style.left = '0';
+                    watermarkOverlay.style.width = '100%';
+                    watermarkOverlay.style.height = '100%';
+                    watermarkOverlay.style.pointerEvents = 'none';
+                    watermarkOverlay.style.opacity = '0.01';
+                    watermarkOverlay.style.overflow = 'hidden';
+                    watermarkOverlay.style.textAlign = 'center';
+                    watermarkOverlay.style.display = 'flex';
+                    watermarkOverlay.style.alignItems = 'center';
+                    watermarkOverlay.style.justifyContent = 'center';
+                    watermarkOverlay.style.transform = 'rotate(-30deg)';
+                    watermarkOverlay.style.color = 'rgba(255, 255, 255, 0.2)';
+                    watermarkOverlay.style.fontFamily = 'Arial, sans-serif';
+                    watermarkOverlay.style.fontSize = '12px';
+                    watermarkOverlay.style.fontWeight = 'bold';
+                    watermarkOverlay.style.whiteSpace = 'nowrap';
                     
-                    if (img.parentNode && img.onclick) {
-                        newCanvas.onclick = img.onclick;
-                    }
+                    // 水印文本
+                    watermarkOverlay.textContent = `禁止复制 - ${sessionId} - ${timestamp}`;
                     
+                    // 如果图片有父容器，附加水印覆盖层
                     if (img.parentNode) {
-                        img.parentNode.insertBefore(container, img);
-                        img.parentNode.removeChild(img);
-                        container.appendChild(img);
+                        const container = img.parentNode;
+                        if (container.className.includes('secure-image')) {
+                            container.appendChild(watermarkOverlay);
+                        }
                     }
                 }
             } catch (e) {
                 console.error('添加水印失败:', e);
             }
-        }
-        
-        // 添加QR码样式的隐形图案
-        function addQRPattern(ctx, width, height, text) {
-            const size = Math.min(width, height) / 10;
-            const x = width - size - 10;
-            const y = height - size - 10;
-            
-            ctx.save();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-            
-            // 简单模式，创建一个伪二维码图案
-            const blockSize = size / 8;
-            
-            for (let i = 0; i < 8; i++) {
-                for (let j = 0; j < 8; j++) {
-                    // 用文本的哈希值创建一个伪随机但一致的图案
-                    const hash = hashCode(text + i + j);
-                    if (hash % 2 === 0) {
-                        ctx.fillRect(x + i * blockSize, y + j * blockSize, blockSize, blockSize);
-                    }
-                }
-            }
-            
-            ctx.restore();
-        }
-        
-        // 简单的字符串哈希函数
-        function hashCode(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return Math.abs(hash);
         }
         
         // 生成会话ID
@@ -1807,37 +1671,6 @@
                 window.sessionStorage.setItem('visitorId', randomId);
             }
             return window.sessionStorage.getItem('visitorId');
-        }
-        
-        // 应用隐写术水印（在最低有效位上隐藏信息）
-        function applyStealthWatermark(data, text, width, height) {
-            // 简化版：仅在每个像素最低有效位上修改
-            const binary = textToBinary(text);
-            let bitIndex = 0;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                if (bitIndex < binary.length) {
-                    // 仅修改蓝色通道的最低有效位（最不明显）
-                    if (binary[bitIndex] === '1') {
-                        data[i + 2] |= 1; // 设置最低位为1
-                    } else {
-                        data[i + 2] &= ~1; // 设置最低位为0
-                    }
-                    bitIndex++;
-                } else {
-                    break;
-                }
-            }
-        }
-        
-        // 将文本转换为二进制字符串
-        function textToBinary(text) {
-            let binary = '';
-            for (let i = 0; i < text.length; i++) {
-                const charCode = text.charCodeAt(i).toString(2);
-                binary += '0'.repeat(8 - charCode.length) + charCode; // 补足8位
-            }
-            return binary;
         }
         
         // 显示内容保护提示
