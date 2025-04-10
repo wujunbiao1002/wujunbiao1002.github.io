@@ -605,13 +605,12 @@
                 display: none;
             }
         }
-        
-        /* 删除Canvas图片容器样式 */
+    
         
         .secure-image {
             position: relative;
             display: inline-block;
-            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-touch-callout: none;
         }
         
         .secure-image::after {
@@ -630,7 +629,6 @@
             touch-action: auto; /* 修改为auto，允许所有触摸操作 */
         }
         
-        /* 修改iOS长按操作，允许图片点击 */
         * { 
             -webkit-touch-callout: none;
         }
@@ -752,30 +750,6 @@
             // 检测设备类型
             detectDeviceType();
             
-            // 特别针对iOS设备做额外处理
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                // 避免无限刷新循环
-                const reloadKey = 'ios_reload_attempted';
-                if (sessionStorage.getItem(reloadKey)) {
-                    // 如果已经尝试过刷新，不再继续刷新
-                    sessionStorage.removeItem(reloadKey);
-                } else {
-                    // 检查是否需要刷新
-                    const bodyHTML = document.body.innerHTML;
-                    if (bodyHTML.includes('检测到不安全操作，页面已被锁定')) {
-                        // 标记已尝试刷新
-                        sessionStorage.setItem(reloadKey, 'true');
-                        location.reload(); // 自动刷新以恢复正常状态
-                    }
-                }
-                
-                // 添加iOS特定的保护措施
-                const meta = document.createElement('meta');
-                meta.name = 'viewport';
-                meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
-                document.head.appendChild(meta);
-            }
-            
             // 禁用右键菜单
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
@@ -822,9 +796,6 @@
             document.addEventListener('cut', preventCopyAction);
             document.addEventListener('copy', preventCopyAction);
             document.addEventListener('paste', preventCopyAction);
-            
-            // iOS Safari特定修复
-            applyIOSSafariProtection();
             
             // 检测开发者工具
             detectDevTools();
@@ -873,11 +844,6 @@
         let lastTouchPoint = { x: 0, y: 0 };
         
         function handleTouchStart(e) {
-            // 在iOS设备上，不阻止任何操作
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                return true;
-            }
-            
             touchStartTime = Date.now();
             lastTouchPoint.x = e.touches[0].clientX;
             lastTouchPoint.y = e.touches[0].clientY;
@@ -897,11 +863,6 @@
         }
         
         function handleTouchMove(e) {
-            // 在iOS设备上，不阻止任何操作
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                return true;
-            }
-            
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
@@ -913,11 +874,6 @@
         }
         
         function handleTouchEnd(e) {
-            // 在iOS设备上，不阻止任何操作
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                return true;
-            }
-            
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
@@ -939,36 +895,6 @@
             e.preventDefault();
             showContentProtectionNotice();
             return false;
-        }
-        
-        // iOS Safari 特定保护
-        function applyIOSSafariProtection() {
-            // iOS Safari特定样式
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                const style = document.createElement('style');
-                style.innerHTML = `
-                    img {
-                        -webkit-user-select: none;
-                        -webkit-touch-callout: none;
-                        pointer-events: auto !important;
-                    }
-                    /* 移除影响图片点击的CSS */
-                    img:not([draggable="true"]) {
-                        pointer-events: auto !important;
-                    }
-                    /* 为iOS设备优化视频控制 */
-                    video::-webkit-media-controls-enclosure {
-                        display: block !important;
-                    }
-                `;
-                document.head.appendChild(style);
-                
-                // 不再阻止iOS上的原生手势，确保用户可以正常操作
-                document.addEventListener('gesturestart', function(e) {
-                    // 允许所有手势
-                    return true;
-                });
-            }
         }
         
         let isAuthenticated = false;
@@ -1441,49 +1367,7 @@
             document.getElementById('timeCounter').textContent = 
                 `自我们相识的${memoryCount}个瞬间 已经${days}天${hours}小时${minutes}分${seconds}秒`;
         }
-        
-        // 检测开发者工具的函数
-        function detectDevTools() {
-            // 检查是否是iOS设备，如果是则不执行这些检测
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
-            if (!isIOS) {
-                const devtoolsDebugger = /./;
-                devtoolsDebugger.toString = function() {
-                    if (isAuthenticated) {
-                        document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
-                    }
-                    return '';
-                };
-                
-                console.debug(devtoolsDebugger);
-                
-                setInterval(function() {
-                    const widthThreshold = window.outerWidth - window.innerWidth > 160;
-                    const heightThreshold = window.outerHeight - window.innerHeight > 160;
-                    
-                    if (widthThreshold || heightThreshold) {
-                        if (isAuthenticated) {
-                            document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
-                        }
-                    }
-                }, 1000);
-            }
-        }
-        
-        // 显示截图警告
-        function showScreenshotAlert() {
-            // 检查是否是iOS设备，如果是则不执行
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) return;
-            
-            const alertDiv = document.getElementById('screenshotProtect');
-            alertDiv.style.display = 'flex';
-            
-            setTimeout(function() {
-                alertDiv.style.display = 'none';
-            }, 3000);
-        }
+
         
         // 阻止保存图片的函数
         function disableSaveImage() {
@@ -1506,31 +1390,6 @@
                     
                     parent.replaceChild(wrapper, img);
                     wrapper.appendChild(img);
-                    
-                    // 移除覆盖层，它可能阻止点击
-                    /* 
-                    const overlay = document.createElement('div');
-                    overlay.style.position = 'absolute';
-                    overlay.style.top = '0';
-                    overlay.style.left = '0';
-                    overlay.style.width = '100%';
-                    overlay.style.height = '100%';
-                    overlay.style.cursor = 'pointer';
-                    
-                    // 保留原有点击功能
-                    const originalOnClick = img.onclick;
-                    overlay.onclick = function(e) {
-                        if (typeof originalOnClick === 'function') {
-                            originalOnClick.call(img, e);
-                        } else if (img.getAttribute('onclick')) {
-                            // 如果是内联onclick
-                            const clickFunction = new Function(img.getAttribute('onclick'));
-                            clickFunction();
-                        }
-                    };
-                    
-                    wrapper.appendChild(overlay);
-                    */
                 }
                 
                 // 保留右键菜单保护
@@ -1573,12 +1432,18 @@
             }
         }
         
+        // 显示截图警告
+        function showScreenshotAlert() {
+            const alertDiv = document.getElementById('screenshotProtect');
+            alertDiv.style.display = 'flex';
+            
+            setTimeout(function() {
+                alertDiv.style.display = 'none';
+            }, 3000);
+        }
+        
         // 增强的屏幕截图检测
         function enhancedScreenshotDetection() {
-            // 检查是否是iOS设备，如果是则不执行这些检测
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) return;
-            
             // 监控屏幕亮度变化（可能是截图操作）
             if ('AmbientLightSensor' in window) {
                 try {
@@ -1612,10 +1477,6 @@
         }
         
         function checkForScreenCapture() {
-            // 检查是否是iOS设备，如果是则不执行
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) return;
-            
             // 检测全屏后的截图可能
             if (!document.fullscreenElement && 
                 !document.webkitFullscreenElement && 
@@ -1627,10 +1488,6 @@
         
         // 监控剪贴板变化
         function monitorClipboard() {
-            // 检查是否是iOS设备，如果是则不执行这些检测
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) return;
-            
             if (navigator.clipboard && navigator.clipboard.addEventListener) {
                 try {
                     navigator.clipboard.addEventListener('clipboardchange', function() {
@@ -1643,10 +1500,6 @@
             
             // 定期检查剪贴板内容
             setInterval(function() {
-                // 再次检查是否是iOS设备
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                if (isIOS) return;
-                
                 if (navigator.clipboard && navigator.clipboard.readText) {
                     navigator.clipboard.readText().then(function(text) {
                         // 检查剪贴板上的内容是否来自我们的页面
@@ -1780,6 +1633,30 @@
                     return false;
                 }
             });
+        }
+        
+        // 检测开发者工具的函数
+        function detectDevTools() {
+            const devtoolsDebugger = /./;
+            devtoolsDebugger.toString = function() {
+                if (isAuthenticated) {
+                    document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
+                }
+                return '';
+            };
+            
+            console.debug(devtoolsDebugger);
+            
+            setInterval(function() {
+                const widthThreshold = window.outerWidth - window.innerWidth > 160;
+                const heightThreshold = window.outerHeight - window.innerHeight > 160;
+                
+                if (widthThreshold || heightThreshold) {
+                    if (isAuthenticated) {
+                        document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
+                    }
+                }
+            }, 1000);
         }
     </script>
 </body>
