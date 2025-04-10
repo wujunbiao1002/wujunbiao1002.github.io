@@ -823,9 +823,6 @@
             // 保护页面选择和滑动
             protectPageSelection();
             
-            // 添加防拍摄模式
-            setupAntiScreenshotMode();
-            
             // 检查是否处于锁定状态
             checkLockStatus();
         };
@@ -1597,19 +1594,6 @@
             setTimeout(function() {
                 notice.style.opacity = '0';
             }, 2000);
-        }
-        
-        // 设置防拍摄模式
-        function setupAntiScreenshotMode() {
-            // 随机切换防拍摄模式
-            setInterval(function() {
-                if (Math.random() > 0.8 && isAuthenticated) { // 20%的几率开启
-                    document.body.classList.add('anti-screenshot-mode');
-                    setTimeout(function() {
-                        document.body.classList.remove('anti-screenshot-mode');
-                    }, 100);
-                }
-            }, 5000);
         }
         
         // 保护页面选择
