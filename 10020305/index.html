@@ -752,6 +752,21 @@
             // 检测设备类型
             detectDeviceType();
             
+            // 特别针对iOS设备做额外处理
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                // 确保清除任何可能的锁定状态
+                const bodyHTML = document.body.innerHTML;
+                if (bodyHTML.includes('检测到不安全操作，页面已被锁定')) {
+                    location.reload(); // 自动刷新以恢复正常状态
+                }
+                
+                // 添加iOS特定的保护措施
+                const meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
+                document.head.appendChild(meta);
+            }
+            
             // 禁用右键菜单
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
@@ -849,6 +864,11 @@
         let lastTouchPoint = { x: 0, y: 0 };
         
         function handleTouchStart(e) {
+            // 在iOS设备上，不阻止任何操作
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                return true;
+            }
+            
             touchStartTime = Date.now();
             lastTouchPoint.x = e.touches[0].clientX;
             lastTouchPoint.y = e.touches[0].clientY;
@@ -868,6 +888,11 @@
         }
         
         function handleTouchMove(e) {
+            // 在iOS设备上，不阻止任何操作
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                return true;
+            }
+            
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
@@ -879,6 +904,11 @@
         }
         
         function handleTouchEnd(e) {
+            // 在iOS设备上，不阻止任何操作
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                return true;
+            }
+            
             // 清除长按定时器
             clearTimeout(touchTimeout);
             
@@ -917,18 +947,17 @@
                     img:not([draggable="true"]) {
                         pointer-events: auto !important;
                     }
-                    /* 添加 iOS 视频保护 */
+                    /* 为iOS设备优化视频控制 */
                     video::-webkit-media-controls-enclosure {
-                        display: none !important;
+                        display: block !important;
                     }
                 `;
                 document.head.appendChild(style);
                 
-                // 监听特定手势但不阻止图片相关操作
+                // 不再阻止iOS上的原生手势，确保用户可以正常操作
                 document.addEventListener('gesturestart', function(e) {
-                    if (e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
-                        e.preventDefault();
-                    }
+                    // 允许所有手势
+                    return true;
                 });
             }
         }
@@ -1406,26 +1435,31 @@
         
         // 检测开发者工具的函数
         function detectDevTools() {
-            const devtoolsDebugger = /./;
-            devtoolsDebugger.toString = function() {
-                if (isAuthenticated) {
-                    document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
-                }
-                return '';
-            };
+            // 检查是否是iOS设备，如果是则不执行这些检测
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             
-            console.debug(devtoolsDebugger);
-            
-            setInterval(function() {
-                const widthThreshold = window.outerWidth - window.innerWidth > 160;
-                const heightThreshold = window.outerHeight - window.innerHeight > 160;
-                
-                if (widthThreshold || heightThreshold) {
+            if (!isIOS) {
+                const devtoolsDebugger = /./;
+                devtoolsDebugger.toString = function() {
                     if (isAuthenticated) {
                         document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
                     }
-                }
-            }, 1000);
+                    return '';
+                };
+                
+                console.debug(devtoolsDebugger);
+                
+                setInterval(function() {
+                    const widthThreshold = window.outerWidth - window.innerWidth > 160;
+                    const heightThreshold = window.outerHeight - window.innerHeight > 160;
+                    
+                    if (widthThreshold || heightThreshold) {
+                        if (isAuthenticated) {
+                            document.body.innerHTML = '<div style="text-align:center; padding:50px;">检测到不安全操作，页面已被锁定。</div>';
+                        }
+                    }
+                }, 1000);
+            }
         }
         
         // 显示截图警告
