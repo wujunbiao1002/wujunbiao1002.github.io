@@ -613,31 +613,6 @@
             -webkit-touch-callout: none;
         }
         
-        .secure-image::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            pointer-events: none;
-        }
-        
-        /* 移动端保护样式 */
-        body.mobile-device {
-            touch-action: auto; /* 修改为auto，允许所有触摸操作 */
-        }
-        
-        * { 
-            -webkit-touch-callout: none;
-        }
-        
-        img {
-            -webkit-touch-callout: none;
-            pointer-events: auto !important; /* 确保图片可点击 */
-        }
-        
         .secure-image img {
             pointer-events: auto !important; /* 确保安全容器中的图片可点击 */
         }
@@ -656,16 +631,6 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease;
-        }
-        
-        /* 防拍摄效果 */
-        @keyframes antiScreenshot {
-            0%, 100% { filter: none; }
-            50% { filter: brightness(1.2) contrast(0.8); }
-        }
-        
-        .anti-screenshot-mode img, .anti-screenshot-mode .memory {
-            animation: antiScreenshot 0.1s infinite;
         }
     </style>
 </head>
@@ -820,14 +785,6 @@
             // 检查是否处于锁定状态
             checkLockStatus();
         };
-        
-        // 检测设备类型
-        function detectDeviceType() {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            if (isMobile) {
-                document.body.classList.add('mobile-device');
-            }
-        }
         
         // 移动端触摸事件处理
         let touchStartTime = 0;
@@ -1435,22 +1392,6 @@
         
         // 增强的屏幕截图检测
         function enhancedScreenshotDetection() {
-            // 监控屏幕亮度变化（可能是截图操作）
-            if ('AmbientLightSensor' in window) {
-                try {
-                    const sensor = new AmbientLightSensor();
-                    sensor.onreading = () => {
-                        const lastReading = sensor.illuminance;
-                        if (lastReading < 1) { // 检测突然变暗（可能是截图操作）
-                            showScreenshotAlert();
-                        }
-                    };
-                    sensor.start();
-                } catch (e) {
-                    console.log('环境光传感器不可用');
-                }
-            }
-            
             // 监听全屏变化（可能的截图前兆）
             document.addEventListener('fullscreenchange', checkForScreenCapture);
             document.addEventListener('webkitfullscreenchange', checkForScreenCapture);
@@ -1479,16 +1420,6 @@
         
         // 监控剪贴板变化
         function monitorClipboard() {
-            if (navigator.clipboard && navigator.clipboard.addEventListener) {
-                try {
-                    navigator.clipboard.addEventListener('clipboardchange', function() {
-                        showClipboardAlert();
-                    });
-                } catch(e) {
-                    console.log('剪贴板监控API不可用');
-                }
-            }
-            
             // 定期检查剪贴板内容
             setInterval(function() {
                 if (navigator.clipboard && navigator.clipboard.readText) {
