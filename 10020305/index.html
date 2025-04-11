@@ -77,6 +77,16 @@
             --line-height-mobile: 1.6;
         }
 
+        /* 添加全局触摸高亮控制 */
+        * {
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+
+        /* 确保模态框内的所有可点击元素都没有高亮 */
+        .modal * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -117,6 +127,7 @@
             margin: 0 auto;
             padding: 15px;
             display: none;
+            margin-bottom: 3px; 
         }
 
         header {
@@ -285,6 +296,10 @@
             cursor: pointer;
             transition: transform 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+            -webkit-touch-callout: none; /* 禁止长按菜单 */
+            user-select: none; /* 禁止选择 */
+            outline: none; /* 移除点击轮廓线 */
         }
 
         .gallery img:hover {
@@ -302,6 +317,9 @@
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
         }
 
         .modal-content {
@@ -311,14 +329,22 @@
             padding: 3px;
             background: var(--pink-gradient);
             border-radius: 8px;
+            opacity: 1;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
         }
 
         .modal-content img {
             max-width: 100%;
-            max-height: 90vh;
+            max-height: 85vh;
             display: block;
             margin: 0 auto;
             border-radius: 5px;
+            object-fit: contain;
         }
 
         .modal-nav {
@@ -346,6 +372,14 @@
             align-items: center;
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+            outline: none; /* 移除点击轮廓 */
+            -webkit-touch-callout: none; /* 禁止长按菜单 */
+            user-select: none; /* 禁止选择文本 */
+            line-height: 0;
+            padding: 0;
+            text-align: center;
+            vertical-align: middle;
         }
 
         .modal-nav button:hover {
@@ -379,6 +413,8 @@
             font-weight: bold;
             cursor: pointer;
             transition: color 0.3s;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+            -webkit-touch-callout: none; /* 禁止长按菜单 */
         }
 
         .close:hover {
@@ -833,6 +869,7 @@
             position: relative;
             display: inline-block;
             -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
         }
 
         .secure-image img {
@@ -1006,8 +1043,8 @@
     <div class="password-modal" id="passwordModal">
         <div class="password-content">
             <h2>爱的开始</h2>
-            <input type="password" class="password-input" id="passwordInput" placeholder="请输入…">
-            <button class="password-button" onclick="verifyPassword()">爱你😘</button>
+            <input type="password" class="password-input" id="passwordInput" placeholder="请输入……">
+            <button class="password-button" onclick="checkPasswordAndVerify()">爱你😘</button>
             <p class="error-message" id="errorMessage">再想想。</p>
             <div class="locked-message" id="lockedMessage">
                 哼😡！我很生气。<br><br>
@@ -1022,8 +1059,8 @@
         <div class="modal-content" id="modalContent">
             <img id="modalImage" src="" alt="放大图片">
             <div class="modal-nav">
-                <button id="prevImageBtn" onclick="navigateImage(-1)">&lsaquo;</button>
-                <button id="nextImageBtn" onclick="navigateImage(1)">&rsaquo;</button>
+                <button id="prevImageBtn" onclick="navigateImage(-1)"><span style="position: relative; top: -1px;">&lsaquo;</span></button>
+                <button id="nextImageBtn" onclick="navigateImage(1)"><span style="position: relative; top: -1px;">&rsaquo;</span></button>
             </div>
             <div class="modal-counter" id="imageCounter"></div>
         </div>
@@ -1068,6 +1105,14 @@
             // 初始化音乐控制按钮状态
             const musicControl = document.getElementById('musicControl');
             musicControl.classList.remove('playing');
+            
+            // 不再初始禁用登录按钮，改为允许点击并依靠checkPasswordAndVerify来检查空输入
+            // const passwordButton = document.querySelector('.password-button');
+            const passwordInput = document.getElementById('passwordInput');
+            // passwordButton.disabled = !passwordInput.value.trim();
+            
+            // 添加输入框变化监听
+            // passwordInput.addEventListener('input', updateButtonState);
 
             // 禁用右键菜单
             document.addEventListener('contextmenu', function (e) {
@@ -1146,9 +1191,11 @@
             lastTouchPoint.x = e.touches[0].clientX;
             lastTouchPoint.y = e.touches[0].clientY;
 
-            // 如果是图片元素，不阻止默认行为
+            // 如果是图片元素，不阻止默认行为，但移除可能出现的高亮效果
             if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
                 clearTimeout(touchTimeout);
+                // 防止移动设备上的点击高亮
+                e.target.style.webkitTapHighlightColor = "transparent";
                 return true; // 允许默认行为
             }
 
@@ -1259,12 +1306,41 @@
             passwordAttempts = 0;
         }
 
-        function verifyPassword() {
-            if (isLocked) return;
-
+        // 包装函数，先检查密码是否为空，然后调用验证函数
+        function checkPasswordAndVerify() {
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-
+           
+            // 检查密码是否为空
+            if (!password.trim() || password.length < 1) {
+                errorMessage.textContent = "请输入…";
+                errorMessage.style.display = 'block';
+                errorMessage.style.animation = 'none';
+                void errorMessage.offsetWidth;
+                errorMessage.style.animation = 'shake 0.5s ease';
+                return;
+            }
+            
+            checkAndVerifyPassword();
+        }
+        
+        // 检查密码并验证
+        function checkAndVerifyPassword() {
+            if (isLocked) return;
+            
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // 检查密码是否为空
+            if (!password.trim()) {
+                errorMessage.textContent = "请输入…";
+                errorMessage.style.display = 'block';
+                errorMessage.style.animation = 'none';
+                void errorMessage.offsetWidth;
+                errorMessage.style.animation = 'shake 0.5s ease';
+                return;
+            }
+            
             if (md5(password) === PASSWORD_HASH) {
                 document.getElementById('passwordModal').style.display = 'none';
                 document.getElementById('authMask').style.display = 'none';
@@ -1369,13 +1445,13 @@
             lockedMessage.style.display = 'none';
 
             passwordInput.disabled = false;
-            passwordInput.placeholder = '请输入密码';
+            passwordInput.placeholder = '请输入……';
             passwordButton.disabled = false;
         }
 
         document.getElementById('passwordInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !isLocked) {
-                verifyPassword();
+                checkPasswordAndVerify();
             }
         });
 
@@ -1514,7 +1590,12 @@
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const imageCounter = document.getElementById('imageCounter');
+            const modalContent = document.getElementById('modalContent');
 
+            // 不使用过渡效果
+            modalContent.style.opacity = '1';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            
             currentGallery = [];
             currentImageIndex = 0;
 
@@ -1551,17 +1632,28 @@
                 }
             }
 
-            modalImage.src = imageSrc;
-            updateImageCounter();
-
-            updateNavigationButtons();
-
-            modal.style.display = 'flex';
-
-            document.body.style.overflow = 'hidden';
-
-            // 对模态框中的图片应用禁止保存
-            setTimeout(disableSaveImage, 100);
+            // 先加载图片
+            const img = new Image();
+            img.onload = function() {
+                // 直接显示图片和模态框，无过渡效果
+                modalImage.src = imageSrc;
+                updateImageCounter();
+                updateNavigationButtons();
+                
+                // 立即显示模态框
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // 无过渡效果，移除所有transition
+                modalContent.style.transition = 'none';
+                modal.style.transition = 'none';
+                
+                // 对模态框中的图片应用禁止保存
+                disableSaveImage();
+            };
+            
+            // 开始加载图片
+            img.src = imageSrc;
         }
 
         function closeModal() {
@@ -1575,21 +1667,32 @@
         function navigateImage(direction) {
             if (currentGallery.length <= 1) return;
 
+            // 禁用按钮，防止重复点击
+            const prevButton = document.getElementById('prevImageBtn');
+            const nextButton = document.getElementById('nextImageBtn');
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+            
+            // 直接更新图片索引
             currentImageIndex += direction;
 
             if (currentImageIndex < 0) {
                 currentImageIndex = 0;
-                return;
-            }
-            if (currentImageIndex >= currentGallery.length) {
+            } else if (currentImageIndex >= currentGallery.length) {
                 currentImageIndex = currentGallery.length - 1;
-                return;
+            } else {
+                // 直接切换图片，无过渡效果
+                const modalImage = document.getElementById('modalImage');
+                modalImage.src = currentGallery[currentImageIndex];
             }
 
-            document.getElementById('modalImage').src = currentGallery[currentImageIndex];
-
+            // 更新按钮状态和计数器
             updateNavigationButtons();
             updateImageCounter();
+            
+            // 重新启用按钮
+            prevButton.disabled = currentImageIndex === 0;
+            nextButton.disabled = currentImageIndex === currentGallery.length - 1;
         }
 
         function updateNavigationButtons() {
@@ -2107,6 +2210,11 @@
                 // 重新创建适合新窗口大小的花瓣
                 createPetals();
             });
+        }
+
+        // 更新登录按钮状态
+        function updateButtonState() {
+            // 功能已移除，因为我们允许空输入时点击按钮，并在checkPasswordAndVerify中处理空输入
         }
     </script>
 </body>
