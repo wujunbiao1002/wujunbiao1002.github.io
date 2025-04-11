@@ -963,6 +963,7 @@
             will-change: transform, top, opacity;
             backface-visibility: hidden;
             perspective: 1000px;
+            filter: blur(0);
         }
 
         @keyframes falling {
@@ -1885,16 +1886,17 @@
             if (!document.body.classList.contains('authenticated')) return;
             
             const container = document.getElementById('rose-petals-container');
-            const petalCount = window.innerWidth < 768 ? 5 : 8; // 进一步减少花瓣数量
+            const petalCount = window.innerWidth < 768 ? 4 : 6; // 进一步减少花瓣数量
             const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
             
             for (let i = 0; i < petalCount; i++) {
                 setTimeout(() => {
                     const petal = document.createElement('div');
                     petal.className = 'petal';
                     
-                    // 随机尺寸 (12-20px)，减小尺寸
-                    const size = Math.floor(Math.random() * 9) + 12;
+                    // 随机尺寸 (10-18px)，减小尺寸
+                    const size = Math.floor(Math.random() * 9) + 10;
                     petal.style.width = `${size}px`;
                     petal.style.height = `${size}px`;
                     
@@ -1916,51 +1918,87 @@
                     // 随机颜色 (粉色色系)
                     petal.style.filter = `hue-rotate(${Math.random() * 30 - 15}deg) saturate(${Math.random() * 0.4 + 0.8})`;
                     
-                    // 使用cubic-bezier缓动函数让动画更自然
-                    const fallEasing = `cubic-bezier(${0.4 + Math.random() * 0.2}, 0, ${0.2 + Math.random() * 0.3}, 1)`;
-                    const swayEasing = `cubic-bezier(${0.3 + Math.random() * 0.2}, 0, ${0.3 + Math.random() * 0.2}, 1)`;
+                    // 更慢、更自然的飘落
+                    const fallDuration = Math.floor(Math.random() * 15) + 20; // 20-35秒，大幅放慢速度
+                    const swayDuration = Math.floor(Math.random() * 6) + 6; // 6-12秒，更慢的摇摆
                     
-                    // 随机持续时间
-                    const fallDuration = Math.floor(Math.random() * 10) + 10; // 10-20秒，让飘落更加缓慢
-                    const swayDuration = Math.floor(Math.random() * 4) + 4; // 4-8秒，摇摆更加自然
-                    
-                    // 直接设置自定义动画，不使用CSS animation属性，避免跳动
-                    const fallKeyframes = [
-                        { top: '-5%', opacity: 0 },
-                        { top: '0%', opacity: 0.7, offset: 0.1 },
-                        { top: '95%', opacity: 0.9, offset: 0.95 },
-                        { top: '100%', opacity: 0.6 }
-                    ];
-                    
-                    // 创建更多关键帧使摇摆更加平滑
-                    const swayKeyframes = [];
-                    const steps = 8; // 增加关键帧数量
-                    
-                    for (let step = 0; step <= steps; step++) {
-                        const progress = step / steps;
-                        const xOffset = Math.sin(progress * Math.PI * 2) * 20; // 使用正弦函数使摇摆更平滑
-                        const rotation = progress * 180;
+                    // 创建平滑的浮动和下降轨迹
+                    function createFallAnimation() {
+                        // 计算总距离
+                        const totalDistance = viewportHeight + (viewportHeight * 0.15); // 屏幕高度 + 额外15%
                         
-                        swayKeyframes.push({
-                            transform: `translateX(${horizontalPosition + xOffset}px) rotate(${rotation}deg)`
+                        // 创建更多关键帧使下落更自然
+                        const frames = [];
+                        const numFrames = 20; // 增加关键帧数量使动画更平滑
+                        
+                        for (let j = 0; j <= numFrames; j++) {
+                            const progress = j / numFrames;
+                            
+                            // 使用缓动函数使下落加速度更自然
+                            // 开始慢，逐渐加速
+                            const easeInQuad = progress * progress;
+                            
+                            // 计算当前位置，从顶部-10%到底部100%
+                            const yPos = -10 + easeInQuad * 110; // 从-10%到100%
+                            
+                            // 计算合适的透明度
+                            let opacity;
+                            if (progress < 0.1) {
+                                // 开始时淡入
+                                opacity = progress * 7;
+                            } else if (progress > 0.9) {
+                                // 结束时略微淡出
+                                opacity = 0.7 - (progress - 0.9) * 1;
+                            } else {
+                                // 中间保持相对稳定
+                                opacity = 0.7;
+                            }
+                            
+                            frames.push({
+                                top: `${yPos}%`,
+                                opacity: opacity
+                            });
+                        }
+                        
+                        return petal.animate(frames, {
+                            duration: fallDuration * 1000,
+                            easing: 'linear', // 使用线性插值，因为我们已经在关键帧中构建了自定义缓动
+                            fill: 'forwards'
                         });
                     }
                     
-                    // 应用自定义动画
-                    const fallAnimation = petal.animate(fallKeyframes, {
-                        duration: fallDuration * 1000,
-                        easing: fallEasing,
-                        fill: 'forwards'
-                    });
+                    function createSwayAnimation() {
+                        const frames = [];
+                        const numFrames = 60; // 非常高的帧数以确保超级平滑
+                        
+                        // 创建连续的正弦波动，避免跳跃
+                        for (let j = 0; j <= numFrames; j++) {
+                            const progress = j / numFrames;
+                            
+                            // 使用正弦函数创建平滑的水平移动
+                            const xOffset = Math.sin(progress * Math.PI * 2) * (10 + Math.random() * 5);
+                            
+                            // 使用连续的旋转，避免回弹
+                            const rotation = progress * 360; // 完整的一圈旋转
+                            
+                            frames.push({
+                                transform: `translateX(${horizontalPosition + xOffset}px) rotate(${rotation}deg)`
+                            });
+                        }
+                        
+                        return petal.animate(frames, {
+                            duration: swayDuration * 1000,
+                            iterations: Infinity,
+                            easing: 'linear' // 使用线性插值确保平滑过渡
+                        });
+                    }
                     
-                    const swayAnimation = petal.animate(swayKeyframes, {
-                        duration: swayDuration * 1000,
-                        iterations: Infinity,
-                        easing: swayEasing
-                    });
+                    // 应用动画
+                    const fallAnimation = createFallAnimation();
+                    const swayAnimation = createSwayAnimation();
                     
                     // 随机延迟
-                    const delay = Math.random() * 10;
+                    const delay = Math.random() * 15; // 更长的延迟
                     fallAnimation.currentTime = -delay * 1000;
                     swayAnimation.currentTime = -delay * 1000;
                     
@@ -1969,18 +2007,18 @@
                     // 花瓣飘落完成后移除
                     setTimeout(() => {
                         if (petal && petal.parentNode) {
-                            // 淡出效果
+                            // 平滑淡出效果
                             petal.animate([
-                                { opacity: petal.style.opacity },
+                                { opacity: parseFloat(petal.style.opacity) || 0.7 },
                                 { opacity: 0 }
                             ], {
-                                duration: 500,
+                                duration: 800,
                                 easing: 'ease-out',
                                 fill: 'forwards'
                             }).onfinish = () => petal.remove();
                         }
                     }, fallDuration * 1000 + delay * 1000);
-                }, Math.random() * 3000); // 错开创建时间，延长至3秒
+                }, Math.random() * 5000); // 错开创建时间，延长至5秒
             }
         }
         
@@ -1989,8 +2027,8 @@
             // 初始创建花瓣
             createPetals();
             
-            // 每8秒创建一批新花瓣
-            setInterval(createPetals, 8000);
+            // 每12秒创建一批新花瓣
+            setInterval(createPetals, 12000);
             
             // 添加窗口大小改变的处理
             window.addEventListener('resize', function() {
