@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我们的秘密花园</title>
+    <title>我 真 的 爱 你</title>
     <meta name="referrer" content="no-referrer" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+    <audio id="bgMusic" loop>
+        <source src="/assets/music/G.E.M.邓紫棋-唯一.mp3" type="audio/mpeg">
+    </audio>
     <style>
         :root {
             --primary-color: #ffb6c1;
@@ -18,28 +22,85 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --pink-gradient: linear-gradient(to right, #ffb6c1, #ff69b4);
             --light-pink-bg: rgba(255, 182, 193, 0.15);
+            
+            /* 字体大小变量 */
+            --h1-size-pc: 2.4rem;
+            --h1-size-tablet: 2.1rem;
+            --h1-size-mobile: 1.8rem;
+            
+            --subtitle-size-pc: 1.4rem;
+            --subtitle-size-tablet: 1.25rem;
+            --subtitle-size-mobile: 1.15rem;
+            
+            --time-size-pc: 1.05rem;
+            --time-size-tablet: 0.95rem;
+            --time-size-mobile: 0.9rem;
+            
+            --title-size-pc: 1.3rem;
+            --title-size-tablet: 1.2rem;
+            --title-size-mobile: 1.1rem;
+            
+            --text-size-pc: 1.05rem;
+            --text-size-tablet: 1rem;
+            --text-size-mobile: 0.95rem;
+            
+            --date-size-pc: 1.05rem;
+            --date-size-tablet: 0.95rem;
+            --date-size-mobile: 0.9rem;
+            
+            --button-size-pc: 1rem;
+            --button-size-tablet: 0.95rem;
+            --button-size-mobile: 0.9rem;
+            
+            --footer-size-pc: 1.05rem;
+            --footer-size-tablet: 1rem;
+            --footer-size-mobile: 0.95rem;
+            
+            --modal-counter-pc: 0.9rem;
+            --modal-counter-tablet: 0.85rem;
+            --modal-counter-mobile: 0.8rem;
+            
+            --password-title-pc: 2rem;
+            --password-title-tablet: 1.8rem;
+            --password-title-mobile: 1.6rem;
+            
+            --password-input-pc: 1rem;
+            --password-input-tablet: 0.95rem;
+            --password-input-mobile: 0.9rem;
+            
+            --notice-size-pc: 0.85rem;
+            --notice-size-tablet: 0.8rem;
+            --notice-size-mobile: 0.75rem;
+            
+            --line-height-pc: 1.7;
+            --line-height-tablet: 1.65;
+            --line-height-mobile: 1.6;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        html, body {
+
+        html,
+        body {
             height: 100%;
             width: 100%;
-            overflow: hidden; 
+            overflow: hidden;
             font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
+
         body {
             background-color: #8a8a8a;
             color: var(--text-color);
-            line-height: 1.6;
+            line-height: var(--line-height-pc);
             transition: background-color 0.5s ease;
         }
-        
+
         body.authenticated {
             background-color: var(--secondary-color);
             overflow: auto;
@@ -50,14 +111,14 @@
             -ms-user-select: none;
             user-select: none;
         }
-        
+
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 15px;
             display: none;
         }
-        
+
         header {
             text-align: center;
             padding: 5px 0 30px 0;
@@ -66,22 +127,26 @@
             margin-bottom: 20px;
             box-shadow: var(--shadow);
         }
-        
+
         header h1 {
-            font-size: 2rem;
+            font-size: var(--h1-size-pc);
             color: var(--accent-color);
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
-        
+
         header p {
-            font-size: 1.2rem;
+            font-size: var(--subtitle-size-pc);
             color: var(--light-text);
             margin-bottom: 10px;
+            font-weight: 500;
         }
-        
-        .current-time, .time-counter {
-            font-size: 0.9rem;
+
+        .current-time,
+        .time-counter {
+            font-size: var(--time-size-pc);
             color: var(--light-text);
             margin: 8px auto;
             background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(255, 240, 245, 0.8));
@@ -94,19 +159,19 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        
+
         .time-counter {
             color: var(--accent-color);
             font-weight: 500;
             background: linear-gradient(to right, rgba(255, 240, 245, 0.8), rgba(255, 230, 240, 0.9));
         }
-        
+
         .timeline {
             position: relative;
             padding: 20px 0;
             margin: 0 10px;
         }
-        
+
         .timeline::before {
             content: '';
             position: absolute;
@@ -119,7 +184,7 @@
             margin-left: 0;
             border-radius: 2px;
         }
-        
+
         .memory {
             padding: 10px 40px;
             position: relative;
@@ -127,7 +192,7 @@
             width: 50%;
             margin-bottom: 25px;
         }
-        
+
         .memory::after {
             content: '';
             position: absolute;
@@ -141,23 +206,23 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
             background: linear-gradient(to bottom right, #ffffff, #ffebf0);
         }
-        
+
         .left {
             left: 0;
         }
-        
+
         .right {
             left: 50%;
         }
-        
+
         .left::after {
             right: -14px;
         }
-        
+
         .right::after {
             left: -14px;
         }
-        
+
         .content {
             padding: 20px;
             background: linear-gradient(to bottom right, #ffffff, #fafafa);
@@ -167,49 +232,51 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border-left: 3px solid var(--primary-color);
         }
-        
+
         .left .content {
             border-left: none;
             border-right: 3px solid var(--primary-color);
         }
-        
+
         .content:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
-        
+
         .date {
             font-weight: bold;
             color: var(--accent-color);
             margin-bottom: 10px;
-            font-size: 0.9rem;
+            font-size: var(--date-size-pc);
             background-color: var(--light-pink-bg);
             display: inline-block;
             padding: 2px 8px;
             border-radius: 12px;
         }
-        
+
         .title {
-            font-size: 1rem;
+            font-size: var(--title-size-pc);
             margin-bottom: 10px;
             color: var(--text-color);
             font-weight: 600;
+            letter-spacing: 0.3px;
         }
-        
+
         .text {
             margin-bottom: 15px;
-            font-size: 0.9rem;
+            font-size: var(--text-size-pc);
             color: var(--light-text);
-            line-height: 1.5;
+            line-height: var(--line-height-pc);
+            letter-spacing: 0.2px;
         }
-        
+
         .gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 15px;
         }
-        
+
         .gallery img {
             width: 100%;
             aspect-ratio: 1;
@@ -219,11 +286,11 @@
             transition: transform 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         .gallery img:hover {
             transform: scale(1.05);
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -236,7 +303,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .modal-content {
             max-width: 90%;
             max-height: 90%;
@@ -245,7 +312,7 @@
             background: var(--pink-gradient);
             border-radius: 8px;
         }
-        
+
         .modal-content img {
             max-width: 100%;
             max-height: 90vh;
@@ -253,7 +320,7 @@
             margin: 0 auto;
             border-radius: 5px;
         }
-        
+
         .modal-nav {
             position: absolute;
             top: 50%;
@@ -264,7 +331,7 @@
             box-sizing: border-box;
             transform: translateY(-50%);
         }
-        
+
         .modal-nav button {
             background-color: rgba(255, 255, 255, 0.7);
             border: none;
@@ -280,18 +347,18 @@
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
+
         .modal-nav button:hover {
             background-color: white;
             transform: scale(1.1);
         }
-        
+
         .modal-nav button:disabled {
             opacity: 0.3;
             cursor: not-allowed;
             transform: scale(1);
         }
-        
+
         .modal-counter {
             position: absolute;
             bottom: 10px;
@@ -299,10 +366,10 @@
             width: 100%;
             text-align: center;
             color: white;
-            font-size: 14px;
+            font-size: var(--modal-counter-pc);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
-        
+
         .close {
             position: absolute;
             top: 15px;
@@ -313,24 +380,24 @@
             cursor: pointer;
             transition: color 0.3s;
         }
-        
+
         .close:hover {
             color: var(--primary-color);
         }
-        
+
         .loading {
             text-align: center;
             padding: 20px;
             color: var(--accent-color);
             display: none;
         }
-        
+
         .load-more {
             text-align: center;
             padding: 10px;
             margin: 10px 0 20px 0;
         }
-        
+
         .load-more button {
             background: linear-gradient(to right, var(--primary-color), var(--accent-color));
             color: white;
@@ -338,32 +405,34 @@
             padding: 10px 25px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: var(--button-size-pc);
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
         }
-        
+
         .load-more button:hover {
             background: linear-gradient(to right, var(--accent-color), var(--primary-color));
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         .load-more button:active {
             transform: translateY(0);
         }
-        
+
         .footer {
             text-align: center;
             margin-top: 20px;
             padding: 15px 0;
             color: var(--accent-color);
-            font-size: 1rem;
+            font-size: var(--footer-size-pc);
             background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 240, 245, 0.6));
             border-radius: 15px;
             box-shadow: var(--shadow);
+            font-weight: 500;
         }
-        
+
         .password-modal {
             display: flex;
             position: fixed;
@@ -376,7 +445,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .password-content {
             background: linear-gradient(to bottom, #ffffff, #fefefe);
             padding: 30px;
@@ -387,34 +456,42 @@
             width: 90%;
             animation: fadeIn 0.5s ease;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .password-content h2 {
             color: var(--accent-color);
             margin-bottom: 20px;
-            font-size: 1.8rem;
+            font-size: var(--password-title-pc);
+            font-weight: 700;
         }
-        
+
         .password-input {
             width: 100%;
             padding: 12px 15px;
             margin: 15px 0;
             border: 1px solid var(--primary-color);
             border-radius: 25px;
-            font-size: 16px;
+            font-size: var(--password-input-pc);
             outline: none;
             transition: all 0.3s;
         }
-        
+
         .password-input:focus {
             box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.3);
             border-color: var(--accent-color);
         }
-        
+
         .password-button {
             background: linear-gradient(to right, var(--primary-color), var(--accent-color));
             color: white;
@@ -422,29 +499,31 @@
             padding: 12px 30px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: var(--password-input-pc);
             margin-top: 15px;
             transition: all 0.3s;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
         }
-        
+
         .password-button:hover {
             background: linear-gradient(to right, var(--accent-color), var(--primary-color));
             transform: translateY(-3px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
         }
-        
+
         .password-button:active {
             transform: translateY(0);
         }
-        
+
         .error-message {
             color: #ff4757;
             margin-top: 15px;
             display: none;
             animation: shake 0.5s ease;
+            font-size: var(--password-input-pc);
         }
-        
+
         .locked-message {
             color: #ff4757;
             margin-top: 15px;
@@ -454,43 +533,73 @@
             padding: 10px;
             border-radius: 10px;
             text-align: center;
+            font-size: var(--password-input-pc);
         }
-        
+
         .timer {
             font-weight: bold;
             color: var(--accent-color);
         }
-        
+
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
         }
-        
+
         @media screen and (max-width: 768px) {
+            html, body {
+                font-size: 15px;
+            }
+            
+            body {
+                line-height: var(--line-height-tablet);
+            }
+            
             .container {
                 padding: 10px;
             }
-            
+
             header {
                 padding: 20px 0 20px 0;
             }
-            
+
             header h1 {
-                font-size: 1.8rem;
+                font-size: var(--h1-size-tablet);
             }
             
-            .current-time, .time-counter {
-                font-size: 0.85rem;
+            header p {
+                font-size: var(--subtitle-size-tablet);
+            }
+
+            .current-time,
+            .time-counter {
+                font-size: var(--time-size-tablet);
                 padding: 5px 10px;
                 max-width: 95%;
             }
-            
+
             .timeline::before {
                 left: 33px;
                 transform: none;
             }
-            
+
             .memory {
                 width: 100%;
                 padding-left: 70px;
@@ -498,7 +607,7 @@
                 left: 0;
                 margin-bottom: 20px;
             }
-            
+
             .memory::after {
                 left: 24px;
                 transform: translateX(0);
@@ -506,90 +615,203 @@
                 height: 18px;
                 background: linear-gradient(to bottom right, #ffffff, #ffebf0);
             }
-            
-            .left::after, .right::after {
+
+            .left::after,
+            .right::after {
                 left: 24px;
                 right: auto;
             }
-            
+
             .right {
                 left: 0;
             }
-            
+
             .content {
                 padding: 15px;
             }
-            
+
+            .date {
+                font-size: var(--date-size-tablet);
+            }
+
+            .title {
+                font-size: var(--title-size-tablet);
+            }
+
+            .text {
+                font-size: var(--text-size-tablet);
+                line-height: var(--line-height-tablet);
+            }
+
             .gallery {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 8px;
             }
             
+            .modal-counter {
+                font-size: var(--modal-counter-tablet);
+            }
+
             .load-more button {
                 padding: 8px 20px;
-                font-size: 15px;
+                font-size: var(--button-size-tablet);
+            }
+            
+            .footer {
+                font-size: var(--footer-size-tablet);
+            }
+            
+            .password-content h2 {
+                font-size: var(--password-title-tablet);
+            }
+            
+            .password-input,
+            .password-button,
+            .error-message,
+            .locked-message {
+                font-size: var(--password-input-tablet);
+            }
+            
+            .content-usage-notice {
+                font-size: var(--notice-size-tablet);
+            }
+            
+            .music-control {
+                bottom: 15px;
+                left: 13px;
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+                opacity: 0.8;
+            }
+
+            .music-control:not(.playing)::after {
+                display: none;
+            }
+            
+            .music-control.playing::before {
+                font-size: 18px;
+            }
+
+            .music-control:not(.playing)::before {
+                font-size: 14px;
             }
         }
-        
+
         @media screen and (max-width: 480px) {
+            html, body {
+                font-size: 14px;
+            }
+            
+            body {
+                line-height: var(--line-height-mobile);
+            }
+            
             header h1 {
-                font-size: 1.6rem;
+                font-size: var(--h1-size-mobile);
             }
-            
+
             header p {
-                font-size: 1rem;
+                font-size: var(--subtitle-size-mobile);
             }
-            
-            .current-time, .time-counter {
-                font-size: 0.8rem;
+
+            .current-time,
+            .time-counter {
+                font-size: var(--time-size-mobile);
                 margin: 5px auto;
             }
-            
+
             .memory {
                 padding-left: 55px;
                 padding-right: 10px;
             }
-            
+
             .memory::after {
                 left: 25px;
                 width: 15px;
                 height: 15px;
                 border-width: 3px;
             }
-            
+
             .content {
                 padding: 12px;
             }
-            
+
             .date {
-                font-size: 0.8rem;
+                font-size: var(--date-size-mobile);
             }
-            
+
             .title {
-                font-size: 0.95rem;
+                font-size: var(--title-size-mobile);
             }
-            
+
             .text {
-                font-size: 0.85rem;
+                font-size: var(--text-size-mobile);
+                line-height: var(--line-height-mobile);
             }
-            
+
             .gallery {
                 gap: 5px;
             }
             
+            .modal-counter {
+                font-size: var(--modal-counter-mobile);
+            }
+            
+            .load-more button {
+                font-size: var(--button-size-mobile);
+            }
+
             .footer {
-                font-size: 0.9rem;
+                font-size: var(--footer-size-mobile);
                 padding: 10px 0;
             }
+            
+            .password-content h2 {
+                font-size: var(--password-title-mobile);
+            }
+            
+            .password-input,
+            .password-button,
+            .error-message,
+            .locked-message {
+                font-size: var(--password-input-mobile);
+            }
+            
+            .content-usage-notice {
+                font-size: var(--notice-size-mobile);
+                padding: 8px 12px;
+            }
+            
+            .music-control {
+                bottom: 20px !important;
+                left: 13px !important;
+                width: 30px !important;
+                height: 30px !important;
+                font-size: 14px !important;
+                opacity: 0.8 !important;
+            }
+
+            .music-control:not(.playing)::after {
+                display: none;
+            }
+            
+            .music-control.playing::before {
+                font-size: 14px !important;
+            }
+
+            .music-control:not(.playing)::before {
+                font-size: 12px !important;
+            }
         }
-        
+
         .observer {
             height: 1px;
             width: 100%;
             margin: 0;
             padding: 0;
         }
-        
+
         /* 禁止拖拽图片 */
         img {
             -webkit-user-drag: none;
@@ -598,25 +820,26 @@
             -o-user-drag: none;
             user-drag: none;
         }
-        
+
         /* 禁止打印 */
         @media print {
-            html, body {
+            html,
+            body {
                 display: none;
             }
         }
-    
-        
+
         .secure-image {
             position: relative;
             display: inline-block;
             -webkit-touch-callout: none;
         }
-        
+
         .secure-image img {
-            pointer-events: auto !important; /* 确保安全容器中的图片可点击 */
+            pointer-events: auto !important;
+            /* 确保安全容器中的图片可点击 */
         }
-        
+
         /* 内容保护提示 */
         .content-usage-notice {
             position: fixed;
@@ -626,53 +849,202 @@
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: var(--notice-size-pc);
             z-index: 999;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
+
+        /* 音乐控制按钮样式 */
+        .music-control {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a6d7ff, #ff69b4);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0.9;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .music-control.playing {
+            animation: pulse 2s infinite, rotate 3s linear infinite;
+        }
+
+        .music-control.playing::before {
+            content: '♫';
+            display: inline-block;
+            text-shadow: none;
+            -webkit-text-stroke: 0;
+            font-family: Arial, sans-serif;
+            font-size: 22px;
+        }
+
+        .music-control:not(.playing)::before {
+            content: '❙❙';
+            display: inline-block;
+            text-shadow: none;
+            -webkit-text-stroke: 0;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        .music-control:not(.playing)::after {
+            content: '';
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(166, 215, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 105, 180, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 105, 180, 0);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 花瓣效果 */
+        #rose-petals-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path fill="%23ffb6c1" d="M15 0C15 0 0 15 0 15C10 25 20 30 30 20C30 10 15 0 15 0Z"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.8;
+            transform-origin: center bottom;
+            animation-name: falling, sway;
+            animation-timing-function: linear, ease-in-out;
+            animation-iteration-count: infinite;
+            animation-play-state: running;
+            z-index: 200;
+            pointer-events: none;
+            will-change: transform, top, opacity;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        @keyframes falling {
+            0% {
+                top: -5%;
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            95% {
+                opacity: 0.9;
+            }
+            100% {
+                top: 100%;
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes sway {
+            0% { 
+                transform: translateX(0) rotate(0deg); 
+            }
+            25% { 
+                transform: translateX(20px) rotate(45deg); 
+            }
+            50% { 
+                transform: translateX(-20px) rotate(90deg); 
+            }
+            75% { 
+                transform: translateX(20px) rotate(135deg); 
+            }
+            100% { 
+                transform: translateX(0) rotate(180deg); 
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div id="authMask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #8a8a8a; z-index: 999;"></div>
-    
-    <div id="screenshotProtect" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; color:white; font-size:24px; text-align:center; flex-direction:column;">
+    <div id="authMask"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #8a8a8a; z-index: 999;"></div>
+
+    <div id="rose-petals-container"></div>
+
+    <div id="screenshotProtect"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; color:white; font-size:24px; text-align:center; flex-direction:column;">
         <div style="margin-bottom:20px;">
             <span style="color:#ff69b4; font-size:36px;">⚠️</span>
         </div>
         <div>检测到截图行为</div>
         <div style="font-size:16px; margin-top:10px;">请尊重隐私，不要截取画面</div>
     </div>
-    
+
     <div id="contentNotice" class="content-usage-notice">内容受保护，禁止复制</div>
-    
+
     <div class="container" id="mainContent">
         <header>
-            <h1>我们的时光轴</h1>
+            <h1>宝儿和宝子的时光轴</h1>
             <p>记录每一个瞬间</p>
             <div class="current-time" id="currentTime"></div>
             <div class="time-counter" id="timeCounter"></div>
         </header>
-        
+
         <div class="timeline" id="timeline">
         </div>
-        
+
         <div class="load-more" id="loadMore">
             <button onclick="loadMoreClick()">加载更多</button>
         </div>
-        
+
         <div class="loading" id="loading">加载中...</div>
-        
+
         <div class="footer">
             用爱创造的回忆
         </div>
     </div>
-    
+
     <div class="password-modal" id="passwordModal">
         <div class="password-content">
             <h2>爱的开始</h2>
-            <input type="password" class="password-input" id="passwordInput" placeholder="请输入密码">
+            <input type="password" class="password-input" id="passwordInput" placeholder="请输入…">
             <button class="password-button" onclick="verifyPassword()">爱你😘</button>
             <p class="error-message" id="errorMessage">再想想。</p>
             <div class="locked-message" id="lockedMessage">
@@ -682,7 +1054,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="modal" id="imageModal">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-content" id="modalContent">
@@ -694,142 +1066,158 @@
             <div class="modal-counter" id="imageCounter"></div>
         </div>
     </div>
-    
+
+    <div class="music-control" id="musicControl" onclick="toggleMusic()">
+    </div>
+
     <script>
         let memories = [];
         let currentPage = 1;
         const itemsPerPage = 10;
         let isLoading = false;
         let hasMore = true;
-        let scrollHandlerAdded = false; 
         const PASSWORD_HASH = '828591d462674bdd332dbc730a439fd1';
-        
+
         let currentGallery = [];
         let currentImageIndex = 0;
-        
-        window.onload = function() {
+        let isMusicPlaying = false;
+
+        // 音乐控制函数
+        function toggleMusic() {
+            const music = document.getElementById('bgMusic');
+            const musicControl = document.getElementById('musicControl');
+
+            if (isMusicPlaying) {
+                music.pause();
+                musicControl.classList.remove('playing');
+            } else {
+                music.play();
+                musicControl.classList.add('playing');
+            }
+
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        window.onload = function () {
             document.getElementById('passwordModal').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('imageModal').style.display = 'none';
-            
+
+            // 初始化音乐控制按钮状态
+            const musicControl = document.getElementById('musicControl');
+            musicControl.classList.remove('playing');
+
             // 禁用右键菜单
-            document.addEventListener('contextmenu', function(e) {
+            document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 return false;
             });
-            
+
             // 禁用键盘快捷键
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 // 禁止 Ctrl/Command + S, Ctrl/Command + P, Ctrl/Command + C, Ctrl/Command + U, F12
-                if ((e.ctrlKey || e.metaKey) && 
-                   (e.key === 's' || e.key === 'p' || e.key === 'c' || e.key === 'u' || 
-                    e.key === 'S' || e.key === 'P' || e.key === 'C' || e.key === 'U')) {
+                if ((e.ctrlKey || e.metaKey) &&
+                    (e.key === 's' || e.key === 'p' || e.key === 'c' || e.key === 'u' ||
+                        e.key === 'S' || e.key === 'P' || e.key === 'C' || e.key === 'U')) {
                     e.preventDefault();
                     showContentProtectionNotice();
                     return false;
                 }
-                
+
                 // 禁止打印屏幕
                 if (e.key === 'PrintScreen') {
                     showScreenshotAlert();
                     e.preventDefault();
                     return false;
                 }
-                
+
                 // 禁止F12键、开发者工具
                 if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
                     e.preventDefault();
                     return false;
                 }
             });
-            
+
             // 禁止拖动内容
-            document.addEventListener('dragstart', function(e) {
+            document.addEventListener('dragstart', function (e) {
                 e.preventDefault();
                 return false;
             });
-            
+
             // 移动端触摸保护
             document.addEventListener('touchstart', handleTouchStart, { passive: false });
             document.addEventListener('touchmove', handleTouchMove, { passive: false });
             document.addEventListener('touchend', handleTouchEnd, { passive: false });
-            
+
             // 剪贴板保护
             document.addEventListener('cut', preventCopyAction);
             document.addEventListener('copy', preventCopyAction);
             document.addEventListener('paste', preventCopyAction);
-            
-            // 监听剪贴板事件
-            document.addEventListener('copy', function(e) {
-                e.preventDefault();
-                showContentProtectionNotice();
-                return false;
-            });
-            
+
             // 监听截图事件（尝试检测）
-            document.addEventListener('keyup', function(e) {
+            document.addEventListener('keyup', function (e) {
                 if (e.key === 'PrintScreen') {
                     showScreenshotAlert();
                 }
             });
-            
+
             // 增强的屏幕截图检测
             enhancedScreenshotDetection();
-            
+
             // 监控剪贴板变化
             monitorClipboard();
-            
-            // 保护页面选择和滑动
+
+            // 保护页面选择
             protectPageSelection();
-            
+
             // 检查是否处于锁定状态
             checkLockStatus();
         };
-        
+
         // 移动端触摸事件处理
         let touchStartTime = 0;
         let touchTimeout;
         let lastTouchPoint = { x: 0, y: 0 };
-        
+
         function handleTouchStart(e) {
             touchStartTime = Date.now();
             lastTouchPoint.x = e.touches[0].clientX;
             lastTouchPoint.y = e.touches[0].clientY;
-            
+
             // 如果是图片元素，不阻止默认行为
             if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
                 clearTimeout(touchTimeout);
                 return true; // 允许默认行为
             }
-            
+
             // 检测长按操作（非图片元素）
-            touchTimeout = setTimeout(function() {
+            touchTimeout = setTimeout(function () {
                 if (e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
                     e.preventDefault();
                 }
             }, 500);
         }
-        
+
         function handleTouchMove(e) {
             // 清除长按定时器
             clearTimeout(touchTimeout);
-            
+
             // 仅对非图片元素阻止双指缩放
             if (e.touches.length > 1 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
                 e.preventDefault();
                 return false;
             }
         }
-        
+
         function handleTouchEnd(e) {
             // 清除长按定时器
             clearTimeout(touchTimeout);
-            
+
             // 图片元素不阻止点击
             if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
                 return true;
             }
-            
+
             // 检测其他元素的长按
             const touchDuration = Date.now() - touchStartTime;
             if (touchDuration > 500 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
@@ -837,21 +1225,21 @@
                 return false;
             }
         }
-        
+
         // 禁止复制操作
         function preventCopyAction(e) {
             e.preventDefault();
             showContentProtectionNotice();
             return false;
         }
-        
+
         let isAuthenticated = false;
-        
+
         let passwordAttempts = 0;
         let isLocked = false;
         let lockEndTime = 0;
         let lockTimerInterval = null;
-        
+
         const errorMessages = [
             "你猜错了。",
             "再想想。",
@@ -859,36 +1247,36 @@
             "你不爱我了？",
             "我要惩罚你。"
         ];
-        
+
         // 检查锁定状态
         function checkLockStatus() {
             const storedLockEndTime = localStorage.getItem('lockEndTime');
             const storedPasswordAttempts = localStorage.getItem('passwordAttempts');
-            
+
             if (storedLockEndTime) {
                 const lockEnd = parseInt(storedLockEndTime, 10);
                 const now = new Date().getTime();
-                
+
                 if (now < lockEnd) {
                     // 仍在锁定期内
                     isLocked = true;
                     lockEndTime = lockEnd;
                     passwordAttempts = parseInt(storedPasswordAttempts || '5', 10);
-                    
+
                     const passwordInput = document.getElementById('passwordInput');
                     const passwordButton = document.querySelector('.password-button');
                     const errorMessage = document.getElementById('errorMessage');
                     const lockedMessage = document.getElementById('lockedMessage');
-                    
+
                     errorMessage.style.display = 'none';
                     lockedMessage.style.display = 'block';
                     document.getElementById('lockText').textContent = errorMessages[4];
-                    
+
                     passwordInput.disabled = true;
                     passwordInput.value = '';
                     passwordInput.placeholder = '已锁定';
                     passwordButton.disabled = true;
-                    
+
                     updateLockTimer();
                     lockTimerInterval = setInterval(updateLockTimer, 1000);
                 } else {
@@ -900,7 +1288,7 @@
                 passwordAttempts = parseInt(storedPasswordAttempts, 10);
             }
         }
-        
+
         // 清除锁定状态
         function clearLockStatus() {
             localStorage.removeItem('lockEndTime');
@@ -908,118 +1296,127 @@
             isLocked = false;
             passwordAttempts = 0;
         }
-        
+
         function verifyPassword() {
             if (isLocked) return;
-            
+
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-            
+
             if (md5(password) === PASSWORD_HASH) {
                 document.getElementById('passwordModal').style.display = 'none';
                 document.getElementById('authMask').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 document.body.classList.add('authenticated');
                 isAuthenticated = true;
-                passwordAttempts = 0;
                 
-                // 清除锁定状态
+                // 清除密码尝试状态
                 clearLockStatus();
-                
+
+                // 启动花瓣动画
+                startPetalAnimation();
+
+                // 加载内容及设置计时器
                 loadMemories();
                 updateCurrentTime();
                 updateTimeCounter();
                 setInterval(updateCurrentTime, 1000);
                 setInterval(updateTimeCounter, 1000);
-                
-                // 身份验证成功后，再次确保禁止保存图片功能
-                setTimeout(disableSaveImage, 1000);
+
+                // 尝试播放背景音乐
+                const music = document.getElementById('bgMusic');
+                const musicControl = document.getElementById('musicControl');
+                music.play().then(() => {
+                    isMusicPlaying = true;
+                    musicControl.classList.add('playing');
+                }).catch(() => {
+                    // 不在控制台输出错误信息
+                });
             } else {
                 passwordAttempts++;
-                
-                // 保存错误尝试次数
                 localStorage.setItem('passwordAttempts', passwordAttempts.toString());
-                
+
                 if (passwordAttempts >= 5) {
                     lockAccount();
                 } else {
                     errorMessage.textContent = errorMessages[passwordAttempts - 1];
                     errorMessage.style.display = 'block';
-                    
                     document.getElementById('passwordInput').value = '';
+                    
+                    // 重置动画
                     errorMessage.style.animation = 'none';
                     void errorMessage.offsetWidth;
                     errorMessage.style.animation = 'shake 0.5s ease';
                 }
             }
         }
-        
+
         function lockAccount() {
             isLocked = true;
             const lockedMessage = document.getElementById('lockedMessage');
             const errorMessage = document.getElementById('errorMessage');
             const passwordInput = document.getElementById('passwordInput');
             const passwordButton = document.querySelector('.password-button');
-            
+
             lockEndTime = new Date().getTime() + 5 * 60 * 1000;
-            
+
             // 保存锁定结束时间到本地存储
             localStorage.setItem('lockEndTime', lockEndTime.toString());
             localStorage.setItem('passwordAttempts', passwordAttempts.toString());
-            
+
             errorMessage.style.display = 'none';
             lockedMessage.style.display = 'block';
             document.getElementById('lockText').textContent = errorMessages[4];
-            
+
             passwordInput.disabled = true;
             passwordInput.value = '';
             passwordInput.placeholder = '已锁定';
             passwordButton.disabled = true;
-            
+
             updateLockTimer();
             lockTimerInterval = setInterval(updateLockTimer, 1000);
         }
-        
+
         function updateLockTimer() {
             const now = new Date().getTime();
             const timeLeft = lockEndTime - now;
-            
+
             if (timeLeft <= 0) {
                 clearInterval(lockTimerInterval);
                 unlockAccount();
             } else {
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                
-                document.getElementById('lockTimer').textContent = 
+
+                document.getElementById('lockTimer').textContent =
                     `请在 ${minutes}:${seconds < 10 ? '0' : ''}${seconds} 后再试`;
             }
         }
-        
+
         function unlockAccount() {
             isLocked = false;
             passwordAttempts = 0;
-            
+
             // 清除锁定状态
             clearLockStatus();
-            
+
             const lockedMessage = document.getElementById('lockedMessage');
             const passwordInput = document.getElementById('passwordInput');
             const passwordButton = document.querySelector('.password-button');
-            
+
             lockedMessage.style.display = 'none';
-            
+
             passwordInput.disabled = false;
             passwordInput.placeholder = '请输入密码';
             passwordButton.disabled = false;
         }
-        
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !isLocked) {
                 verifyPassword();
             }
         });
-        
+
         function loadMemories() {
             fetch('/polly/data.json')
                 .then(response => response.json())
@@ -1028,7 +1425,7 @@
                     renderMemories();
                     updateTimeCounter();
                     checkHasMore();
-                    
+
                     // 在内容加载后应用禁止保存图片
                     setTimeout(disableSaveImage, 500);
                 })
@@ -1037,31 +1434,31 @@
                     document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
                 });
         }
-        
+
         function checkHasMore() {
             const startIndex = currentPage * itemsPerPage;
             hasMore = startIndex < memories.length;
-            
+
             if (!hasMore) {
                 document.getElementById('loadMore').style.display = 'none';
             }
         }
-        
+
         function loadMoreClick() {
             if (!isLoading && hasMore) {
                 loadMore();
             }
         }
-        
+
         function loadMore() {
             if (isLoading || !hasMore) return;
-            
+
             isLoading = true;
             document.getElementById('loading').style.display = 'block';
-            
+
             const startIndex = currentPage * itemsPerPage;
             const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
-            
+
             if (startIndex >= memories.length) {
                 hasMore = false;
                 document.getElementById('loading').style.display = 'none';
@@ -1069,24 +1466,24 @@
                 isLoading = false;
                 return;
             }
-            
+
             const currentPageData = memories.slice(startIndex, endIndex);
-            
+
             currentPageData.forEach((memory, index) => {
                 const memoryDiv = document.createElement('div');
                 memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
-                
+
                 const formattedDate = formatDate(memory.d);
-                
+
                 let imagesHTML = '';
                 if (memory.i && memory.i.length > 0) {
                     imagesHTML = '<div class="gallery">';
                     memory.i.forEach((img, i) => {
-                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i+1}" onclick="openModal('${img}')">`;
+                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i + 1}" onclick="openModal('${img}')">`;
                     });
                     imagesHTML += '</div>';
                 }
-                
+
                 memoryDiv.innerHTML = `
                     <div class="content">
                         <div class="date">${formattedDate}</div>
@@ -1095,41 +1492,41 @@
                         ${imagesHTML}
                     </div>
                 `;
-                
+
                 document.getElementById('timeline').appendChild(memoryDiv);
             });
-            
+
             currentPage++;
             isLoading = false;
             document.getElementById('loading').style.display = 'none';
-            
+
             checkHasMore();
-            
+
             // 加载更多内容后应用禁止保存图片
             setTimeout(disableSaveImage, 500);
         }
-        
+
         function renderMemories() {
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
 
             const currentPageData = memories.slice(0, itemsPerPage);
-            
+
             currentPageData.forEach((memory, index) => {
                 const memoryDiv = document.createElement('div');
                 memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
-                
+
                 const formattedDate = formatDate(memory.d);
-                
+
                 let imagesHTML = '';
                 if (memory.i && memory.i.length > 0) {
                     imagesHTML = '<div class="gallery">';
                     memory.i.forEach((img, i) => {
-                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i+1}" onclick="openModal('${img}')">`;
+                        imagesHTML += `<img src="${img}" alt="记忆图片 ${i + 1}" onclick="openModal('${img}')">`;
                     });
                     imagesHTML += '</div>';
                 }
-                
+
                 memoryDiv.innerHTML = `
                     <div class="content">
                         <div class="date">${formattedDate}</div>
@@ -1138,11 +1535,11 @@
                         ${imagesHTML}
                     </div>
                 `;
-                
+
                 timeline.appendChild(memoryDiv);
             });
         }
-        
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             const year = date.getFullYear();
@@ -1150,83 +1547,74 @@
             const day = date.getDate().toString().padStart(2, '0');
             return `${year}年${month}月${day}日`;
         }
-        
+
         function openModal(imageSrc) {
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const imageCounter = document.getElementById('imageCounter');
-            
+
             currentGallery = [];
             currentImageIndex = 0;
-            
+
             const clickedImage = document.querySelector(`img[src="${imageSrc}"]`);
             if (!clickedImage) {
-                console.error("找不到点击的图片元素:", imageSrc);
                 return;
             }
-            
+
             const galleryElement = clickedImage.closest('.gallery');
             if (!galleryElement) {
                 currentGallery = [imageSrc];
                 currentImageIndex = 0;
-                console.log("单张图片模式");
             } else {
                 const images = Array.from(galleryElement.querySelectorAll('img'));
-                
+
                 for (let i = 0; i < images.length; i++) {
                     currentGallery.push(images[i].src);
                 }
-                
+
                 for (let i = 0; i < images.length; i++) {
                     if (images[i] === clickedImage) {
                         currentImageIndex = i;
-                        console.log("找到精确匹配的图片元素，索引:", i);
                         break;
                     }
                 }
-                
+
                 if (currentImageIndex === 0 && images[0] !== clickedImage) {
                     for (let i = 0; i < currentGallery.length; i++) {
                         if (currentGallery[i] === imageSrc) {
                             currentImageIndex = i;
-                            console.log("通过src找到匹配的图片，索引:", i);
                             break;
                         }
                     }
                 }
             }
-            
-            console.log("打开图片: ", imageSrc);
-            console.log("当前索引: ", currentImageIndex);
-            console.log("画廊图片数: ", currentGallery.length);
-            console.log("当前画廊:", currentGallery);
-            
+
             modalImage.src = imageSrc;
             updateImageCounter();
-            
+
             updateNavigationButtons();
-            
+
             modal.style.display = 'flex';
-            
+
             document.body.style.overflow = 'hidden';
-            
+
             // 对模态框中的图片应用禁止保存
             setTimeout(disableSaveImage, 100);
         }
-        
+
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
             document.body.style.overflow = 'auto';
-            
+
             currentGallery = [];
             currentImageIndex = 0;
         }
-        
+
         function navigateImage(direction) {
             if (currentGallery.length <= 1) return;
-            
+
             currentImageIndex += direction;
-            
+
             if (currentImageIndex < 0) {
                 currentImageIndex = 0;
                 return;
@@ -1235,20 +1623,20 @@
                 currentImageIndex = currentGallery.length - 1;
                 return;
             }
-            
+
             document.getElementById('modalImage').src = currentGallery[currentImageIndex];
-            
+
             updateNavigationButtons();
             updateImageCounter();
         }
-        
+
         function updateNavigationButtons() {
             const prevButton = document.getElementById('prevImageBtn');
             const nextButton = document.getElementById('nextImageBtn');
-            
+
             prevButton.disabled = currentImageIndex === 0;
             nextButton.disabled = currentImageIndex === currentGallery.length - 1;
-            
+
             if (currentGallery.length <= 1) {
                 prevButton.style.display = 'none';
                 nextButton.style.display = 'none';
@@ -1257,7 +1645,7 @@
                 nextButton.style.display = 'flex';
             }
         }
-        
+
         function updateImageCounter() {
             const counter = document.getElementById('imageCounter');
             if (currentGallery.length <= 1) {
@@ -1267,14 +1655,14 @@
                 counter.style.display = 'block';
             }
         }
-        
-        document.getElementById('imageModal').addEventListener('click', function(event) {
+
+        document.getElementById('imageModal').addEventListener('click', function (event) {
             if (event.target === this) {
                 closeModal();
             }
         });
-        
-        document.addEventListener('keydown', function(e) {
+
+        document.addEventListener('keydown', function (e) {
             if (document.getElementById('imageModal').style.display === 'flex') {
                 if (e.key === 'ArrowLeft') {
                     navigateImage(-1);
@@ -1285,91 +1673,74 @@
                 }
             }
         });
-        
+
         function updateCurrentTime() {
             const now = new Date();
-            const options = { 
-                year: 'numeric', 
-                month: '2-digit', 
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
                 hour12: false
             };
-            document.getElementById('currentTime').textContent ="幸运"+ now.toLocaleString('zh-CN', options) + '我们还在';
+            document.getElementById('currentTime').textContent = "幸运" + now.toLocaleString('zh-CN', options) + '我们还在';
         }
-        
+
         function updateTimeCounter() {
             const startDate = new Date('2011-09-29T19:45:00');
             const now = new Date();
             const diffTime = Math.abs(now - startDate);
-            
+
             const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
             const memoryCount = memories ? memories.length : 0;
-            
-            document.getElementById('timeCounter').textContent = 
+
+            document.getElementById('timeCounter').textContent =
                 `自我们相识的${memoryCount}个瞬间 已经${days}天${hours}小时${minutes}分${seconds}秒`;
         }
 
-        
         // 阻止保存图片的函数
         function disableSaveImage() {
             // 对所有图片禁用右键菜单和拖拽
             const images = document.querySelectorAll('img');
             images.forEach(img => {
-                // 简化保护层，确保不影响点击
                 if (!img.dataset.protected) {
                     img.dataset.protected = "true";
-                    
-                    // 为移动端设备，确保图片可点击
                     img.style.pointerEvents = 'auto';
                     
-                    // 仅使用简化版包装而不使用覆盖层
-                    const parent = img.parentNode;
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'secure-image';
-                    wrapper.style.position = 'relative';
-                    wrapper.style.display = 'inline-block';
-                    
-                    parent.replaceChild(wrapper, img);
-                    wrapper.appendChild(img);
+                    // 为普通图片添加安全容器
+                    if (img.id !== 'modalImage') {
+                        const parent = img.parentNode;
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'secure-image';
+                        wrapper.style.position = 'relative';
+                        wrapper.style.display = 'inline-block';
+                        
+                        parent.replaceChild(wrapper, img);
+                        wrapper.appendChild(img);
+                    }
                 }
                 
-                // 保留右键菜单保护
+                // 统一添加事件监听
                 img.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     return false;
                 });
                 
-                // 保留拖拽保护
                 img.addEventListener('dragstart', e => {
                     e.preventDefault();
                     return false;
                 });
             });
             
-            // 对模态框中的图片仅保留最基本的保护
+            // 对模态框中的图片添加水印
             const modalImage = document.getElementById('modalImage');
-            if (modalImage) {
-                // 确保模态图片可点击
-                modalImage.style.pointerEvents = 'auto';
-                
-                modalImage.addEventListener('contextmenu', e => {
-                    e.preventDefault();
-                    return false;
-                });
-                
-                modalImage.addEventListener('dragstart', e => {
-                    e.preventDefault();
-                    return false;
-                });
-                
-                // 保留水印功能但确保不影响点击
+            if (modalImage && !modalImage.dataset.watermarked) {
                 if (modalImage.complete) {
                     addInvisibleWatermark(modalImage);
                 } else {
@@ -1379,163 +1750,128 @@
                 }
             }
         }
-        
+
         // 显示截图警告
         function showScreenshotAlert() {
             const alertDiv = document.getElementById('screenshotProtect');
             alertDiv.style.display = 'flex';
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 alertDiv.style.display = 'none';
             }, 3000);
         }
-        
+
         // 增强的屏幕截图检测
         function enhancedScreenshotDetection() {
-            // 监听全屏变化（可能的截图前兆）
-            document.addEventListener('fullscreenchange', checkForScreenCapture);
-            document.addEventListener('webkitfullscreenchange', checkForScreenCapture);
-            document.addEventListener('mozfullscreenchange', checkForScreenCapture);
-            document.addEventListener('MSFullscreenChange', checkForScreenCapture);
+            // 使用统一的事件监听处理全屏变化
+            const fullscreenEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+            
+            fullscreenEvents.forEach(event => {
+                document.addEventListener(event, checkForScreenCapture);
+            });
             
             // 检测MediaCapture API的使用
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-                const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-                navigator.mediaDevices.getDisplayMedia = function(constraints) {
-                    showScreenshotAlert();
-                    return originalGetDisplayMedia.call(this, constraints);
-                };
+                try {
+                    const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+                    navigator.mediaDevices.getDisplayMedia = function(constraints) {
+                        showScreenshotAlert();
+                        return originalGetDisplayMedia.call(this, constraints);
+                    };
+                } catch(e) {}
             }
         }
-        
+
         function checkForScreenCapture() {
             // 检测全屏后的截图可能
-            if (!document.fullscreenElement && 
-                !document.webkitFullscreenElement && 
-                !document.mozFullScreenElement && 
+            if (!document.fullscreenElement &&
+                !document.webkitFullscreenElement &&
+                !document.mozFullScreenElement &&
                 !document.msFullscreenElement) {
                 setTimeout(showScreenshotAlert, 500);
             }
         }
-        
+
         // 监控剪贴板变化
         function monitorClipboard() {
-            // 定期检查剪贴板内容
-            setInterval(function() {
-                if (navigator.clipboard && navigator.clipboard.readText) {
-                    navigator.clipboard.readText().then(function(text) {
-                        // 检查剪贴板上的内容是否来自我们的页面
-                        if (text && text.length > 20 && isLikelyFromOurPage(text)) {
-                            showClipboardAlert();
-                        }
-                    }).catch(function(e) {
-                        // 权限被拒绝或其他错误，正常的
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.addEventListener = navigator.clipboard.addEventListener || function() {};
+                
+                // 使用事件监听替代轮询(注：大多数浏览器不支持clipboard事件，此代码作为未来兼容预留)
+                try {
+                    navigator.clipboard.addEventListener('clipboardchange', function(e) {
+                        navigator.clipboard.readText().then(function(text) {
+                            if (text && text.length > 20 && isLikelyFromOurPage(text)) {
+                                showClipboardAlert();
+                            }
+                        }).catch(function() {});
                     });
-                }
-            }, 5000);
+                } catch(e) {}
+            }
         }
-        
+
         function isLikelyFromOurPage(text) {
             // 检查文本是否很可能来自我们的页面内容
             // 这里可以检查特定的关键词或格式
             return text.includes('时光轴') || text.includes('瞬间') || text.includes('回忆');
         }
-        
+
         function showClipboardAlert() {
             alert('检测到剪贴板操作！复制内容已被阻止。');
         }
-        
+
         // 为图片添加隐形水印
         function addInvisibleWatermark(img) {
             try {
-                // 简化版水印 - 不使用Canvas和像素操作
                 if (!img.dataset.watermarked) {
                     img.dataset.watermarked = "true";
                     
-                    // 生成唯一标识
+                    // 只添加基本的数据属性作为标记，不创建额外DOM元素
                     const sessionId = generateSessionId();
-                    const timestamp = new Date().toISOString();
-                    
-                    // 在图片元素中存储标识数据
                     img.dataset.sessionId = sessionId;
-                    img.dataset.timestamp = timestamp;
+                    img.dataset.timestamp = new Date().toISOString();
                     
-                    // 添加CSS效果作为水印替代
+                    // 使用CSS属性添加基本保护
                     img.style.position = 'relative';
-                    
-                    // 创建一个几乎不可见的文本水印覆盖层
-                    const watermarkOverlay = document.createElement('div');
-                    watermarkOverlay.className = 'image-watermark-overlay';
-                    watermarkOverlay.style.position = 'absolute';
-                    watermarkOverlay.style.top = '0';
-                    watermarkOverlay.style.left = '0';
-                    watermarkOverlay.style.width = '100%';
-                    watermarkOverlay.style.height = '100%';
-                    watermarkOverlay.style.pointerEvents = 'none';
-                    watermarkOverlay.style.opacity = '0.01';
-                    watermarkOverlay.style.overflow = 'hidden';
-                    watermarkOverlay.style.textAlign = 'center';
-                    watermarkOverlay.style.display = 'flex';
-                    watermarkOverlay.style.alignItems = 'center';
-                    watermarkOverlay.style.justifyContent = 'center';
-                    watermarkOverlay.style.transform = 'rotate(-30deg)';
-                    watermarkOverlay.style.color = 'rgba(255, 255, 255, 0.2)';
-                    watermarkOverlay.style.fontFamily = 'Arial, sans-serif';
-                    watermarkOverlay.style.fontSize = '12px';
-                    watermarkOverlay.style.fontWeight = 'bold';
-                    watermarkOverlay.style.whiteSpace = 'nowrap';
-                    
-                    // 水印文本
-                    watermarkOverlay.textContent = `禁止复制 - ${sessionId} - ${timestamp}`;
-                    
-                    // 如果图片有父容器，附加水印覆盖层
-                    if (img.parentNode) {
-                        const container = img.parentNode;
-                        if (container.className.includes('secure-image')) {
-                            container.appendChild(watermarkOverlay);
-                        }
-                    }
                 }
             } catch (e) {
-                console.error('添加水印失败:', e);
+                // 静默失败
             }
         }
-        
+
         // 生成会话ID
         function generateSessionId() {
             if (!window.sessionStorage.getItem('visitorId')) {
-                const randomId = Math.random().toString(36).substring(2, 15) + 
-                                Math.random().toString(36).substring(2, 15);
+                const randomId = Math.random().toString(36).substring(2, 15) +
+                    Math.random().toString(36).substring(2, 15);
                 window.sessionStorage.setItem('visitorId', randomId);
             }
             return window.sessionStorage.getItem('visitorId');
         }
-        
+
         // 显示内容保护提示
         function showContentProtectionNotice() {
             const notice = document.getElementById('contentNotice');
             notice.style.opacity = '1';
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 notice.style.opacity = '0';
             }, 2000);
         }
-        
+
         // 保护页面选择
         function protectPageSelection() {
-            // 如果用户尝试选择文本，清除选择
+            // 合并处理选择事件
             document.addEventListener('selectionchange', function() {
                 if (isAuthenticated && window.getSelection().toString()) {
                     showContentProtectionNotice();
-                    
-                    // 偶尔才清除选择，避免影响用户体验
-                    if (Math.random() > 0.5) { // 50%的几率
+                    if (Math.random() > 0.7) { // 降低清除选择的频率
                         window.getSelection().removeAllRanges();
                     }
                 }
             });
-            
-            // 禁止拖动选择
+
+            // 针对非输入元素阻止选择
             document.addEventListener('selectstart', function(e) {
                 if (isAuthenticated && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                     e.preventDefault();
@@ -1543,6 +1879,131 @@
                 }
             });
         }
+
+        // 花瓣飘落效果
+        function createPetals() {
+            if (!document.body.classList.contains('authenticated')) return;
+            
+            const container = document.getElementById('rose-petals-container');
+            const petalCount = window.innerWidth < 768 ? 5 : 8; // 进一步减少花瓣数量
+            const viewportWidth = window.innerWidth;
+            
+            for (let i = 0; i < petalCount; i++) {
+                setTimeout(() => {
+                    const petal = document.createElement('div');
+                    petal.className = 'petal';
+                    
+                    // 随机尺寸 (12-20px)，减小尺寸
+                    const size = Math.floor(Math.random() * 9) + 12;
+                    petal.style.width = `${size}px`;
+                    petal.style.height = `${size}px`;
+                    
+                    // 随机水平位置 - 更加分散
+                    const sectionWidth = viewportWidth / petalCount;
+                    const sectionStart = i * sectionWidth;
+                    const horizontalPosition = sectionStart + Math.random() * sectionWidth;
+                    
+                    // 使用transform来定位而不是left，减少重排
+                    petal.style.left = '0';
+                    petal.style.transform = `translateX(${horizontalPosition}px)`;
+                    
+                    // 随机初始顶部位置，防止堆积
+                    petal.style.top = `${-5 - Math.random() * 10}%`;
+                    
+                    // 随机透明度
+                    petal.style.opacity = (0.6 + Math.random() * 0.3).toString();
+                    
+                    // 随机颜色 (粉色色系)
+                    petal.style.filter = `hue-rotate(${Math.random() * 30 - 15}deg) saturate(${Math.random() * 0.4 + 0.8})`;
+                    
+                    // 使用cubic-bezier缓动函数让动画更自然
+                    const fallEasing = `cubic-bezier(${0.4 + Math.random() * 0.2}, 0, ${0.2 + Math.random() * 0.3}, 1)`;
+                    const swayEasing = `cubic-bezier(${0.3 + Math.random() * 0.2}, 0, ${0.3 + Math.random() * 0.2}, 1)`;
+                    
+                    // 随机持续时间
+                    const fallDuration = Math.floor(Math.random() * 10) + 10; // 10-20秒，让飘落更加缓慢
+                    const swayDuration = Math.floor(Math.random() * 4) + 4; // 4-8秒，摇摆更加自然
+                    
+                    // 直接设置自定义动画，不使用CSS animation属性，避免跳动
+                    const fallKeyframes = [
+                        { top: '-5%', opacity: 0 },
+                        { top: '0%', opacity: 0.7, offset: 0.1 },
+                        { top: '95%', opacity: 0.9, offset: 0.95 },
+                        { top: '100%', opacity: 0.6 }
+                    ];
+                    
+                    // 创建更多关键帧使摇摆更加平滑
+                    const swayKeyframes = [];
+                    const steps = 8; // 增加关键帧数量
+                    
+                    for (let step = 0; step <= steps; step++) {
+                        const progress = step / steps;
+                        const xOffset = Math.sin(progress * Math.PI * 2) * 20; // 使用正弦函数使摇摆更平滑
+                        const rotation = progress * 180;
+                        
+                        swayKeyframes.push({
+                            transform: `translateX(${horizontalPosition + xOffset}px) rotate(${rotation}deg)`
+                        });
+                    }
+                    
+                    // 应用自定义动画
+                    const fallAnimation = petal.animate(fallKeyframes, {
+                        duration: fallDuration * 1000,
+                        easing: fallEasing,
+                        fill: 'forwards'
+                    });
+                    
+                    const swayAnimation = petal.animate(swayKeyframes, {
+                        duration: swayDuration * 1000,
+                        iterations: Infinity,
+                        easing: swayEasing
+                    });
+                    
+                    // 随机延迟
+                    const delay = Math.random() * 10;
+                    fallAnimation.currentTime = -delay * 1000;
+                    swayAnimation.currentTime = -delay * 1000;
+                    
+                    container.appendChild(petal);
+                    
+                    // 花瓣飘落完成后移除
+                    setTimeout(() => {
+                        if (petal && petal.parentNode) {
+                            // 淡出效果
+                            petal.animate([
+                                { opacity: petal.style.opacity },
+                                { opacity: 0 }
+                            ], {
+                                duration: 500,
+                                easing: 'ease-out',
+                                fill: 'forwards'
+                            }).onfinish = () => petal.remove();
+                        }
+                    }, fallDuration * 1000 + delay * 1000);
+                }, Math.random() * 3000); // 错开创建时间，延长至3秒
+            }
+        }
+        
+        // 定期创建花瓣
+        function startPetalAnimation() {
+            // 初始创建花瓣
+            createPetals();
+            
+            // 每8秒创建一批新花瓣
+            setInterval(createPetals, 8000);
+            
+            // 添加窗口大小改变的处理
+            window.addEventListener('resize', function() {
+                // 清理当前所有花瓣
+                const container = document.getElementById('rose-petals-container');
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                // 重新创建适合新窗口大小的花瓣
+                createPetals();
+            });
+        }
     </script>
 </body>
+
 </html>
