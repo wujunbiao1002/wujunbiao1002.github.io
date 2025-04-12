@@ -155,6 +155,19 @@
             font-weight: 500;
         }
 
+        /* 添加对等宽字体的样式支持 */
+        .time-value {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            display: inline-block;
+            min-width: 145px; /* 为日期时间设置最小宽度 */
+        }
+
+        .time-counter .time-value {
+            min-width: 220px; /* 为计时器设置更大的最小宽度 */
+        }
+
         .current-time,
         .time-counter {
             font-size: var(--time-size-pc);
@@ -169,6 +182,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            text-align: center;
         }
 
         .time-counter {
@@ -732,6 +746,15 @@
             .music-control:not(.playing)::before {
                 font-size: 14px;
             }
+
+            .time-value {
+                letter-spacing: 0;
+                min-width: 120px; /* 移动端减小最小宽度 */
+            }
+            
+            .time-counter .time-value {
+                min-width: 180px;
+            }
         }
 
         @media screen and (max-width: 480px) {
@@ -838,6 +861,14 @@
 
             .music-control:not(.playing)::before {
                 font-size: 12px !important;
+            }
+
+            .time-value {
+                min-width: 110px; /* 小屏幕手机进一步减小最小宽度 */
+            }
+            
+            .time-counter .time-value {
+                min-width: 160px;
             }
         }
 
@@ -997,6 +1028,23 @@
             backface-visibility: hidden;
             perspective: 1000px;
             filter: blur(0);
+        }
+
+        /* 添加对等宽字体的样式支持 */
+        .current-time span,
+        .time-counter span {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        /* 确保移动端也有固定宽度显示 */
+        @media screen and (max-width: 768px) {
+            .current-time span,
+            .time-counter span {
+                letter-spacing: 0;
+            }
         }
     </style>
 </head>
@@ -1752,8 +1800,9 @@
             
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
             
-            // 添加空格保持格式一致
-            document.getElementById('currentTime').textContent = "幸运 " + formattedDate + ' 我们还在';
+            // 使用一个包含等宽字体的固定宽度容器
+            document.getElementById('currentTime').innerHTML = 
+                "幸运 <span class='time-value'>" + formattedDate + '</span> 我们还在';
         }
 
         function updateTimeCounter() {
@@ -1768,14 +1817,14 @@
 
             const memoryCount = memories ? memories.length : 0;
             
-            // 确保数字始终占用相同宽度的空间
-            const daysStr = days.toString().padStart(4, '\u00A0'); // 使用不换行空格填充
+            // 使用固定宽度的等宽数字显示
+            const daysStr = days.toString().padStart(4, '0');
             const hoursStr = hours.toString().padStart(2, '0');
             const minutesStr = minutes.toString().padStart(2, '0');
             const secondsStr = seconds.toString().padStart(2, '0');
             
-            document.getElementById('timeCounter').textContent =
-                `自我们相识的${memoryCount}个瞬间 已经${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            document.getElementById('timeCounter').innerHTML =
+                `自我们相识的${memoryCount}个瞬间 已经<span class='time-value'>${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒</span>`;
         }
 
         // 阻止保存图片的函数
