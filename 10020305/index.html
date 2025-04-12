@@ -155,25 +155,6 @@
             font-weight: 500;
         }
 
-        /* 添加对等宽字体的样式支持 */
-        .time-value {
-            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
-            white-space: nowrap;
-            display: inline-block;
-            min-width: 145px; /* 为日期时间设置最小宽度 */
-            position: relative;
-        }
-
-        .time-counter .time-value {
-            min-width: 220px; /* 为计时器设置更大的最小宽度 */
-        }
-
-        .time-value span.digit {
-            display: inline-block;
-            min-width: 0.7em;
-            text-align: center;
-        }
-
         .current-time,
         .time-counter {
             font-size: var(--time-size-pc);
@@ -188,7 +169,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            text-align: center;
         }
 
         .time-counter {
@@ -752,15 +732,6 @@
             .music-control:not(.playing)::before {
                 font-size: 14px;
             }
-
-            .time-value {
-                letter-spacing: 0;
-                min-width: 120px; /* 移动端减小最小宽度 */
-            }
-            
-            .time-counter .time-value {
-                min-width: 180px;
-            }
         }
 
         @media screen and (max-width: 480px) {
@@ -867,14 +838,6 @@
 
             .music-control:not(.playing)::before {
                 font-size: 12px !important;
-            }
-
-            .time-value {
-                min-width: 110px; /* 小屏幕手机进一步减小最小宽度 */
-            }
-            
-            .time-counter .time-value {
-                min-width: 160px;
             }
         }
 
@@ -1034,23 +997,6 @@
             backface-visibility: hidden;
             perspective: 1000px;
             filter: blur(0);
-        }
-
-        /* 添加对等宽字体的样式支持 */
-        .current-time span,
-        .time-counter span {
-            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-            display: inline-block;
-        }
-
-        /* 确保移动端也有固定宽度显示 */
-        @media screen and (max-width: 768px) {
-            .current-time span,
-            .time-counter span {
-                letter-spacing: 0;
-            }
         }
     </style>
 </head>
@@ -1510,7 +1456,7 @@
         });
 
         function loadMemories() {
-            fetch('/polly/20250412.json')
+            fetch('/polly/data.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
@@ -1804,12 +1750,10 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            // 为每个数字添加固定宽度的span
-            const formattedDate = `${year}-${month}-${day} <span class="digit">${hours[0]}</span><span class="digit">${hours[1]}</span>:<span class="digit">${minutes[0]}</span><span class="digit">${minutes[1]}</span>:<span class="digit">${seconds[0]}</span><span class="digit">${seconds[1]}</span>`;
+            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
             
-            // 使用一个包含等宽字体的固定宽度容器
-            document.getElementById('currentTime').innerHTML = 
-                "幸运 <span class='time-value'>" + formattedDate + '</span> 我们还在';
+            // 添加空格保持格式一致
+            document.getElementById('currentTime').textContent = "幸运 " + formattedDate + ' 我们还在';
         }
 
         function updateTimeCounter() {
@@ -1824,24 +1768,14 @@
 
             const memoryCount = memories ? memories.length : 0;
             
-            // 给每位数字单独添加span，确保宽度一致
-            const daysStr = days.toString().padStart(4, '0');
+            // 确保数字始终占用相同宽度的空间
+            const daysStr = days.toString().padStart(4, '\u00A0'); // 使用不换行空格填充
             const hoursStr = hours.toString().padStart(2, '0');
             const minutesStr = minutes.toString().padStart(2, '0');
             const secondsStr = seconds.toString().padStart(2, '0');
             
-            // 为每个数字添加span以保持固定宽度
-            let daysHtml = '';
-            for (let i = 0; i < daysStr.length; i++) {
-                daysHtml += `<span class="digit">${daysStr[i]}</span>`;
-            }
-            
-            const hoursHtml = `<span class="digit">${hoursStr[0]}</span><span class="digit">${hoursStr[1]}</span>`;
-            const minutesHtml = `<span class="digit">${minutesStr[0]}</span><span class="digit">${minutesStr[1]}</span>`;
-            const secondsHtml = `<span class="digit">${secondsStr[0]}</span><span class="digit">${secondsStr[1]}</span>`;
-            
-            document.getElementById('timeCounter').innerHTML =
-                `自我们相识的${memoryCount}个瞬间 已经<span class='time-value'>${daysHtml}天${hoursHtml}小时${minutesHtml}分${secondsHtml}秒</span>`;
+            document.getElementById('timeCounter').textContent =
+                `自我们相识的${memoryCount}个瞬间 已经${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒`;
         }
 
         // 阻止保存图片的函数
