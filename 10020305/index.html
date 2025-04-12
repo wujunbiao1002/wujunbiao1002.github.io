@@ -157,15 +157,21 @@
 
         /* 添加对等宽字体的样式支持 */
         .time-value {
-            font-family: 'Courier New', monospace;
-            letter-spacing: 0.02em;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
             white-space: nowrap;
             display: inline-block;
             min-width: 145px; /* 为日期时间设置最小宽度 */
+            position: relative;
         }
 
         .time-counter .time-value {
             min-width: 220px; /* 为计时器设置更大的最小宽度 */
+        }
+
+        .time-value span.digit {
+            display: inline-block;
+            min-width: 0.7em;
+            text-align: center;
         }
 
         .current-time,
@@ -1033,7 +1039,7 @@
         /* 添加对等宽字体的样式支持 */
         .current-time span,
         .time-counter span {
-            font-family: 'Courier New', monospace;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
             letter-spacing: 0.02em;
             white-space: nowrap;
             display: inline-block;
@@ -1504,7 +1510,7 @@
         });
 
         function loadMemories() {
-            fetch('/polly/data.json')
+            fetch('/polly/20250412.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
@@ -1798,7 +1804,8 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            // 为每个数字添加固定宽度的span
+            const formattedDate = `${year}-${month}-${day} <span class="digit">${hours[0]}</span><span class="digit">${hours[1]}</span>:<span class="digit">${minutes[0]}</span><span class="digit">${minutes[1]}</span>:<span class="digit">${seconds[0]}</span><span class="digit">${seconds[1]}</span>`;
             
             // 使用一个包含等宽字体的固定宽度容器
             document.getElementById('currentTime').innerHTML = 
@@ -1817,14 +1824,24 @@
 
             const memoryCount = memories ? memories.length : 0;
             
-            // 使用固定宽度的等宽数字显示
+            // 给每位数字单独添加span，确保宽度一致
             const daysStr = days.toString().padStart(4, '0');
             const hoursStr = hours.toString().padStart(2, '0');
             const minutesStr = minutes.toString().padStart(2, '0');
             const secondsStr = seconds.toString().padStart(2, '0');
             
+            // 为每个数字添加span以保持固定宽度
+            let daysHtml = '';
+            for (let i = 0; i < daysStr.length; i++) {
+                daysHtml += `<span class="digit">${daysStr[i]}</span>`;
+            }
+            
+            const hoursHtml = `<span class="digit">${hoursStr[0]}</span><span class="digit">${hoursStr[1]}</span>`;
+            const minutesHtml = `<span class="digit">${minutesStr[0]}</span><span class="digit">${minutesStr[1]}</span>`;
+            const secondsHtml = `<span class="digit">${secondsStr[0]}</span><span class="digit">${secondsStr[1]}</span>`;
+            
             document.getElementById('timeCounter').innerHTML =
-                `自我们相识的${memoryCount}个瞬间 已经<span class='time-value'>${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒</span>`;
+                `自我们相识的${memoryCount}个瞬间 已经<span class='time-value'>${daysHtml}天${hoursHtml}小时${minutesHtml}分${secondsHtml}秒</span>`;
         }
 
         // 阻止保存图片的函数
