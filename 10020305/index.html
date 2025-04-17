@@ -172,12 +172,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 300px; /* 固定最小宽度，防止抖动 */
+            font-family: "Courier New", monospace; /* 使用等宽字体 */
+            text-align: center; /* 居中显示 */
+            width: 90%; /* 使用百分比宽度 */
         }
 
         .time-counter {
             color: var(--accent-color);
             font-weight: 500;
             background: linear-gradient(to right, rgba(255, 240, 245, 0.8), rgba(255, 230, 240, 0.9));
+            min-width: 330px; /* 更大的最小宽度，因为它的内容更长 */
         }
 
         .timeline {
@@ -632,6 +637,12 @@
                 font-size: var(--time-size-tablet);
                 padding: 5px 10px;
                 max-width: 95%;
+                min-width: 270px; /* 平板端调整最小宽度 */
+                width: 95%; /* 平板端使用更大的百分比宽度 */
+            }
+
+            .time-counter {
+                min-width: 300px; /* 平板端调整最小宽度 */
             }
 
             .timeline::before {
@@ -758,6 +769,11 @@
             .time-counter {
                 font-size: var(--time-size-mobile);
                 margin: 5px auto;
+                width: 92%; /* 移动端使用百分比宽度 */
+                min-width: 92%; /* 设置最小宽度为百分比 */
+                max-width: 92%;
+                box-sizing: border-box; /* 确保padding不会增加实际宽度 */
+                padding: 5px 8px; /* 减小内边距 */
             }
 
             .memory {
@@ -1826,8 +1842,12 @@
             
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
             
-            // 添加空格保持格式一致
-            document.getElementById('currentTime').textContent = "幸运 " + formattedDate + ' 我们还在';
+            // 使用固定宽度的空格字符来确保时间格式一致
+            const currentTimeElement = document.getElementById('currentTime');
+            
+            // 使用固定内容长度，确保即使内容变化，长度也一致
+            const fixedContent = "幸运 " + formattedDate + ' 我们还在';
+            currentTimeElement.textContent = fixedContent;
         }
 
         function updateTimeCounter() {
@@ -1848,8 +1868,9 @@
             const minutesStr = minutes.toString().padStart(2, '0');
             const secondsStr = seconds.toString().padStart(2, '0');
             
-            document.getElementById('timeCounter').textContent =
-                `自我们相识的${memoryCount}个瞬间 已经${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            const timeCounterElement = document.getElementById('timeCounter');
+            const fixedContent = `自我们相识的${memoryCount}个瞬间 已经${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            timeCounterElement.textContent = fixedContent;
         }
 
         // 阻止保存图片的函数
