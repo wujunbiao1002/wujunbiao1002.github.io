@@ -1476,7 +1476,7 @@
         });
 
         function loadMemories() {
-            fetch('/polly/20250416.json')
+            fetch('/polly/20250418.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
@@ -1611,7 +1611,12 @@
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const day = date.getDate().toString().padStart(2, '0');
-            return `${year}年${month}月${day}日`;
+            
+            // 获取星期几
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            const weekDay = weekDays[date.getDay()];
+            
+            return `${year}年${month}月${day}日 ${weekDay}`;
         }
         
         // 处理图片路径的函数，将简化路径转换为完整路径
