@@ -1476,7 +1476,7 @@
         });
 
         function loadMemories() {
-            fetch('/polly/20250418.json')
+            fetch('/polly/20250420.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
@@ -1877,6 +1877,10 @@
             const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
+            // 计算年数和剩余天数
+            const years = Math.floor(days / 365);
+            const remainingDays = days % 365;
+            
             const memoryCount = memories ? memories.length : 0;
             
             // 确保数字始终占用相同宽度的空间
@@ -1886,8 +1890,8 @@
             const secondsStr = seconds.toString().padStart(2, '0');
             
             const timeCounterElement = document.getElementById('timeCounter');
-            const fixedContent = `自我们相识的${memoryCount}个瞬间 已经${daysStr}天${hoursStr}小时${minutesStr}分${secondsStr}秒`;
-            timeCounterElement.textContent = fixedContent;
+            const fixedContent = `自我们相识的${memoryCount}个瞬间<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            timeCounterElement.innerHTML = fixedContent;
         }
 
         // 阻止保存图片的函数
