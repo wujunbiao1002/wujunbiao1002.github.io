@@ -1101,6 +1101,7 @@
         let isMusicPlaying = false;
         let currentMemory = null; // 用于跟踪当前正在处理的记忆对象
         let totalWordsCount = 0; // 新增：用于存储总字数
+        let totalImagesCount = 0; // 新增：用于存储总图片数
 
         // 音乐控制函数
         function toggleMusic() {
@@ -1501,6 +1502,7 @@
         // 统计所有文本的总字数
         function calculateTotalWords(data) {
             totalWordsCount = 0;
+            totalImagesCount = 0;
             
             // 遍历所有文章
             data.forEach(memory => {
@@ -1517,9 +1519,15 @@
                     const contentText = memory.c.replace(/<[^>]*>/g, '');
                     totalWordsCount += contentText.length;
                 }
+                
+                // 图片数量统计
+                if (memory.i && Array.isArray(memory.i)) {
+                    totalImagesCount += memory.i.length;
+                }
             });
             
             console.log('总字数:', totalWordsCount);
+            console.log('总图片数:', totalImagesCount);
         }
 
         function checkHasMore() {
@@ -1919,7 +1927,7 @@
             const secondsStr = seconds.toString().padStart(2, '0');
             
             const timeCounterElement = document.getElementById('timeCounter');
-            const fixedContent = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字)<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            const fixedContent = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字 ${totalImagesCount}张照片)<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
             timeCounterElement.innerHTML = fixedContent;
         }
 
