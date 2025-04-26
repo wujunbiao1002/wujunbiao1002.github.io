@@ -1476,7 +1476,7 @@
         });
 
         function loadMemories() {
-            fetch('/polly/data.json')
+            fetch('/polly/20250426.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
