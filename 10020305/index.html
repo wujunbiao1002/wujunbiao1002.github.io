@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
     <meta name="baiduspider" content="noindex, nofollow">
-    <title>我 真 的 爱 你</title>
+    <title>唯一 - 我 真 的 爱 你</title>
     <meta name="referrer" content="no-referrer" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
@@ -353,6 +353,14 @@
             margin: 0 auto;
             border-radius: 5px;
             object-fit: contain;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        .modal-content img.zoomed {
+            cursor: move;
+            transition: transform 0.05s linear;
         }
 
         .modal-nav {
@@ -410,6 +418,20 @@
             color: white;
             font-size: var(--modal-counter-pc);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .zoom-tip {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            padding: 5px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
         .close {
@@ -488,76 +510,190 @@
             background-image: linear-gradient(45deg, #ffe6f2 0%, #f0f8ff 50%, #ffe6f2 100%);
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+        }
+        
+        /* 添加粒子背景样式 */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: float 20s linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(100px, 0px) rotate(180deg);
+            }
+            75% {
+                transform: translate(50px, -50px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
         }
 
         .password-content {
-            background: linear-gradient(to bottom, #ffffff, #fefefe);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
             text-align: center;
             max-width: 400px;
             width: 90%;
-            animation: fadeIn 0.5s ease;
+            animation: fadeAndSlideUp 0.7s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 182, 193, 0.3);
+            position: relative;
+            z-index: 10;
+            transform: perspective(1000px);
+        }
+        
+        /* 添加闪亮边框效果 */
+        .password-content::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                #ffc8dd, #fdafc2, 
+                #e7f1fb, #ffc8dd, 
+                #fdafc2, #e7f1fb);
+            z-index: -1;
+            border-radius: 22px;
+            background-size: 400%;
+            animation: glowingBorder 6s linear infinite;
+            opacity: 0.7;
+        }
+        
+        @keyframes glowingBorder {
+            0% { background-position: 0 0; }
+            50% { background-position: 100% 0; }
+            100% { background-position: 0 0; }
         }
 
-        @keyframes fadeIn {
+        @keyframes fadeAndSlideUp {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(30px) perspective(1000px) rotateX(10deg);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) perspective(1000px) rotateX(0);
             }
         }
 
         .password-content h2 {
             color: var(--accent-color);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-size: var(--password-title-pc);
             font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: inline-block;
+        }
+        
+        /* 添加标题下划线效果 */
+        .password-content h2::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            bottom: -10px;
+            left: 0;
+            background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+            animation: widthPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes widthPulse {
+            0%, 100% { width: 70%; left: 15%; }
+            50% { width: 100%; left: 0; }
         }
 
         .password-input {
             width: 100%;
-            padding: 12px 15px;
-            margin: 15px 0;
-            border: 1px solid var(--primary-color);
-            border-radius: 25px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border: 2px solid var(--primary-color);
+            border-radius: 30px;
             font-size: var(--password-input-pc);
             outline: none;
-            transition: all 0.3s;
+            transition: all 0.4s;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .password-input:focus {
-            box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.3);
+            box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.4);
             border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-3px);
         }
 
         .password-button {
-            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            background: linear-gradient(to right, #ff9ec7, #ff5ca8);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
+            padding: 15px 36px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: var(--password-input-pc);
-            margin-top: 15px;
-            transition: all 0.3s;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-            font-weight: 500;
+            margin-top: 20px;
+            transition: all 0.4s;
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 添加按钮波纹效果 */
+        .password-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: none;
+            animation: btnShine 2s infinite;
+        }
+        
+        @keyframes btnShine {
+            100% {
+                left: 100%;
+            }
         }
 
         .password-button:hover {
-            background: linear-gradient(to right, var(--accent-color), var(--primary-color));
-            transform: translateY(-3px);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(to right, #ff5ca8, #ff9ec7);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
         }
 
         .password-button:active {
-            transform: translateY(0);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(255, 105, 180, 0.2);
         }
 
         .error-message {
@@ -711,15 +847,31 @@
                 font-size: var(--footer-size-tablet);
             }
             
+            .password-content {
+                padding: 30px;
+                max-width: 360px;
+                width: 85%;
+            }
+            
             .password-content h2 {
                 font-size: var(--password-title-tablet);
+                margin-bottom: 20px;
             }
             
             .password-input,
-            .password-button,
+            .password-button {
+                font-size: var(--password-input-tablet);
+                padding: 12px 20px;
+            }
+            
+            .password-button {
+                margin-top: 15px;
+            }
+            
             .error-message,
             .locked-message {
                 font-size: var(--password-input-tablet);
+                margin-top: 10px;
             }
             
             .content-usage-notice {
@@ -822,15 +974,39 @@
                 padding: 10px 0;
             }
             
+            .password-content {
+                padding: 25px 20px;
+                max-width: 320px;
+                width: 85%;
+                border-width: 1px;
+            }
+            
             .password-content h2 {
                 font-size: var(--password-title-mobile);
+                margin-bottom: 15px;
+            }
+            
+            .password-content h2::after {
+                height: 2px;
+                bottom: -7px;
             }
             
             .password-input,
-            .password-button,
+            .password-button {
+                font-size: var(--password-input-mobile);
+                padding: 10px 18px;
+                margin: 12px 0;
+            }
+            
+            .password-button {
+                padding: 10px 25px;
+                margin-top: 10px;
+            }
+            
             .error-message,
             .locked-message {
                 font-size: var(--password-input-mobile);
+                margin-top: 10px;
             }
             
             .content-usage-notice {
@@ -1017,6 +1193,220 @@
             perspective: 1000px;
             filter: blur(0);
         }
+
+        /* 日期选择器样式 */
+        .date-selector {
+            margin: 15px auto;
+            padding: 15px;
+            background: linear-gradient(to right, rgba(255, 240, 245, 0.9), rgba(255, 230, 240, 0.8));
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            display: none; /* 初始状态隐藏 */
+            transition: all 0.3s ease;
+        }
+
+        .date-selector:hover {
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .date-selector-title {
+            font-size: var(--subtitle-size-pc);
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .date-selector-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .date-selector-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+            position: relative;
+        }
+
+        .date-selector-label {
+            font-size: var(--date-size-pc);
+            color: var(--light-text);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .date-selector select {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 182, 193, 0.5);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--text-color);
+            font-size: var(--date-size-pc);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff69b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 30px;
+            font-weight: 500;
+        }
+
+        .date-selector select:hover, .date-selector select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(255, 105, 180, 0.4);
+            background-color: white;
+        }
+
+        .date-selector-button {
+            margin-top: 10px;
+            padding: 12px 25px;
+            background: linear-gradient(to right, #ff69b4, #ffb6c1);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: var(--button-size-pc);
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .date-selector-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .date-selector-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.4);
+            background: linear-gradient(to right, #ff1493, #ff69b4);
+        }
+
+        .date-selector-button:hover:before {
+            left: 100%;
+        }
+
+        .date-selector-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(255, 105, 180, 0.3);
+        }
+
+        @media screen and (max-width: 768px) {
+            .date-selector {
+                padding: 12px;
+            }
+            
+            .date-selector-title {
+                font-size: var(--subtitle-size-tablet);
+                margin-bottom: 12px;
+            }
+            
+            .date-selector-group {
+                min-width: 110px;
+            }
+            
+            .date-selector select {
+                padding: 8px 12px;
+                font-size: var(--date-size-tablet);
+                border-radius: 10px;
+            }
+            
+            .date-selector-label {
+                font-size: var(--date-size-tablet);
+                margin-bottom: 6px;
+            }
+            
+            .date-selector-button {
+                padding: 10px 20px;
+                font-size: var(--button-size-tablet);
+                border-radius: 20px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .date-selector {
+                padding: 10px;
+            }
+            
+            .date-selector-container {
+                gap: 10px;
+            }
+            
+            .date-selector-group {
+                min-width: 90px;
+            }
+            
+            .date-selector select {
+                padding: 7px 10px;
+                font-size: var(--date-size-mobile);
+                background-size: 14px;
+                padding-right: 25px;
+                border-radius: 8px;
+            }
+            
+            .date-selector-label {
+                font-size: var(--date-size-mobile);
+                margin-bottom: 5px;
+            }
+            
+            .date-selector-button {
+                padding: 8px 18px;
+                font-size: var(--button-size-mobile);
+                border-radius: 18px;
+            }
+        }
+
+        .memory .content {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            max-width: 90%;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        .memory .content.highlight, .memory .content.highlight * {
+            animation: highlight-pulse 2s ease;
+        }
+
+        @keyframes highlight-pulse {
+            0% { background-color: white; }
+            25% { background-color: #ffe6f2; }
+            50% { background-color: #ffb6c1; }
+            75% { background-color: #ffe6f2; }
+            100% { background-color: white; }
+        }
     </style>
 </head>
 
@@ -1040,9 +1430,29 @@
     <div class="container" id="mainContent">
         <header>
             <h1>宝儿和宝子的时光轴</h1>
-            <p>记录每一个瞬间</p>
-            <div class="current-time" id="currentTime"></div>
+            <!-- <p>记录每一个瞬间</p> -->
+            <!-- <div class="current-time" id="currentTime"></div> -->
             <div class="time-counter" id="timeCounter"></div>
+            
+            <!-- 添加日期选择器 -->
+            <div class="date-selector" id="dateSelector">
+                <div class="date-selector-title">✨ 选择日期查看珍贵回忆 ✨</div>
+                <div class="date-selector-container">
+                    <div class="date-selector-group">
+                        <label class="date-selector-label" for="yearSelect">年份</label>
+                        <select id="yearSelect"></select>
+                    </div>
+                    <div class="date-selector-group">
+                        <label class="date-selector-label" for="monthSelect">月份</label>
+                        <select id="monthSelect"></select>
+                    </div>
+                    <div class="date-selector-group">
+                        <label class="date-selector-label" for="daySelect">日期</label>
+                        <select id="daySelect"></select>
+                    </div>
+                </div>
+                <button class="date-selector-button" id="jumpToDateBtn">寻找回忆 💖</button>
+            </div>
         </header>
 
         <div class="timeline" id="timeline">
@@ -1082,6 +1492,7 @@
                 <button id="nextImageBtn" onclick="navigateImage(1)"><span style="position: relative; top: -1px;">&rsaquo;</span></button>
             </div>
             <div class="modal-counter" id="imageCounter"></div>
+            <div class="zoom-tip" id="zoomTip">移动端请用双指缩放，PC端请使用滚轮缩放</div>
         </div>
     </div>
 
@@ -1123,6 +1534,9 @@
             document.getElementById('passwordModal').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('imageModal').style.display = 'none';
+
+            // 创建粒子背景
+            createParticles();
 
             // 初始化音乐控制按钮状态
             const musicControl = document.getElementById('musicControl');
@@ -1332,7 +1746,7 @@
         function checkPasswordAndVerify() {
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-           
+            
             // 检查密码是否为空
             if (!password.trim() || password.length < 1) {
                 errorMessage.textContent = "请输入…";
@@ -1343,59 +1757,21 @@
                 return;
             }
             
-            checkAndVerifyPassword();
-        }
-        
-        // 检查密码并验证
-        function checkAndVerifyPassword() {
             if (isLocked) return;
             
-            const password = document.getElementById('passwordInput').value;
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // 检查密码是否为空
-            if (!password.trim()) {
-                errorMessage.textContent = "请输入…";
-                errorMessage.style.display = 'block';
-                errorMessage.style.animation = 'none';
-                void errorMessage.offsetWidth;
-                errorMessage.style.animation = 'shake 0.5s ease';
-                return;
-            }
-            
             if (md5(password) === PASSWORD_HASH) {
-                document.getElementById('passwordModal').style.display = 'none';
-                document.getElementById('authMask').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                document.body.classList.add('authenticated');
+                // 使用美化后的成功验证效果
+                successfulAuthentication();
                 isAuthenticated = true;
-                
                 // 清除密码尝试状态
                 clearLockStatus();
-
-                // 启动花瓣动画
-                startPetalAnimation();
-
-                // 加载内容及设置计时器
-                loadMemories();
-                updateCurrentTime();
-                updateTimeCounter();
-                setInterval(updateCurrentTime, 1000);
-                setInterval(updateTimeCounter, 1000);
-
-                // 尝试播放背景音乐
-                const music = document.getElementById('bgMusic');
-                const musicControl = document.getElementById('musicControl');
-                music.play().then(() => {
-                    isMusicPlaying = true;
-                    musicControl.classList.add('playing');
-                }).catch(() => {
-                    // 不在控制台输出错误信息
-                });
+                
+                // 调用新的onSuccessfulAuth函数
+                onSuccessfulAuth();
             } else {
                 passwordAttempts++;
                 localStorage.setItem('passwordAttempts', passwordAttempts.toString());
-
+                
                 if (passwordAttempts >= 5) {
                     lockAccount();
                 } else {
@@ -1407,6 +1783,12 @@
                     errorMessage.style.animation = 'none';
                     void errorMessage.offsetWidth;
                     errorMessage.style.animation = 'shake 0.5s ease';
+                    
+                    // 震动密码输入框
+                    const passwordContent = document.querySelector('.password-content');
+                    passwordContent.classList.remove('shake');
+                    void passwordContent.offsetWidth; // 重置动画
+                    passwordContent.classList.add('shake');
                 }
             }
         }
@@ -1485,6 +1867,9 @@
                     
                     // 计算总字数
                     calculateTotalWords(memories);
+                    
+                    // 初始化日期选择器
+                    initializeDateSelector(memories);
                     
                     renderMemories();
                     updateTimeCounter();
@@ -1735,6 +2120,7 @@
             const modalImage = document.getElementById('modalImage');
             const imageCounter = document.getElementById('imageCounter');
             const modalContent = document.getElementById('modalContent');
+            const zoomTip = document.getElementById('zoomTip');
 
             // 不使用过渡效果
             modalContent.style.opacity = '1';
@@ -1792,8 +2178,17 @@
                 modalContent.style.transition = 'none';
                 modal.style.transition = 'none';
                 
+                // 添加点击缩放功能
+                setupImageZoom();
+                
                 // 对模态框中的图片应用禁止保存
                 disableSaveImage();
+                
+                // 显示缩放提示，然后淡出
+                zoomTip.style.opacity = '1';
+                setTimeout(() => {
+                    zoomTip.style.opacity = '0';
+                }, 2500);
             };
             
             // 开始加载图片
@@ -1801,6 +2196,14 @@
         }
 
         function closeModal() {
+            const modalImage = document.getElementById('modalImage');
+            
+            // 重置缩放状态
+            if (modalImage) {
+                modalImage.classList.remove('zoomed');
+                modalImage.style.transform = 'scale(1)';
+            }
+            
             document.getElementById('imageModal').style.display = 'none';
             document.body.style.overflow = 'auto';
 
@@ -1827,6 +2230,12 @@
             } else {
                 // 直接切换图片，无过渡效果
                 const modalImage = document.getElementById('modalImage');
+                
+                // 重置缩放状态
+                modalImage.classList.remove('zoomed');
+                modalImage.style.transform = 'scale(1)';
+                
+                // 更换图片源
                 modalImage.src = currentGallery[currentImageIndex];
             }
 
@@ -1985,7 +2394,7 @@
 
             setTimeout(function () {
                 alertDiv.style.display = 'none';
-            }, 3000);
+            }, 5000);
         }
 
         // 增强的屏幕截图检测
@@ -2107,17 +2516,20 @@
             });
         }
 
-        // 花瓣飘落效果改为爱心飘落
+        // 创建花瓣效果 - 生成页面背景的漂浮爱心
         function createPetals() {
+            // 验证用户已通过认证，未认证时不创建花瓣
             if (!document.body.classList.contains('authenticated')) return;
             
+            // 获取花瓣容器元素
             const container = document.getElementById('rose-petals-container');
-            // 增加爱心数量，使用设备宽度来动态调整
+            // 根据屏幕宽度动态计算花瓣数量，确保视觉效果均衡
             const petalCount = Math.max(5, Math.min(12, Math.floor(window.innerWidth / 150)));
+            // 获取视口宽高
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             
-            // 爱心的颜色变化 - 大幅增加颜色多样性
+            // 定义爱心的颜色变化滤镜 - 提供多种颜色变化效果
             const heartColors = [
                 // 粉色系列
                 'hue-rotate(0deg) saturate(1.2) brightness(1.0)',     // 正常粉红色
@@ -2151,73 +2563,76 @@
                 'hue-rotate(330deg) saturate(1.0) brightness(1.05)',  // 浅紫粉色
             ];
             
-            // 创建分布点阵，避免爱心扎堆
+            // 调用函数创建均匀分布的网格位置，避免花瓣位置聚集
             const grid = createDistributionGrid(viewportWidth, petalCount);
             
-            // 逐个创建爱心，使用网格位置
+            // 循环创建指定数量的花瓣
             for (let i = 0; i < petalCount; i++) {
-                // 为每个爱心添加不同的创建延迟，错开出现时间
+                // 使用setTimeout错开每个花瓣的创建时间
                 setTimeout(() => {
+                    // 创建花瓣DOM元素
                     const petal = document.createElement('div');
+                    // 设置CSS类名
                     petal.className = 'petal';
                     
-                    // 随机尺寸，较小的爱心更多，大爱心较少
-                    // 使用加权随机：80%概率生成小爱心(15-25px)，20%概率生成大爱心(25-35px)
+                    // 使用概率分布随机设置花瓣尺寸
+                    // 80%概率生成小花瓣(15-25px)，20%概率生成大花瓣(25-35px)，确保视觉丰富性
                     let size;
                     if (Math.random() < 0.8) {
                         size = Math.floor(Math.random() * 11) + 15; // 15-25px
                     } else {
                         size = Math.floor(Math.random() * 11) + 25; // 25-35px
                     }
+                    // 设置花瓣宽高
                     petal.style.width = `${size}px`;
                     petal.style.height = `${size}px`;
                     
-                    // 使用预先计算的分布位置
+                    // 从预先计算的分布网格中获取水平位置
                     const horizontalPosition = grid[i];
                     
-                    // 水平位置增加小的随机偏移，最多偏移格子宽度的25%
+                    // 添加小的随机偏移，使位置更自然，避免规则感
                     const gridCellWidth = viewportWidth / petalCount;
                     const jitter = (Math.random() - 0.5) * gridCellWidth * 0.5;
                     const finalHorizontalPos = horizontalPosition + jitter;
                     
-                    // 预先设置位置，避免初始闪烁
+                    // 设置水平位置
                     petal.style.left = `${finalHorizontalPos}px`;
                     
-                    // 随机初始顶部位置，分散在-5%到-15%之间
-                    // 降低初始位置以便有更多悬浮空间
+                    // 随机设置初始顶部位置在视口上方(-5%到-15%处)，保证花瓣从屏幕外进入
                     petal.style.top = `${-5 - Math.random() * 10}%`;
                     
-                    // 随机透明度
+                    // 随机设置初始透明度，范围0.7-0.9
                     petal.style.opacity = (0.7 + Math.random() * 0.2).toString();
                     
-                    // 随机颜色 - 增强随机性
-                    // 首先随机选择一个颜色
+                    // 随机选择基础颜色滤镜
                     const baseColorIndex = Math.floor(Math.random() * heartColors.length);
                     let baseFilter = heartColors[baseColorIndex];
                     
-                    // 25%的概率添加轻微变化，使颜色更加随机
+                    // 25%概率对颜色进行微调，增加颜色多样性
                     if (Math.random() < 0.25) {
-                        // 微调色相、饱和度和亮度
-                        const hueJitter = Math.floor(Math.random() * 10) - 5;  // -5到+5度
-                        const satJitter = (Math.random() * 0.2) - 0.1;         // -0.1到+0.1
-                        const brightJitter = (Math.random() * 0.2) - 0.1;      // -0.1到+0.1
+                        // 在原有色相、饱和度和亮度基础上添加随机偏移
+                        const hueJitter = Math.floor(Math.random() * 10) - 5;  // -5到+5度色相偏移
+                        const satJitter = (Math.random() * 0.2) - 0.1;         // -0.1到+0.1饱和度偏移
+                        const brightJitter = (Math.random() * 0.2) - 0.1;      // -0.1到+0.1亮度偏移
                         
-                        // 从基础滤镜中提取当前值
+                        // 使用正则表达式提取当前滤镜参数值
                         const hueMatch = baseFilter.match(/hue-rotate\((\-?\d+)deg\)/);
                         const satMatch = baseFilter.match(/saturate\((\d+\.\d+)\)/);
                         const brightMatch = baseFilter.match(/brightness\((\d+\.\d+)\)/);
                         
+                        // 如果成功提取到参数值，则应用微调
                         if (hueMatch && satMatch && brightMatch) {
                             const currentHue = parseInt(hueMatch[1]);
                             const currentSat = parseFloat(satMatch[1]);
                             const currentBright = parseFloat(brightMatch[1]);
                             
-                            // 应用微调
+                            // 计算新的滤镜参数值
                             const newHue = currentHue + hueJitter;
+                            // 限制饱和度和亮度在合理范围内
                             const newSat = Math.max(0.7, Math.min(1.7, currentSat + satJitter));
                             const newBright = Math.max(0.8, Math.min(1.3, currentBright + brightJitter));
                             
-                            // 创建新的滤镜字符串
+                            // 组装新的CSS滤镜字符串
                             baseFilter = `hue-rotate(${newHue}deg) saturate(${newSat.toFixed(2)}) brightness(${newBright.toFixed(2)})`;
                         }
                     }
@@ -2225,69 +2640,78 @@
                     // 应用最终的颜色滤镜
                     petal.style.filter = baseFilter;
                     
-                    // 随机缩放
+                    // 随机设置花瓣缩放比例
                     const scale = 0.8 + Math.random() * 0.4;
                     
-                    // 添加到容器
+                    // 将花瓣添加到容器中
                     container.appendChild(petal);
                     
-                    // 更慢、更自然的飘落，大爱心下落稍快，小爱心飘得更慢
-                    // 增加基础持续时间，让所有爱心都慢一些
-                    const baseDuration = size < 25 ? 35 : 30; // 基础时间增加10秒
-                    const variableDuration = size < 25 ? 15 : 10; // 变化范围
+                    // 根据花瓣大小设置不同的下落速度和持续时间
+                    // 小花瓣下落更慢(35-50秒)，大花瓣下落稍快(30-40秒)
+                    const baseDuration = size < 25 ? 35 : 30; // 基础下落时间
+                    const variableDuration = size < 25 ? 15 : 10; // 随机时间范围
                     const fallDuration = Math.floor(Math.random() * variableDuration) + baseDuration;
-                    const swayDuration = Math.floor(Math.random() * 4) + 8; // 增加到8-12秒
+                    // 设置花瓣摆动周期(8-12秒)
+                    const swayDuration = Math.floor(Math.random() * 4) + 8;
                     
-                    // 垂直下降动画
+                    // 创建垂直下降动画
                     function createFallAnimation() {
+                        // 使用Web Animations API创建关键帧动画
                         return petal.animate([
-                            // 开始时停留在原位置，只有透明度变化
+                            // 开始时花瓣停留在原位置，只有透明度从0逐渐增加
                             { top: petal.style.top, opacity: 0, offset: 0 },
                             { top: petal.style.top, opacity: 0.5, offset: 0.05 },
                             { top: petal.style.top, opacity: 0.8, offset: 0.1 },
                             
-                            // 保持短暂悬浮
+                            // 短暂悬浮阶段，保持位置不变
                             { top: petal.style.top, opacity: 0.8, offset: 0.2 },
                             
-                            // 然后才开始缓慢下落
+                            // 缓慢下落阶段，位置逐渐向下移动
                             { top: '5%', opacity: 0.8, offset: 0.3 },
                             { top: '15%', opacity: 0.8, offset: 0.4 },
                             { top: '30%', opacity: 0.8, offset: 0.5 },
                             { top: '50%', opacity: 0.8, offset: 0.7 },
                             { top: '90%', opacity: 0.8, offset: 0.9 },
+                            // 最后消失，位置超出屏幕底部
                             { top: '110%', opacity: 0, offset: 1.0 }
                         ], {
+                            // 设置动画持续时间，单位毫秒
                             duration: fallDuration * 1000,
-                            easing: 'cubic-bezier(0, 0.2, 0.4, 1.0)', // 更平滑的缓动函数
+                            // 使用平滑的缓动函数，模拟真实物理下落
+                            easing: 'cubic-bezier(0, 0.2, 0.4, 1.0)',
+                            // 保持动画结束时的状态
                             fill: 'forwards'
                         });
                     }
                     
-                    // 水平摇摆和旋转动画 - 使用更少的关键帧
+                    // 创建水平摇摆和旋转动画，模拟自然飘动效果
                     function createSwayAnimation() {
-                        // 使用更简单的摇摆算法，避免复杂计算导致的抖动
-                        const swayAmount = 5 + Math.random() * 10; // 5-15像素的摇摆
+                        // 设置摇摆幅度、旋转角度和心跳效果参数
+                        const swayAmount = 5 + Math.random() * 10; // 5-15像素的水平摇摆
                         const rotateAmount = 10 + Math.random() * 10; // 10-20度的旋转
-                        const heartbeatSize = 0.03 + Math.random() * 0.02; // 心跳幅度
+                        const heartbeatSize = 0.03 + Math.random() * 0.02; // 心跳放大幅度3%-5%
 
-                        // 添加初始轻微浮动效果
+                        // 初始轻微浮动效果的关键帧定义
                         const floatAnimation = [
-                            // 初始出现时的微小浮动效果
+                            // 初始状态
                             { transform: `translateY(0px) translateX(0px) rotate(0deg) scale(${scale})` },
+                            // 中间状态，微微上浮并轻微旋转
                             { transform: `translateY(-${2 + Math.random() * 3}px) translateX(${Math.random() * 2 - 1}px) rotate(${Math.random() * 5 - 2.5}deg) scale(${scale * (1 + heartbeatSize/2)})`, offset: 0.5 },
+                            // 回到初始状态
                             { transform: `translateY(0px) translateX(0px) rotate(0deg) scale(${scale})` }
                         ];
                         
-                        // 创建浮动动画
+                        // 创建初始浮动动画
                         const initialFloatAnimation = petal.animate(floatAnimation, {
                             duration: 3000 + Math.random() * 2000, // 3-5秒的初始浮动
-                            iterations: 1,
-                            easing: 'ease-in-out',
-                            fill: 'forwards'
+                            iterations: 1, // 只执行一次
+                            easing: 'ease-in-out', // 平滑过渡
+                            fill: 'forwards' // 保持最终状态
                         });
                         
-                        // 浮动结束后开始常规的摇摆动画
+                        // 初始浮动结束后开始持续的摇摆动画
                         initialFloatAnimation.onfinish = () => {
+                            // 创建无限循环的水平摇摆动画
                             petal.animate([
                                 { transform: `translateX(0px) rotate(0deg) scale(${scale})` },
                                 { transform: `translateX(${swayAmount}px) rotate(${rotateAmount}deg) scale(${scale * (1 + heartbeatSize)})`, offset: 0.25 },
@@ -2295,88 +2719,968 @@
                                 { transform: `translateX(${swayAmount/1.5}px) rotate(${-rotateAmount}deg) scale(${scale * (1 + heartbeatSize)})`, offset: 0.75 },
                                 { transform: `translateX(0px) rotate(0deg) scale(${scale})` }
                             ], {
-                                duration: swayDuration * 1000,
-                                iterations: Infinity,
-                                easing: 'ease-in-out'
+                                duration: swayDuration * 1000, // 持续时间
+                                iterations: Infinity, // 无限循环
+                                easing: 'ease-in-out' // 平滑过渡
                             });
                         };
                         
-                        // 返回初始浮动动画，保持接口一致性
+                        // 返回初始动画对象
                         return initialFloatAnimation;
                     }
                     
-                    // 应用动画，确保它们是独立的
+                    // 创建并应用动画
                     const fallAnimation = createFallAnimation();
                     const swayAnimation = createSwayAnimation();
                     
-                    // 随机延迟，减少同时开始的动画数量，并为下落添加额外延迟
-                    const initialDelay = Math.random() * 5;
-                    // 延迟下落动画比摇摆动画多3-6秒，确保爱心先悬浮一段时间
+                    // 设置动画延迟，避免所有花瓣同时开始动画
+                    const initialDelay = Math.random() * 5; // 0-5秒的初始延迟
+                    // 下落动画比摇摆动画延迟3-6秒，确保先有悬浮效果
                     const fallDelay = initialDelay + 3 + Math.random() * 3;
                     
-                    // 应用延迟
+                    // 应用下落动画延迟
                     fallAnimation.currentTime = -fallDelay * 1000;
                     
-                    // 当下落结束时移除元素，减少DOM节点
+                    // 下落结束后移除元素，减少DOM节点数量提高性能
                     fallAnimation.onfinish = () => {
                         if (petal && petal.parentNode) {
                             petal.remove();
                         }
                     };
                     
-                }, i * 300 + Math.random() * 700); // 为每个爱心添加300ms的基础间隔和0-700ms的随机延迟
+                }, i * 300 + Math.random() * 700); // 每个花瓣添加300-1000ms的创建延迟
             }
         }
         
-        // 创建均匀分布的网格位置
+        // 创建均匀分布的网格位置 - 确保花瓣在水平方向均匀分布
         function createDistributionGrid(width, count) {
             const positions = [];
             
-            // 先创建均匀分布的基础位置
+            // 将屏幕宽度划分为等宽的区域，在每个区域内随机选择位置点
             for (let i = 0; i < count; i++) {
-                // 在每个等宽区域内随机选择一个点，确保覆盖整个宽度
+                // 计算每个区域的宽度
                 const segmentWidth = width / count;
+                // 计算区域的基础位置
                 const basePos = i * segmentWidth;
-                const randomOffset = Math.random() * (segmentWidth * 0.7); // 在区域内70%的范围随机
-                positions.push(basePos + segmentWidth * 0.15 + randomOffset); // 0.15作为边距
+                // 在区域内70%的范围内随机选择偏移量
+                const randomOffset = Math.random() * (segmentWidth * 0.7);
+                // 计算最终位置并添加到数组，留15%作为边距避免太靠近边缘
+                positions.push(basePos + segmentWidth * 0.15 + randomOffset);
             }
             
-            // 随机打乱顺序，进一步防止规律性但保持分布均匀
+            // 随机打乱位置顺序，进一步增加随机性但保持整体分布均匀
             return shuffleArray(positions);
         }
         
-        // 洗牌算法，随机打乱数组
+        // 洗牌算法 - 随机打乱数组元素顺序
         function shuffleArray(array) {
+            // 从数组末尾开始，逐个元素进行随机交换
             for (let i = array.length - 1; i > 0; i--) {
+                // 随机选择一个位置与当前位置交换
                 const j = Math.floor(Math.random() * (i + 1));
+                // ES6解构赋值交换元素
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
         }
         
-        // 定期创建花瓣
+        // 启动并维持花瓣动画 - 页面加载后调用此函数开始动画
         function startPetalAnimation() {
-            // 初始创建花瓣
+            // 初始创建一批花瓣
             createPetals();
             
-            // 每8秒创建一批新花瓣，更频繁地添加
+            // 每8秒定时创建一批新花瓣，保持画面始终有花瓣飘动
             setInterval(createPetals, 8000);
             
-            // 添加窗口大小改变的处理
+            // 监听窗口大小变化，调整花瓣数量和位置
             window.addEventListener('resize', function() {
-                // 清理当前所有花瓣
+                // 清理当前所有花瓣元素
                 const container = document.getElementById('rose-petals-container');
                 while (container.firstChild) {
                     container.removeChild(container.firstChild);
                 }
-                // 重新创建适合新窗口大小的花瓣
+                // 根据新窗口大小重新创建花瓣
                 createPetals();
             });
         }
 
-        // 更新登录按钮状态
-        function updateButtonState() {
-            // 功能已移除，因为我们允许空输入时点击按钮，并在checkPasswordAndVerify中处理空输入
+        // 创建粒子背景 - 为密码验证页面添加漂浮粒子效果
+        function createParticles() {
+            // 获取密码模态框元素
+            const passwordModal = document.querySelector('.password-modal');
+            // 创建粒子容器元素
+            const particles = document.createElement('div');
+            // 设置容器类名，用于CSS样式关联
+            particles.className = 'particles';
+            
+            // 创建30个粒子元素
+            for (let i = 0; i < 30; i++) {
+                // 创建单个粒子DOM元素
+                const particle = document.createElement('div');
+                // 设置粒子类名，应用相应的CSS样式
+                particle.className = 'particle';
+                
+                // 为每个粒子设置随机大小(10-30px)，增加视觉多样性
+                const size = Math.random() * 20 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 随机设置粒子在容器中的位置，覆盖整个区域
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                // 使用百分比定位，确保适应不同屏幕尺寸
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                
+                // 设置随机透明度(0.1-0.4)，创造层次感
+                particle.style.opacity = Math.random() * 0.3 + 0.1;
+                
+                // 为每个粒子设置不同的动画延迟和持续时间，避免同步移动
+                // 延迟范围0-10秒
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                // 持续时间15-35秒，确保缓慢柔和的移动
+                particle.style.animationDuration = `${Math.random() * 20 + 15}s`;
+                
+                // 将粒子添加到容器中
+                particles.appendChild(particle);
+            }
+            
+            // 将粒子容器添加到密码模态框中
+            passwordModal.appendChild(particles);
+        }
+
+        // 密码验证成功后的处理函数 - 控制页面切换和特效展示
+        function successfulAuthentication() {
+            // 获取需要操作的DOM元素
+            const passwordModal = document.getElementById('passwordModal');
+            const mainContent = document.getElementById('mainContent');
+            const authMask = document.getElementById('authMask');
+            const passwordContent = document.querySelector('.password-content');
+            const particles = document.querySelector('.particles');
+            
+            // 为密码框添加成功动画效果，表示验证通过
+            passwordContent.classList.add('success');
+            
+            // 应用CSS动画使登录框向上滑动消失
+            passwordContent.style.animation = 'fadeAndSlideUp 0.7s ease reverse';
+            
+            // 调用函数创建爱心飘动特效，增强成功的视觉反馈
+            createHeartEffect();
+            
+            // 创建爱你哟消息元素
+            const loveMessage = document.createElement('div');
+            loveMessage.textContent = "爱你哟！宝儿";
+            loveMessage.style.position = 'absolute';
+            loveMessage.style.top = '65%';
+            loveMessage.style.left = '0';
+            loveMessage.style.width = '100%';
+            loveMessage.style.textAlign = 'center';
+            loveMessage.style.color = '#ff69b4';
+            loveMessage.style.fontSize = '28px';
+            loveMessage.style.fontWeight = 'bold';
+            loveMessage.style.opacity = '0';
+            loveMessage.style.transition = 'opacity 1s ease-in';
+            loveMessage.style.textShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            loveMessage.style.fontFamily = 'Arial, "Microsoft YaHei", sans-serif';
+            loveMessage.style.zIndex = '10';
+            passwordModal.appendChild(loveMessage);
+            
+            // 延迟1.5秒后添加淡出效果，给用户足够时间观察爱心动画开始
+            setTimeout(() => {
+                // 设置CSS过渡效果和透明度变化
+                passwordContent.style.transition = 'opacity 1.5s ease-out';
+                passwordContent.style.opacity = '0';
+                
+                // 显示爱你哟消息
+                loveMessage.style.opacity = '1';
+            }, 1500);
+            
+            // 延迟3秒后完成页面切换，并初始化主界面内容
+            setTimeout(function() {
+                // 隐藏登录相关元素
+                passwordModal.style.display = 'none';
+                authMask.style.display = 'none';
+                // 添加身份验证标记类，用于控制其他功能的显示与否
+                document.body.classList.add('authenticated');
+                // 显示主内容区域
+                mainContent.style.display = 'block';
+                
+                // 启动花瓣背景动画
+                startPetalAnimation();
+                
+                // 加载纪念内容数据
+                loadMemories();
+                
+                // 初始化时间计数器
+                updateTimeCounter();
+                
+                // 设置定时器，每秒更新当前时间显示
+                setInterval(updateCurrentTime, 1000);
+                // 设置定时器，每秒更新时间计数器显示
+                setInterval(updateTimeCounter, 1000);
+                
+                // 尝试自动播放背景音乐
+                const music = document.getElementById('bgMusic');
+                const musicControl = document.getElementById('musicControl');
+                music.play().then(() => {
+                    // 播放成功，更新音乐状态和控制按钮样式
+                    isMusicPlaying = true;
+                    musicControl.classList.add('playing');
+                }).catch(() => {
+                    // 静默处理播放失败的情况，通常是浏览器策略限制
+                    // 不输出错误信息，避免控制台杂乱
+                });
+                
+                // 设置身份验证Cookie，保持登录状态7天
+                // 使用安全属性samesite=strict防止CSRF攻击
+                document.cookie = "authenticated=true; max-age=604800; path=/; samesite=strict";
+                
+                // 延迟0.5秒后禁用图片保存功能，保护内容版权
+                setTimeout(disableSaveImage, 500);
+            }, 3500); // 总延迟3秒，给用户充分时间欣赏爱心升起效果
+        }
+        
+        // 创建心形粒子效果 - 密码验证成功时的爱心飘动特效
+        function createHeartEffect() {
+            // 获取密码验证模态框元素
+            const passwordModal = document.querySelector('.password-modal');
+            // 创建爱心容器元素
+            const hearts = document.createElement('div');
+            // 设置容器类名
+            hearts.className = 'hearts';
+            // 设置容器为绝对定位
+            hearts.style.position = 'absolute';
+            // 设置容器宽度为100%填充父元素
+            hearts.style.width = '100%';
+            // 设置容器高度为100%填充父元素
+            hearts.style.height = '100%';
+            // 禁用鼠标事件，使其不影响下方元素的交互
+            hearts.style.pointerEvents = 'none';
+            // 设置较高的z-index确保爱心显示在其他元素上方
+            hearts.style.zIndex = '5';
+            
+            // 定义多种爱心表情符号，提供视觉多样性
+            const heartColors = [
+                '❤️', // 红心
+                '💖', // 粉色闪烁爱心
+                '💗', // 增长粉心 
+                '💓', // 跳动粉心
+                '💕', // 双粉心
+                '💝', // 礼物心
+                '💘', // 箭头心
+                '💞', // 旋转双心
+            ];
+            
+            // 根据设备类型调整爱心数量，移动端减少数量提高性能
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // 移动端30个爱心，PC端80个爱心
+            const heartCount = isMobile ? 30 : 80;
+            
+            // 循环创建指定数量的爱心元素
+            for (let i = 0; i < heartCount; i++) {
+                // 使用setTimeout错开创建时间，实现爱心逐个出现的效果
+                setTimeout(() => {
+                    // 创建单个爱心元素
+                    const heart = document.createElement('div');
+                    // 从爱心样式数组中随机选择一种
+                    heart.innerHTML = heartColors[Math.floor(Math.random() * heartColors.length)];
+                    // 设置爱心为绝对定位
+                    heart.style.position = 'absolute';
+                    // 随机设置爱心大小，范围10px到40px
+                    heart.style.fontSize = `${Math.random() * 30 + 10}px`;
+                    // 随机设置水平位置，覆盖整个宽度
+                    heart.style.left = `${Math.random() * 100}%`;
+                    // 初始位置设置在容器底部以下，便于向上飘动
+                    heart.style.bottom = '-50px';
+                    // 设置透明度为0.8，使视觉效果更柔和
+                    heart.style.opacity = '0.8';
+                    // 为每个爱心设置不同的动画时间(8-13秒)，增加随机性
+                    heart.style.animation = `floatHeart ${Math.random() * 5 + 8}s linear forwards`;
+                    // 随机设置旋转角度，范围-30度到30度
+                    heart.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
+                    // 将爱心添加到容器中
+                    hearts.appendChild(heart);
+                    
+                    // 为避免DOM元素过多导致性能问题，设置定时器在动画结束后移除爱心元素
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 15000); // 15秒后移除，确保动画完成
+                }, i * (isMobile ? 150 : 80)); // 移动端间隔150毫秒，PC端80毫秒
+            }
+            
+            // 将爱心容器添加到密码模态框中
+            passwordModal.appendChild(hearts);
+            
+            // 创建并添加CSS动画样式
+            const style = document.createElement('style');
+            // 定义爱心飘动、震动和成功动画的关键帧
+            style.textContent = `
+                @keyframes floatHeart {
+                    0% {
+                        transform: translateY(0) rotate(0deg);
+                        opacity: 0.8;
+                    }
+                    20% {
+                        transform: translateY(-20vh) rotate(${Math.random() * 180}deg);
+                        opacity: 0.9;
+                    }
+                    40% {
+                        transform: translateY(-40vh) rotate(${Math.random() * 270}deg);
+                        opacity: 0.8;
+                    }
+                    60% {
+                        transform: translateY(-60vh) rotate(${Math.random() * 360}deg);
+                        opacity: 0.7;
+                    }
+                    80% {
+                        transform: translateY(-80vh) rotate(${Math.random() * 450}deg);
+                        opacity: 0.5;
+                    }
+                    100% {
+                        transform: translateY(-100vh) rotate(${Math.random() * 540}deg);
+                        opacity: 0;
+                    }
+                }
+                
+                .shake {
+                    animation: shake 0.5s ease;
+                }
+                
+                .success {
+                    animation: success 0.5s ease;
+                }
+                
+                @keyframes success {
+                    0% {
+                        transform: scale(1);
+                        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+                    }
+                    50% {
+                        transform: scale(1.05);
+                        box-shadow: 0 20px 45px rgba(255, 105, 180, 0.4);
+                    }
+                    100% {
+                        transform: scale(1);
+                        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+                    }
+                }
+            `;
+            // 将样式添加到文档头部
+            document.head.appendChild(style);
+        }
+
+        // 重写检查密码并验证的函数，集成心形动画效果
+        function checkAndVerifyPassword() {
+            if (isLocked) return;
+            
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // 检查密码是否为空
+            if (!password.trim()) {
+                errorMessage.textContent = "请输入…";
+                errorMessage.style.display = 'block';
+                errorMessage.style.animation = 'none';
+                void errorMessage.offsetWidth;
+                errorMessage.style.animation = 'shake 0.5s ease';
+                return;
+            }
+            
+            if (md5(password) === PASSWORD_HASH) {
+                // 使用美化后的成功验证效果
+                successfulAuthentication();
+            } else {
+                passwordAttempts++;
+                localStorage.setItem('passwordAttempts', passwordAttempts.toString());
+
+                if (passwordAttempts >= 5) {
+                    lockAccount();
+                } else {
+                    errorMessage.textContent = errorMessages[passwordAttempts - 1];
+                    errorMessage.style.display = 'block';
+                    document.getElementById('passwordInput').value = '';
+                    
+                    // 重置动画
+                    errorMessage.style.animation = 'none';
+                    void errorMessage.offsetWidth;
+                    errorMessage.style.animation = 'shake 0.5s ease';
+                    
+                    // 震动密码输入框
+                    const passwordContent = document.querySelector('.password-content');
+                    passwordContent.classList.remove('shake');
+                    void passwordContent.offsetWidth; // 重置动画
+                    passwordContent.classList.add('shake');
+                }
+            }
+        }
+
+        // 初始化日期选择器
+        function initializeDateSelector(data) {
+            if (!data || data.length === 0) return;
+            
+            const yearSelect = document.getElementById('yearSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            const daySelect = document.getElementById('daySelect');
+            const jumpButton = document.getElementById('jumpToDateBtn');
+            
+            // 收集所有出现的年份和月份
+            const dates = {};
+            data.forEach(memory => {
+                if (!memory.d) return;
+                
+                // 处理完整日期格式，如 "2025-04-05"
+                const match = memory.d.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+                if (match) {
+                    const year = match[1];
+                    const month = match[2] || null;
+                    const day = match[3] || null;
+                    
+                    if (!dates[year]) {
+                        dates[year] = {};
+                    }
+                    
+                    if (month) {
+                        if (!dates[year][month]) {
+                            dates[year][month] = [];
+                        }
+                        
+                        if (day && !dates[year][month].includes(day)) {
+                            dates[year][month].push(day);
+                        }
+                    }
+                }
+            });
+            
+            // 填充年份选择器
+            const years = Object.keys(dates).sort((a, b) => b - a); // 降序排列
+            yearSelect.innerHTML = '<option value="">全部</option>';
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = `${year}年`;
+                yearSelect.appendChild(option);
+            });
+            
+            // 监听年份变化，更新月份选择器
+            yearSelect.addEventListener('change', function() {
+                updateMonthOptions();
+            });
+            
+            // 监听月份变化，更新日期选择器
+            monthSelect.addEventListener('change', function() {
+                updateDayOptions();
+            });
+            
+            // 跳转按钮点击事件
+            jumpButton.addEventListener('click', function() {
+                jumpToSelectedDate();
+            });
+            
+            // 初始化月份和日期选择器
+            updateMonthOptions();
+            
+            // 更新月份选项
+            function updateMonthOptions() {
+                const selectedYear = yearSelect.value;
+                monthSelect.innerHTML = '<option value="">全部</option>';
+                
+                if (selectedYear && dates[selectedYear]) {
+                    const months = Object.keys(dates[selectedYear]).sort((a, b) => b - a); // 降序排列
+                    months.forEach(month => {
+                        const option = document.createElement('option');
+                        option.value = month;
+                        option.textContent = `${month}月`;
+                        monthSelect.appendChild(option);
+                    });
+                }
+                
+                // 更新日期选项
+                updateDayOptions();
+            }
+            
+            // 更新日期选项
+            function updateDayOptions() {
+                const selectedYear = yearSelect.value;
+                const selectedMonth = monthSelect.value;
+                daySelect.innerHTML = '<option value="">全部</option>';
+                
+                if (selectedYear && selectedMonth && 
+                    dates[selectedYear] && 
+                    dates[selectedYear][selectedMonth]) {
+                    
+                    const days = dates[selectedYear][selectedMonth].sort((a, b) => b - a); // 降序排列
+                    days.forEach(day => {
+                        const option = document.createElement('option');
+                        option.value = day;
+                        option.textContent = `${day}日`;
+                        daySelect.appendChild(option);
+                    });
+                }
+            }
+            
+            // 跳转到选中日期
+            function jumpToSelectedDate() {
+                const selectedYear = yearSelect.value;
+                const selectedMonth = monthSelect.value;
+                const selectedDay = daySelect.value;
+                
+                // 重置页面和数据
+                const timeline = document.getElementById('timeline');
+                timeline.innerHTML = '';
+                currentPage = 0;
+                
+                // 如果没有选择任何筛选条件（全部设为"全部"），则恢复默认状态
+                if (!selectedYear) {
+                    // 恢复默认状态，重新渲染所有数据
+                    renderMemories();
+                    document.getElementById('loadMore').style.display = 'block';
+                    hasMore = true;
+                    checkHasMore();
+                    return;
+                }
+                
+                // 根据选择条件筛选数据
+                let filteredMemories = [];
+                
+                if (selectedDay) {
+                    // 按具体日期筛选
+                    const fullDate = `${selectedYear}-${selectedMonth}-${selectedDay}`;
+                    filteredMemories = memories.filter(memory => memory.d === fullDate);
+                } else if (selectedMonth) {
+                    // 按年月筛选
+                    const monthPattern = `${selectedYear}-${selectedMonth}`;
+                    filteredMemories = memories.filter(memory => memory.d.startsWith(monthPattern));
+                } else {
+                    // 只按年份筛选
+                    filteredMemories = memories.filter(memory => memory.d.startsWith(selectedYear));
+                }
+                
+                // 处理没有找到匹配记录的情况
+                if (filteredMemories.length === 0) {
+                    timeline.innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:var(--text-size-pc);">没有找到符合条件的记录</p>';
+                    document.getElementById('loadMore').style.display = 'none';
+                    return;
+                }
+                
+                // 渲染筛选后的内容
+                filteredMemories.forEach((memory, index) => {
+                    const memoryDiv = document.createElement('div');
+                    memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
+                    
+                    const formattedDate = formatDate(memory.d);
+                    
+                    // 设置当前处理的记忆对象
+                    currentMemory = memory;
+                    
+                    let imagesHTML = '';
+                    if (memory.i && memory.i.length > 0) {
+                        imagesHTML = '<div class="gallery">';
+                        memory.i.forEach((img, i) => {
+                            const fullImagePath = getImagePath(img);
+                            imagesHTML += `<img src="${fullImagePath}" alt="记忆图片 ${i + 1}" onclick="openModal('${fullImagePath}')">`;
+                        });
+                        imagesHTML += '</div>';
+                    }
+                    
+                    memoryDiv.innerHTML = `
+                        <div class="content">
+                            <div class="date">${formattedDate}</div>
+                            <h2 class="title">${memory.t}</h2>
+                            <p class="text">${memory.c}</p>
+                            ${imagesHTML}
+                        </div>
+                    `;
+                    
+                    timeline.appendChild(memoryDiv);
+                });
+                
+                // 隐藏"加载更多"按钮，因为已经显示了所有匹配的内容
+                document.getElementById('loadMore').style.display = 'none';
+                
+                // 应用禁止保存图片
+                setTimeout(disableSaveImage, 500);
+                
+                // 如果有内容，滚动到顶部
+                if (filteredMemories.length > 0) {
+                    window.scrollTo(0, 0);
+                }
+            }
+        }
+
+        function onSuccessfulAuth() {
+            // 显示日期选择器
+            const dateSelector = document.getElementById('dateSelector');
+            if (dateSelector) {
+                dateSelector.style.display = 'flex';
+            }
+        }
+
+        // 添加图片缩放功能
+        function setupImageZoom() {
+            const modalImage = document.getElementById('modalImage');
+            let scale = 1;
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let translateX = 0;
+            let translateY = 0;
+            
+            // 速度追踪变量
+            let lastX = 0;
+            let lastY = 0;
+            let speedX = 0;
+            let speedY = 0;
+            let lastMoveTime = 0;
+            let inertiaAnimationId = null;
+            
+            // 移除点击缩放，只保留双击事件
+            let lastClickTime = 0;
+            
+            modalImage.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastClickTime;
+                
+                // 双击事件 (300ms内的两次点击)
+                if (timeDiff < 300 && timeDiff > 0) {
+                    if (this.classList.contains('zoomed')) {
+                        // 双击重置
+                        resetZoom();
+                    } else {
+                        // 双击放大 (仅限PC端)
+                        if (!isMobileDevice()) {
+                            // 放大到双击位置
+                            const rect = this.getBoundingClientRect();
+                            const xRatio = (event.clientX - rect.left) / rect.width;
+                            const yRatio = (event.clientY - rect.top) / rect.height;
+                            
+                            scale = 2.5;
+                            // 计算平移量，使双击点成为中心
+                            translateX = (0.5 - xRatio) * 100;
+                            translateY = (0.5 - yRatio) * 100;
+                            
+                            this.classList.add('zoomed');
+                            applyTransform();
+                        }
+                    }
+                    
+                    // 重置点击时间
+                    lastClickTime = 0;
+                } else {
+                    // 单击只记录时间，不执行缩放
+                    lastClickTime = currentTime;
+                }
+            });
+            
+            function resetZoom() {
+                cancelInertiaAnimation();
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                modalImage.classList.remove('zoomed');
+                applyTransform();
+            }
+            
+            // 应用变换的统一函数
+            function applyTransform() {
+                modalImage.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            }
+            
+            // 检测是否为移动设备
+            function isMobileDevice() {
+                return (typeof window.orientation !== "undefined") || 
+                       (navigator.userAgent.indexOf('IEMobile') !== -1) ||
+                       (navigator.userAgent.match(/Android/i)) || 
+                       (navigator.userAgent.match(/iPhone|iPad|iPod/i));
+            }
+            
+            // 限制拖动范围的函数
+            function limitTranslation() {
+                // 根据缩放级别调整最大拖动范围
+                const maxTranslate = 100 * scale;
+                translateX = Math.min(maxTranslate, Math.max(-maxTranslate, translateX));
+                translateY = Math.min(maxTranslate, Math.max(-maxTranslate, translateY));
+            }
+            
+            // 取消惯性动画
+            function cancelInertiaAnimation() {
+                if (inertiaAnimationId !== null) {
+                    cancelAnimationFrame(inertiaAnimationId);
+                    inertiaAnimationId = null;
+                }
+            }
+            
+            // 双指缩放支持
+            let initialPinchDistance = 0;
+            let initialScale = 1;
+            let pinchMidX = 0;
+            let pinchMidY = 0;
+            let initialTranslateX = 0;
+            let initialTranslateY = 0;
+            
+            modalImage.addEventListener('touchstart', function(e) {
+                cancelInertiaAnimation();
+                
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    // 记录初始值
+                    initialScale = scale;
+                    initialTranslateX = translateX;
+                    initialTranslateY = translateY;
+                    
+                    // 计算中心点
+                    pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    
+                    // 转换为相对于图片的比例
+                    const rect = this.getBoundingClientRect();
+                    pinchMidX = (pinchMidX - rect.left) / rect.width;
+                    pinchMidY = (pinchMidY - rect.top) / rect.height;
+                    
+                    initialPinchDistance = getPinchDistance(e.touches[0], e.touches[1]);
+                    this.classList.add('zoomed');
+                }
+            }, { passive: false });
+            
+            modalImage.addEventListener('touchmove', function(e) {
+                if (e.touches.length === 2 && initialPinchDistance > 0) {
+                    e.preventDefault();
+                    const currentDistance = getPinchDistance(e.touches[0], e.touches[1]);
+                    
+                    // 计算新的缩放级别
+                    const scaleFactor = currentDistance / initialPinchDistance;
+                    scale = Math.max(1, Math.min(4, initialScale * scaleFactor));
+                    
+                    // 调整平移量，保持中心点
+                    if (scale > 1) {
+                        const scaleRatio = scale / initialScale;
+                        
+                        // 根据缩放中心点调整平移
+                        translateX = initialTranslateX + ((0.5 - pinchMidX) * 200 * (scaleRatio - 1));
+                        translateY = initialTranslateY + ((0.5 - pinchMidY) * 200 * (scaleRatio - 1));
+                        
+                        limitTranslation();
+                        applyTransform();
+                    } else {
+                        resetZoom();
+                    }
+                }
+            }, { passive: false });
+            
+            modalImage.addEventListener('touchend', function(e) {
+                if (e.touches.length < 2) {
+                    initialPinchDistance = 0;
+                }
+                
+                if (scale <= 1.1) {
+                    resetZoom();
+                }
+            });
+            
+            function getPinchDistance(touch1, touch2) {
+                return Math.sqrt(
+                    Math.pow(touch1.clientX - touch2.clientX, 2) + 
+                    Math.pow(touch1.clientY - touch2.clientY, 2)
+                );
+            }
+            
+            // 鼠标滚轮缩放 (PC端主要缩放方式)
+            modalImage.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                cancelInertiaAnimation();
+                
+                const rect = this.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // 计算鼠标位置相对于图片的比例
+                const xRatio = mouseX / rect.width;
+                const yRatio = mouseY / rect.height;
+                
+                // 旧缩放值
+                const oldScale = scale;
+                
+                if (e.deltaY < 0) {
+                    // 放大
+                    scale = Math.min(4, scale * 1.1);
+                    this.classList.add('zoomed');
+                } else {
+                    // 缩小
+                    scale = Math.max(1, scale / 1.1);
+                    if (scale <= 1.1) {
+                        resetZoom();
+                        return;
+                    }
+                }
+                
+                // 根据鼠标位置调整平移值，使缩放围绕鼠标位置
+                if (oldScale !== 1) {
+                    // 调整平移量，使缩放以鼠标位置为中心
+                    translateX = translateX + ((0.5 - xRatio) * 200 * (scale / oldScale - 1));
+                    translateY = translateY + ((0.5 - yRatio) * 200 * (scale / oldScale - 1));
+                    
+                    limitTranslation();
+                }
+                
+                applyTransform();
+            });
+            
+            // 拖动支持 - PC
+            modalImage.addEventListener('mousedown', function(e) {
+                if (this.classList.contains('zoomed')) {
+                    cancelInertiaAnimation();
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    lastX = startX;
+                    lastY = startY;
+                    lastMoveTime = Date.now();
+                    speedX = 0;
+                    speedY = 0;
+                    e.preventDefault();
+                    
+                    // 使用更高效的方式处理拖动
+                    this.style.transition = 'transform 0s';
+                }
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging && modalImage.classList.contains('zoomed')) {
+                    const currentTime = Date.now();
+                    const timeElapsed = currentTime - lastMoveTime;
+                    
+                    // 计算移动的距离
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    
+                    // 根据缩放级别调整移动速度
+                    translateX += dx / scale;
+                    translateY += dy / scale;
+                    
+                    limitTranslation();
+                    applyTransform();
+                    
+                    // 计算移动速度 (像素/毫秒)
+                    if (timeElapsed > 0) {
+                        speedX = (e.clientX - lastX) / timeElapsed;
+                        speedY = (e.clientY - lastY) / timeElapsed;
+                    }
+                    
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    lastMoveTime = currentTime;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    modalImage.style.transition = 'transform 0.3s ease';
+                    
+                    // 计算惯性移动
+                    if (Math.abs(speedX) > 0.1 || Math.abs(speedY) > 0.1) {
+                        startInertiaAnimation();
+                    }
+                    
+                    isDragging = false;
+                }
+            });
+            
+            // 处理惯性动画
+            function startInertiaAnimation() {
+                const friction = 0.95; // 摩擦系数
+                let currentSpeedX = speedX * 15; // 初始速度放大，效果更明显
+                let currentSpeedY = speedY * 15;
+                
+                function animateInertia() {
+                    if (Math.abs(currentSpeedX) < 0.05 && Math.abs(currentSpeedY) < 0.05) {
+                        cancelInertiaAnimation();
+                        return;
+                    }
+                    
+                    // 减速
+                    currentSpeedX *= friction;
+                    currentSpeedY *= friction;
+                    
+                    // 移动
+                    translateX += currentSpeedX / scale;
+                    translateY += currentSpeedY / scale;
+                    
+                    limitTranslation();
+                    applyTransform();
+                    
+                    inertiaAnimationId = requestAnimationFrame(animateInertia);
+                }
+                
+                cancelInertiaAnimation();
+                inertiaAnimationId = requestAnimationFrame(animateInertia);
+            }
+            
+            // 处理手指拖动 - 移动端
+            let touchStartTime = 0;
+            
+            modalImage.addEventListener('touchstart', function(e) {
+                if (this.classList.contains('zoomed') && e.touches.length === 1) {
+                    cancelInertiaAnimation();
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    lastX = startX;
+                    lastY = startY;
+                    lastMoveTime = Date.now();
+                    touchStartTime = lastMoveTime;
+                    speedX = 0;
+                    speedY = 0;
+                    
+                    // 使用更高效的方式处理拖动
+                    this.style.transition = 'transform 0s';
+                }
+            }, { passive: true });
+            
+            modalImage.addEventListener('touchmove', function(e) {
+                if (isDragging && this.classList.contains('zoomed') && e.touches.length === 1) {
+                    const currentTime = Date.now();
+                    const timeElapsed = currentTime - lastMoveTime;
+                    
+                    // 使用更精确的定位
+                    const touchX = e.touches[0].clientX;
+                    const touchY = e.touches[0].clientY;
+                    
+                    // 计算移动距离并根据缩放因子调整移动速度
+                    translateX += (touchX - lastX) / scale;
+                    translateY += (touchY - lastY) / scale;
+                    
+                    limitTranslation();
+                    applyTransform();
+                    
+                    // 计算速度
+                    if (timeElapsed > 0) {
+                        speedX = (touchX - lastX) / timeElapsed;
+                        speedY = (touchY - lastY) / timeElapsed;
+                    }
+                    
+                    lastX = touchX;
+                    lastY = touchY;
+                    lastMoveTime = currentTime;
+                }
+            }, { passive: true });
+            
+            modalImage.addEventListener('touchend', function(e) {
+                if (isDragging) {
+                    const touchEndTime = Date.now();
+                    const touchDuration = touchEndTime - touchStartTime;
+                    
+                    this.style.transition = 'transform 0.3s ease';
+                    
+                    // 如果移动速度足够快，添加惯性效果
+                    if (touchDuration < 300 && (Math.abs(speedX) > 0.1 || Math.abs(speedY) > 0.1)) {
+                        startInertiaAnimation();
+                    }
+                    
+                    isDragging = false;
+                }
+            });
         }
     </script>
 </body>
