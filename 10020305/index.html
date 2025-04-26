@@ -1100,6 +1100,7 @@
         let currentImageIndex = 0;
         let isMusicPlaying = false;
         let currentMemory = null; // 用于跟踪当前正在处理的记忆对象
+        let totalWordsCount = 0; // 新增：用于存储总字数
 
         // 音乐控制函数
         function toggleMusic() {
@@ -1476,10 +1477,14 @@
         });
 
         function loadMemories() {
-            fetch('/polly/20250426.json')
+            fetch('/polly/data.json')
                 .then(response => response.json())
                 .then(data => {
                     memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
+                    
+                    // 计算总字数
+                    calculateTotalWords(memories);
+                    
                     renderMemories();
                     updateTimeCounter();
                     checkHasMore();
@@ -1491,6 +1496,30 @@
                     console.error('加载数据失败:', error);
                     document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
                 });
+        }
+
+        // 统计所有文本的总字数
+        function calculateTotalWords(data) {
+            totalWordsCount = 0;
+            
+            // 遍历所有文章
+            data.forEach(memory => {
+                // 标题字数统计
+                if (memory.t) {
+                    // 移除HTML标签，只计算纯文本内容
+                    const titleText = memory.t.replace(/<[^>]*>/g, '');
+                    totalWordsCount += titleText.length;
+                }
+                
+                // 正文字数统计
+                if (memory.c) {
+                    // 移除HTML标签，只计算纯文本内容
+                    const contentText = memory.c.replace(/<[^>]*>/g, '');
+                    totalWordsCount += contentText.length;
+                }
+            });
+            
+            console.log('总字数:', totalWordsCount);
         }
 
         function checkHasMore() {
@@ -1890,7 +1919,7 @@
             const secondsStr = seconds.toString().padStart(2, '0');
             
             const timeCounterElement = document.getElementById('timeCounter');
-            const fixedContent = `自我们相识的${memoryCount}个瞬间<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
+            const fixedContent = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字)<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
             timeCounterElement.innerHTML = fixedContent;
         }
 
