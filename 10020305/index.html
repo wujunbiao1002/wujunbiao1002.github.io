@@ -11,20 +11,28 @@
     <meta name="referrer" content="no-referrer" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#ff5c8d">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     <audio id="bgMusic" loop>
         <source src="/assets/music/G.E.M.邓紫棋-唯一.mp3" type="audio/mpeg">
     </audio>
+    
+    <!-- 添加favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💖</text></svg>">
+    
     <style>
         :root {
-            --primary-color: #ffb6c1;
-            --secondary-color: #fff0f5;
-            --accent-color: #ff69b4;
-            --text-color: #333;
-            --light-text: #666;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --pink-gradient: linear-gradient(to right, #ffb6c1, #ff69b4);
-            --light-pink-bg: rgba(255, 182, 193, 0.15);
+            --primary-color: #ff9fb2;
+            --secondary-color: #fff5f8;
+            --accent-color: #ff5c8d;
+            --text-color: #333333;
+            --light-text: #666666;
+            --shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            --pink-gradient: linear-gradient(45deg, #ff9fb2, #ff5c8d);
+            --light-pink-bg: rgba(255, 159, 178, 0.15);
             
             /* 字体大小变量 */
             --h1-size-pc: 2.4rem;
@@ -117,7 +125,7 @@
         body.authenticated {
             background-color: var(--secondary-color);
             overflow: auto;
-            background-image: linear-gradient(135deg, #ffe6f2 0%, #f0f8ff 50%, #ffebf0 100%);
+            background-image: linear-gradient(135deg, #fff5f8 0%, #f3f9ff 50%, #fff0f5 100%);
             background-attachment: fixed;
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -128,27 +136,33 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
             display: none;
-            margin-bottom: 3px; 
+            margin-bottom: 5px; 
         }
 
         header {
             text-align: center;
             padding: 5px 0 30px 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 240, 245, 0.7));
-            border-radius: 15px;
-            margin-bottom: 20px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 245, 248, 0.8));
+            border-radius: 20px;
+            margin-bottom: 25px;
             box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 159, 178, 0.1);
         }
 
         header h1 {
             font-size: var(--h1-size-pc);
             color: var(--accent-color);
-            margin-bottom: 10px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
             font-weight: 700;
             letter-spacing: 0.5px;
+            background: var(--pink-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
         }
 
         header p {
@@ -162,27 +176,29 @@
         .time-counter {
             font-size: var(--time-size-pc);
             color: var(--light-text);
-            margin: 8px auto;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(255, 240, 245, 0.8));
-            padding: 5px 15px;
-            border-radius: 20px;
+            margin: 10px auto;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 245, 248, 0.9));
+            padding: 8px 20px;
+            border-radius: 25px;
             display: inline-block;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
             max-width: 90%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            min-width: 300px; /* 固定最小宽度，防止抖动 */
-            font-family: "Courier New", monospace; /* 使用等宽字体 */
-            text-align: center; /* 居中显示 */
-            width: 90%; /* 使用百分比宽度 */
+            min-width: 300px;
+            font-family: "Courier New", monospace;
+            text-align: center;
+            width: 90%;
+            border: 1px solid rgba(255, 159, 178, 0.15);
         }
 
         .time-counter {
             color: var(--accent-color);
             font-weight: 500;
-            background: linear-gradient(to right, rgba(255, 240, 245, 0.8), rgba(255, 230, 240, 0.9));
-            min-width: 330px; /* 更大的最小宽度，因为它的内容更长 */
+            background: linear-gradient(to right, rgba(255, 245, 248, 0.9), rgba(255, 240, 245, 0.95));
+            min-width: 330px;
+            box-shadow: 0 4px 10px rgba(255, 92, 141, 0.08);
         }
 
         .timeline {
@@ -195,13 +211,14 @@
             content: '';
             position: absolute;
             width: 4px;
-            background-color: var(--primary-color);
+            background: var(--pink-gradient);
             top: 0;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             margin-left: 0;
-            border-radius: 2px;
+            border-radius: 4px;
+            box-shadow: 0 0 8px rgba(255, 92, 141, 0.2);
         }
 
         .memory {
@@ -209,21 +226,21 @@
             position: relative;
             background-color: inherit;
             width: 50%;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .memory::after {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             background-color: white;
             border: 4px solid var(--accent-color);
             border-radius: 50%;
             top: 15px;
             z-index: 1;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-            background: linear-gradient(to bottom right, #ffffff, #ffebf0);
+            box-shadow: 0 0 10px rgba(255, 92, 141, 0.3);
+            background: linear-gradient(to bottom right, #ffffff, #fff0f5);
         }
 
         .left {
@@ -242,76 +259,169 @@
             left: -14px;
         }
 
-        .content {
-            padding: 20px;
-            background: linear-gradient(to bottom right, #ffffff, #fafafa);
+        /* 修改记忆内容卡片效果 - 调整气泡样式更接近截图 */
+        .memory .content {
+            background-color: #ffffff;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             position: relative;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 3px solid var(--primary-color);
-        }
-
-        .left .content {
+            z-index: 1;
+            max-width: 90%;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+            overflow: hidden;
             border-left: none;
-            border-right: 3px solid var(--primary-color);
+            cursor: pointer;
+            border: 1px solid rgba(240, 240, 240, 0.8);
         }
 
-        .content:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        /* 右侧内容使用轻微粉色背景 */
+        .right .content {
+            background-color: #fff7f9;
+            border: 1px solid rgba(255, 230, 240, 0.6);
         }
 
+        /* 添加不同方向的气泡尾巴 */
+        .left .content:after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -10px;
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            transform: rotate(45deg);
+            border-radius: 2px;
+            box-shadow: -2px 2px 3px rgba(0, 0, 0, 0.03);
+            border-left: 1px solid rgba(240, 240, 240, 0.8);
+            border-bottom: 1px solid rgba(240, 240, 240, 0.8);
+            z-index: -1;
+        }
+
+        .right .content:after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -10px;
+            width: 12px;
+            height: 12px;
+            background: #fff7f9;
+            transform: rotate(45deg);
+            border-radius: 2px;
+            box-shadow: 2px -2px 3px rgba(0, 0, 0, 0.03);
+            border-right: 1px solid rgba(255, 230, 240, 0.6);
+            border-top: 1px solid rgba(255, 230, 240, 0.6);
+            z-index: -1;
+        }
+
+        /* 添加点击效果 */
+        .memory .content:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .memory .content:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 修改日期样式 */
         .date {
             font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 10px;
+            color: #fff;
+            margin-bottom: 14px;
             font-size: var(--date-size-pc);
-            background-color: var(--light-pink-bg);
+            background: var(--pink-gradient);
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 5px 14px;
+            border-radius: 18px;
+            box-shadow: 0 3px 6px rgba(255, 92, 141, 0.2);
+            position: relative;
+            z-index: 2;
         }
 
+        /* 标题样式 */
         .title {
             font-size: var(--title-size-pc);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: var(--text-color);
             font-weight: 600;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
+            position: relative;
+            display: block; /* 改为块级元素 */
+            transition: color 0.3s;
+            word-wrap: break-word; /* 允许长单词换行 */
+            word-break: break-word; /* 允许词内断行 */
+            white-space: normal; /* 允许正常换行 */
+            overflow-wrap: break-word; /* 确保长单词能换行 */
+            max-width: 100%; /* 确保宽度不超过容器 */
+            line-height: 1.5; /* 设置合适的行高 */
         }
 
+        .title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary-color), transparent);
+            opacity: 0.7;
+            transition: width 0.3s;
+        }
+
+        .content:hover .title {
+            color: var(--accent-color);
+        }
+
+        .content:hover .title::after {
+            width: 105%;
+        }
+
+        /* 文本样式 */
         .text {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-size: var(--text-size-pc);
             color: var(--light-text);
             line-height: var(--line-height-pc);
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
+            transition: color 0.3s;
+            white-space: pre-wrap;
         }
 
+        .content:hover .text {
+            color: #444444;
+        }
+
+        /* 图片样式 */
         .gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
+            gap: 15px;
+            margin-top: 20px;
+            transition: transform 0.3s;
         }
 
         .gallery img {
             width: 100%;
             aspect-ratio: 1;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
-            -webkit-touch-callout: none; /* 禁止长按菜单 */
-            user-select: none; /* 禁止选择 */
-            outline: none; /* 移除点击轮廓线 */
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+            outline: none;
+            border: 3px solid white;
         }
 
         .gallery img:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 159, 178, 0.3);
         }
 
         .modal {
@@ -328,15 +438,16 @@
             padding: 0;
             margin: 0;
             overflow: hidden;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
             max-width: 90%;
             max-height: 90%;
             position: relative;
-            padding: 3px;
+            padding: 4px;
             background: var(--pink-gradient);
-            border-radius: 8px;
+            border-radius: 12px;
             opacity: 1;
             box-sizing: border-box;
             display: flex;
@@ -344,6 +455,7 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
 
         .modal-content img {
@@ -351,11 +463,12 @@
             max-height: 85vh;
             display: block;
             margin: 0 auto;
-            border-radius: 5px;
+            border-radius: 8px;
             object-fit: contain;
             transition: transform 0.3s ease;
             transform-origin: center center;
             will-change: transform;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .modal-content img.zoomed {
@@ -375,23 +488,23 @@
         }
 
         .modal-nav button {
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255, 255, 255, 0.85);
             border: none;
             color: var(--accent-color);
             font-size: 24px;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
-            outline: none; /* 移除点击轮廓 */
-            -webkit-touch-callout: none; /* 禁止长按菜单 */
-            user-select: none; /* 禁止选择文本 */
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            -webkit-touch-callout: none;
+            user-select: none;
             line-height: 0;
             padding: 0;
             text-align: center;
@@ -400,7 +513,8 @@
 
         .modal-nav button:hover {
             background-color: white;
-            transform: scale(1.1);
+            transform: scale(1.15);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
         }
 
         .modal-nav button:disabled {
@@ -411,44 +525,64 @@
 
         .modal-counter {
             position: absolute;
-            bottom: 10px;
+            bottom: 15px;
             left: 0;
             width: 100%;
             text-align: center;
             color: white;
             font-size: var(--modal-counter-pc);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 0;
+            border-radius: 20px;
+            max-width: 100px;
+            margin: 0 auto;
+            backdrop-filter: blur(5px);
         }
 
         .zoom-tip {
             position: absolute;
-            bottom: 40px;
+            bottom: 50px;
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            padding: 5px 0;
+            padding: 8px 0;
             opacity: 0;
             transition: opacity 0.5s ease;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            max-width: 250px;
+            margin: 0 auto;
         }
 
         .close {
             position: absolute;
             top: 15px;
             right: 25px;
-            color: #f1f1f1;
+            color: #ffffff;
             font-size: 40px;
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.3s;
-            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
-            -webkit-touch-callout: none; /* 禁止长按菜单 */
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
 
         .close:hover {
             color: var(--primary-color);
+            transform: scale(1.1) rotate(90deg);
         }
 
         .loading {
@@ -456,47 +590,67 @@
             padding: 20px;
             color: var(--accent-color);
             display: none;
+            font-weight: 600;
         }
 
         .load-more {
             text-align: center;
-            padding: 10px;
-            margin: 10px 0 20px 0;
+            padding: 15px;
+            margin: 15px 0 25px 0;
         }
 
         .load-more button {
-            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            background: var(--pink-gradient);
             color: white;
             border: none;
-            padding: 10px 25px;
-            border-radius: 25px;
+            padding: 12px 30px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: var(--button-size-pc);
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            font-weight: 500;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 10px rgba(255, 92, 141, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-more button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
         }
 
         .load-more button:hover {
             background: linear-gradient(to right, var(--accent-color), var(--primary-color));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 92, 141, 0.4);
+        }
+
+        .load-more button:hover::before {
+            left: 100%;
         }
 
         .load-more button:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .footer {
             text-align: center;
-            margin-top: 20px;
-            padding: 15px 0;
+            margin-top: 30px;
+            padding: 20px 0;
             color: var(--accent-color);
             font-size: var(--footer-size-pc);
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 240, 245, 0.6));
-            border-radius: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 245, 248, 0.8));
+            border-radius: 20px;
             box-shadow: var(--shadow);
-            font-weight: 500;
+            font-weight: 600;
+            border: 1px solid rgba(255, 159, 178, 0.1);
         }
 
         .password-modal {
@@ -507,7 +661,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-image: linear-gradient(45deg, #ffe6f2 0%, #f0f8ff 50%, #ffe6f2 100%);
+            background-image: linear-gradient(45deg, #ffe6f2 0%, #f3f9ff 50%, #ffe6f2 100%);
             justify-content: center;
             align-items: center;
             overflow: hidden;
@@ -551,16 +705,16 @@
         }
 
         .password-content {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 45px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.08);
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
-            animation: fadeAndSlideUp 0.7s ease;
+            animation: fadeAndSlideUp 0.8s ease;
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 182, 193, 0.3);
+            border: 2px solid rgba(255, 159, 178, 0.3);
             position: relative;
             z-index: 10;
             transform: perspective(1000px);
@@ -579,10 +733,10 @@
                 #e7f1fb, #ffc8dd, 
                 #fdafc2, #e7f1fb);
             z-index: -1;
-            border-radius: 22px;
+            border-radius: 26px;
             background-size: 400%;
             animation: glowingBorder 6s linear infinite;
-            opacity: 0.7;
+            opacity: 0.8;
         }
         
         @keyframes glowingBorder {
@@ -594,7 +748,7 @@
         @keyframes fadeAndSlideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px) perspective(1000px) rotateX(10deg);
+                transform: translateY(40px) perspective(1000px) rotateX(10deg);
             }
 
             to {
@@ -605,12 +759,17 @@
 
         .password-content h2 {
             color: var(--accent-color);
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             font-size: var(--password-title-pc);
             font-weight: 700;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: relative;
             display: inline-block;
+            background: var(--pink-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
         }
         
         /* 添加标题下划线效果 */
@@ -626,44 +785,46 @@
         }
         
         @keyframes widthPulse {
-            0%, 100% { width: 70%; left: 15%; }
+            0%, 100% { width: 80%; left: 10%; }
             50% { width: 100%; left: 0; }
         }
 
         .password-input {
             width: 100%;
-            padding: 15px 20px;
-            margin: 20px 0;
+            padding: 16px 22px;
+            margin: 25px 0;
             border: 2px solid var(--primary-color);
             border-radius: 30px;
             font-size: var(--password-input-pc);
             outline: none;
             transition: all 0.4s;
-            background: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            letter-spacing: 1px;
         }
 
         .password-input:focus {
-            box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.4);
+            box-shadow: 0 0 0 5px rgba(255, 159, 178, 0.3);
             border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-4px);
         }
 
         .password-button {
-            background: linear-gradient(to right, #ff9ec7, #ff5ca8);
+            background: linear-gradient(to right, #ff9fb2, #ff5c8d);
             color: white;
             border: none;
-            padding: 15px 36px;
+            padding: 16px 38px;
             border-radius: 30px;
             cursor: pointer;
             font-size: var(--password-input-pc);
-            margin-top: 20px;
+            margin-top: 25px;
             transition: all 0.4s;
-            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+            box-shadow: 0 8px 20px rgba(255, 92, 141, 0.3);
             font-weight: 600;
             position: relative;
             overflow: hidden;
+            letter-spacing: 0.5px;
         }
         
         /* 添加按钮波纹效果 */
@@ -686,34 +847,40 @@
         }
 
         .password-button:hover {
-            background: linear-gradient(to right, #ff5ca8, #ff9ec7);
+            background: linear-gradient(to right, #ff5c8d, #ff9fb2);
             transform: translateY(-5px) scale(1.03);
-            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+            box-shadow: 0 12px 25px rgba(255, 92, 141, 0.4);
         }
 
         .password-button:active {
             transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(255, 105, 180, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 92, 141, 0.3);
         }
 
         .error-message {
             color: #ff4757;
-            margin-top: 15px;
+            margin-top: 18px;
             display: none;
             animation: shake 0.5s ease;
             font-size: var(--password-input-pc);
+            background-color: rgba(255, 71, 87, 0.08);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: 500;
+            box-shadow: 0 3px 8px rgba(255, 71, 87, 0.1);
         }
 
         .locked-message {
             color: #ff4757;
-            margin-top: 15px;
+            margin-top: 18px;
             display: none;
             font-weight: bold;
             background-color: rgba(255, 71, 87, 0.1);
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 15px;
             text-align: center;
             font-size: var(--password-input-pc);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.12);
         }
 
         .timer {
@@ -753,7 +920,7 @@
             }
             
             .container {
-                padding: 10px;
+                padding: 15px;
             }
 
             header {
@@ -771,14 +938,14 @@
             .current-time,
             .time-counter {
                 font-size: var(--time-size-tablet);
-                padding: 5px 10px;
+                padding: 6px 12px;
                 max-width: 95%;
-                min-width: 270px; /* 平板端调整最小宽度 */
-                width: 95%; /* 平板端使用更大的百分比宽度 */
+                min-width: 270px;
+                width: 95%;
             }
 
             .time-counter {
-                min-width: 300px; /* 平板端调整最小宽度 */
+                min-width: 300px;
             }
 
             .timeline::before {
@@ -791,7 +958,7 @@
                 padding-left: 70px;
                 padding-right: 15px;
                 left: 0;
-                margin-bottom: 20px;
+                margin-bottom: 25px;
             }
 
             .memory::after {
@@ -799,7 +966,7 @@
                 transform: translateX(0);
                 width: 18px;
                 height: 18px;
-                background: linear-gradient(to bottom right, #ffffff, #ffebf0);
+                background: linear-gradient(to bottom right, #ffffff, #fff0f5);
             }
 
             .left::after,
@@ -813,7 +980,7 @@
             }
 
             .content {
-                padding: 15px;
+                padding: 18px;
             }
 
             .date {
@@ -831,7 +998,7 @@
 
             .gallery {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
+                gap: 10px;
             }
             
             .modal-counter {
@@ -839,7 +1006,7 @@
             }
 
             .load-more button {
-                padding: 8px 20px;
+                padding: 10px 25px;
                 font-size: var(--button-size-tablet);
             }
             
@@ -848,8 +1015,8 @@
             }
             
             .password-content {
-                padding: 30px;
-                max-width: 360px;
+                padding: 35px;
+                max-width: 380px;
                 width: 85%;
             }
             
@@ -861,17 +1028,17 @@
             .password-input,
             .password-button {
                 font-size: var(--password-input-tablet);
-                padding: 12px 20px;
+                padding: 14px 22px;
             }
             
             .password-button {
-                margin-top: 15px;
+                margin-top: 18px;
             }
             
             .error-message,
             .locked-message {
                 font-size: var(--password-input-tablet);
-                margin-top: 10px;
+                margin-top: 12px;
             }
             
             .content-usage-notice {
@@ -881,8 +1048,8 @@
             .music-control {
                 bottom: 15px;
                 left: 13px;
-                width: 30px;
-                height: 30px;
+                width: 35px;
+                height: 35px;
                 font-size: 14px;
                 opacity: 0.8;
             }
@@ -921,11 +1088,11 @@
             .time-counter {
                 font-size: var(--time-size-mobile);
                 margin: 5px auto;
-                width: 92%; /* 移动端使用百分比宽度 */
-                min-width: 92%; /* 设置最小宽度为百分比 */
+                width: 92%;
+                min-width: 92%;
                 max-width: 92%;
-                box-sizing: border-box; /* 确保padding不会增加实际宽度 */
-                padding: 5px 8px; /* 减小内边距 */
+                box-sizing: border-box;
+                padding: 5px 10px;
             }
 
             .memory {
@@ -941,7 +1108,7 @@
             }
 
             .content {
-                padding: 12px;
+                padding: 15px;
             }
 
             .date {
@@ -958,7 +1125,7 @@
             }
 
             .gallery {
-                gap: 5px;
+                gap: 8px;
             }
             
             .modal-counter {
@@ -967,11 +1134,12 @@
             
             .load-more button {
                 font-size: var(--button-size-mobile);
+                padding: 8px 20px;
             }
 
             .footer {
                 font-size: var(--footer-size-mobile);
-                padding: 10px 0;
+                padding: 12px 0;
             }
             
             .password-content {
@@ -994,12 +1162,12 @@
             .password-input,
             .password-button {
                 font-size: var(--password-input-mobile);
-                padding: 10px 18px;
+                padding: 12px 20px;
                 margin: 12px 0;
             }
             
             .password-button {
-                padding: 10px 25px;
+                padding: 12px 25px;
                 margin-top: 10px;
             }
             
@@ -1385,15 +1553,19 @@
         }
 
         .memory .content {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
+            background-color: #ffffff;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             position: relative;
             z-index: 1;
             max-width: 90%;
             margin: 0 auto;
             transition: all 0.3s ease;
+            overflow: hidden;
+            border-left: none;
+            cursor: pointer;
+            border: 1px solid rgba(240, 240, 240, 0.8);
         }
 
         .memory .content.highlight, .memory .content.highlight * {
@@ -1407,22 +1579,196 @@
             75% { background-color: #ffe6f2; }
             100% { background-color: white; }
         }
+
+        @media screen and (max-width: 768px) {
+            .memory .content {
+                padding: 18px;
+                width: 95%; /* 稍微限制宽度，避免太宽 */
+            }
+            
+            .date {
+                font-size: var(--date-size-tablet);
+                padding: 4px 12px;
+            }
+            
+            .title {
+                font-size: var(--title-size-tablet);
+            }
+            
+            .text {
+                font-size: var(--text-size-tablet);
+                line-height: var(--line-height-tablet);
+            }
+            
+            .gallery {
+                gap: 10px;
+                margin-top: 15px;
+            }
+            
+            /* 调整气泡尾巴位置 */
+            .left .content:after {
+                top: 15px;
+                left: -8px;
+                width: 10px;
+                height: 10px;
+                background: #ffffff;
+            }
+            
+            .right .content:after {
+                top: 15px;
+                right: -8px;
+                width: 10px;
+                height: 10px;
+                background: #fff7f9;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .memory .content {
+                padding: 15px;
+                width: 92%;
+                max-width: 92%;
+            }
+            
+            .right .content {
+                background-color: #fff9fb; /* 稍微减淡移动端背景色 */
+            }
+            
+            .date {
+                font-size: var(--date-size-mobile);
+                padding: 3px 10px;
+                margin-bottom: 10px;
+            }
+            
+            .title {
+                font-size: var(--title-size-mobile);
+                margin-bottom: 10px;
+            }
+            
+            .text {
+                font-size: var(--text-size-mobile);
+                line-height: var(--line-height-mobile);
+                margin-bottom: 15px;
+            }
+            
+            .gallery {
+                gap: 8px;
+                margin-top: 12px;
+            }
+            
+            /* 调整气泡尾巴位置 */
+            .left .content:after {
+                top: 12px;
+                left: -7px;
+                width: 8px;
+                height: 8px;
+                background: #ffffff;
+            }
+            
+            .right .content:after {
+                top: 12px;
+                right: -7px;
+                width: 8px;
+                height: 8px;
+                background: #fff9fb;
+            }
+        }
+
+        /* 添加波纹效果样式 */
+        .memory .content {
+            position: relative;
+            overflow: hidden; /* 确保波纹不溢出 */
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 159, 178, 0.2);
+            transform: scale(0);
+            animation: ripple-effect 0.5s ease-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes ripple-effect {
+            0% {
+                transform: scale(0);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* 确保文本等内容在波纹之上 */
+        .date, .title, .text, .gallery {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 添加时间轴圆点特效 */
+        .memory::after {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 92, 141, 0.3);
+        }
+
+        .memory.highlight::after {
+            transform: scale(1.2);
+            box-shadow: 0 0 8px rgba(255, 92, 141, 0.5), 0 0 12px rgba(255, 105, 180, 0.2);
+            animation: subtle-pulse-circle 2s ease-in-out;
+            border-color: #ff5c8d;
+        }
+
+        @keyframes subtle-pulse-circle {
+            0% {
+                box-shadow: 0 0 8px rgba(255, 92, 141, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 10px rgba(255, 92, 141, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 8px rgba(255, 92, 141, 0.5);
+            }
+        }
+
+        /* 添加时间轴连线特效 */
+        .timeline::before {
+            transition: background 0.4s ease;
+        }
+
+        .timeline.highlight::before {
+            background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+            box-shadow: 0 0 5px rgba(255, 92, 141, 0.2);
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div id="authMask"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #8a8a8a; z-index: 999;"></div>
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); z-index: 999;"></div>
 
     <div id="rose-petals-container"></div>
 
     <div id="screenshotProtect"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; color:white; font-size:24px; text-align:center; flex-direction:column;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; color:white; font-size:24px; text-align:center; flex-direction:column; backdrop-filter: blur(10px);">
         <div style="margin-bottom:20px;">
-            <span style="color:#ff69b4; font-size:36px;">⚠️</span>
+            <span style="color:#ff69b4; font-size:40px;">⚠️</span>
         </div>
         <div>检测到截图行为</div>
-        <div style="font-size:16px; margin-top:10px;">请尊重隐私，不要截取画面</div>
+        <div style="font-size:16px; margin-top:15px; max-width: 80%; line-height: 1.5;">请尊重隐私，不要截取画面</div>
     </div>
 
     <div id="contentNotice" class="content-usage-notice">内容受保护，禁止复制</div>
@@ -1462,10 +1808,16 @@
             <button onclick="loadMoreClick()">加载更多</button>
         </div>
 
-        <div class="loading" id="loading">加载中...</div>
+        <div class="loading" id="loading">
+            <span style="display: inline-block; animation: pulse 1.5s infinite;">加载中</span>
+            <span style="display: inline-block; animation: dotPulse 1.5s infinite 0.2s;">.</span>
+            <span style="display: inline-block; animation: dotPulse 1.5s infinite 0.4s;">.</span>
+            <span style="display: inline-block; animation: dotPulse 1.5s infinite 0.6s;">.</span>
+        </div>
 
         <div class="footer">
             用爱创造的回忆
+            <span style="font-size: 85%; margin-left: 5px;">❤</span>
         </div>
     </div>
 
@@ -1498,6 +1850,16 @@
 
     <div class="music-control" id="musicControl" onclick="toggleMusic()">
     </div>
+    
+    <style>
+    @keyframes dotPulse {
+        0%, 100% { opacity: 0.2; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+    body {
+        font-family: 'Noto Sans SC', Arial, 'Microsoft YaHei', sans-serif;
+    }
+    </style>
 
     <script>
         let memories = [];
@@ -1615,7 +1977,51 @@
 
             // 检查是否处于锁定状态
             checkLockStatus();
+            
+            // 为内容卡片添加点击波纹效果
+            initRippleEffect();
         };
+
+        // 添加点击波纹效果函数
+        function initRippleEffect() {
+            // 添加事件委托，监听可能包含内容卡片的容器
+            document.addEventListener('click', function(e) {
+                // 找到点击的是否是内容卡片或其后代元素
+                const contentElement = e.target.closest('.content');
+                
+                if (contentElement) {
+                    // 创建波纹元素
+                    const ripple = document.createElement('div');
+                    ripple.className = 'ripple';
+                    contentElement.appendChild(ripple);
+                    
+                    // 计算波纹位置和大小
+                    const rect = contentElement.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height) * 2;
+                    // 波纹以点击位置为中心
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    // 设置波纹样式
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    // 添加激活类
+                    ripple.classList.add('active');
+                    
+                    // 添加触觉反馈（如果设备支持）
+                    if (window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate(50); // 轻微振动50毫秒
+                    }
+                    
+                    // 波纹动画结束后移除元素
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                }
+            });
+        }
 
         // 移动端触摸事件处理
         let touchStartTime = 0;
@@ -1969,7 +2375,7 @@
                 }
 
                 memoryDiv.innerHTML = `
-                    <div class="content">
+                    <div class="content" onclick="highlightTimelineNode(this)">
                         <div class="date">${formattedDate}</div>
                         <h2 class="title">${memory.t}</h2>
                         <p class="text">${memory.c}</p>
@@ -2016,7 +2422,7 @@
                 }
 
                 memoryDiv.innerHTML = `
-                    <div class="content">
+                    <div class="content" onclick="highlightTimelineNode(this)">
                         <div class="date">${formattedDate}</div>
                         <h2 class="title">${memory.t}</h2>
                         <p class="text">${memory.c}</p>
@@ -3283,7 +3689,7 @@
                     }
                     
                     memoryDiv.innerHTML = `
-                        <div class="content">
+                        <div class="content" onclick="highlightTimelineNode(this)">
                             <div class="date">${formattedDate}</div>
                             <h2 class="title">${memory.t}</h2>
                             <p class="text">${memory.c}</p>
@@ -3681,6 +4087,51 @@
                     isDragging = false;
                 }
             });
+        }
+
+        // 添加时间轴节点高亮功能
+        function highlightTimelineNode(contentElement) {
+            // 移除所有高亮
+            const allMemoryNodes = document.querySelectorAll('.memory');
+            allMemoryNodes.forEach(node => {
+                node.classList.remove('highlight');
+            });
+            
+            const timeline = document.querySelector('.timeline');
+            timeline.classList.remove('highlight');
+            
+            // 找到当前点击内容的父节点（memory元素）
+            const memoryNode = contentElement.closest('.memory');
+            if (memoryNode) {
+                // 添加高亮效果
+                memoryNode.classList.add('highlight');
+                timeline.classList.add('highlight');
+                
+                // 确保内容卡片也获得高亮
+                const content = memoryNode.querySelector('.content');
+                if (content) {
+                    // 使用更加柔和的高亮效果
+                    content.style.boxShadow = '0 5px 15px rgba(255, 92, 141, 0.15)';
+                    content.style.transform = 'translateY(-2px)';
+                    
+                    // 平滑恢复
+                    setTimeout(() => {
+                        content.style.boxShadow = '';
+                        content.style.transform = '';
+                    }, 2000);
+                }
+                
+                // 2秒后移除高亮效果
+                setTimeout(() => {
+                    memoryNode.classList.remove('highlight');
+                    timeline.classList.remove('highlight');
+                }, 2000);
+                
+                // 如果有配置的设备震动，添加更柔和的震动
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(15);
+                }
+            }
         }
     </script>
 </body>
