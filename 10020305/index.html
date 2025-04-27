@@ -267,19 +267,13 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             position: relative;
             z-index: 1;
-            max-width: 90%;
+            max-width: 95%;  /* 从90%增加到95%，使文本框更宽 */
             margin: 0 auto;
             transition: all 0.3s ease;
             overflow: hidden;
             border-left: none;
             cursor: pointer;
             border: 1px solid rgba(240, 240, 240, 0.8);
-        }
-
-        /* 右侧内容使用轻微粉色背景 */
-        .right .content {
-            background-color: #fff7f9;
-            border: 1px solid rgba(255, 230, 240, 0.6);
         }
 
         /* 添加不同方向的气泡尾巴 */
@@ -290,7 +284,7 @@
             left: -10px;
             width: 12px;
             height: 12px;
-            background: #ffffff;
+            background: #ffffff; /* 保持与内容背景相同 */
             transform: rotate(45deg);
             border-radius: 2px;
             box-shadow: -2px 2px 3px rgba(0, 0, 0, 0.03);
@@ -306,12 +300,12 @@
             right: -10px;
             width: 12px;
             height: 12px;
-            background: #fff7f9;
+            background: #ffffff; /* 修改为与左侧相同的背景色 */
             transform: rotate(45deg);
             border-radius: 2px;
             box-shadow: 2px -2px 3px rgba(0, 0, 0, 0.03);
-            border-right: 1px solid rgba(255, 230, 240, 0.6);
-            border-top: 1px solid rgba(255, 230, 240, 0.6);
+            border-right: 1px solid rgba(240, 240, 240, 0.8); /* 修改边框颜色与左侧一致 */
+            border-top: 1px solid rgba(240, 240, 240, 0.8); /* 修改边框颜色与左侧一致 */
             z-index: -1;
         }
 
@@ -388,6 +382,10 @@
             letter-spacing: 0.3px;
             transition: color 0.3s;
             white-space: pre-wrap;
+            max-width: 100%; /* 确保文本最大宽度为100% */
+            word-wrap: break-word; /* 允许长单词换行 */
+            word-break: break-word; /* 允许词内断行 */
+            overflow-wrap: break-word; /* 确保长单词能换行 */
         }
 
         .content:hover .text {
@@ -1018,6 +1016,7 @@
             .text {
                 font-size: var(--text-size-tablet);
                 line-height: var(--line-height-tablet);
+                margin-bottom: 18px; /* 调整边距 */
             }
 
             .gallery {
@@ -1146,6 +1145,8 @@
             .text {
                 font-size: var(--text-size-mobile);
                 line-height: var(--line-height-mobile);
+                margin-bottom: 15px;
+                max-width: 100%; /* 确保在移动设备上文本最大宽度占满容器 */
             }
 
             .gallery {
@@ -1644,7 +1645,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             position: relative;
             z-index: 1;
-            max-width: 90%;
+            max-width: 95%;  /* 从90%增加到95%，使文本框更宽 */
             margin: 0 auto;
             transition: all 0.3s ease;
             overflow: hidden;
@@ -1668,7 +1669,7 @@
         @media screen and (max-width: 768px) {
             .memory .content {
                 padding: 18px;
-                width: 95%; /* 稍微限制宽度，避免太宽 */
+                width: 97%; /* 从95%增加到97% */
             }
             
             .date {
@@ -1704,20 +1705,21 @@
                 right: -8px;
                 width: 10px;
                 height: 10px;
-                background: #fff7f9;
+                background: #ffffff; /* 修改为与左侧一致的背景色 */
             }
         }
 
         @media screen and (max-width: 480px) {
             .memory .content {
                 padding: 15px;
-                width: 92%;
-                max-width: 92%;
+                width: 95%; /* 从92%增加到95% */
+                max-width: 95%; /* 从92%增加到95% */
             }
             
-            .right .content {
-                background-color: #fff9fb; /* 稍微减淡移动端背景色 */
-            }
+            /* 删除右侧内容使用特定背景色的样式 */
+            /* .right .content {
+                background-color: #fff9fb; 
+            } */
             
             .date {
                 font-size: var(--date-size-mobile);
@@ -1755,7 +1757,7 @@
                 right: -7px;
                 width: 8px;
                 height: 8px;
-                background: #fff9fb;
+                background: #ffffff; /* 修改为与左侧一致的背景色 */
             }
         }
 
