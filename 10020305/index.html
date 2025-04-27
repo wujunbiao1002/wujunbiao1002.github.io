@@ -482,25 +482,26 @@
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 10px;
             box-sizing: border-box;
             transform: translateY(-50%);
+            z-index: 5;
         }
 
         .modal-nav button {
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: rgba(255, 255, 255, 0.4);
             border: none;
             color: var(--accent-color);
-            font-size: 24px;
-            width: 45px;
-            height: 45px;
+            font-size: 22px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: all 0.3s;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
             -webkit-tap-highlight-color: transparent;
             outline: none;
             -webkit-touch-callout: none;
@@ -509,16 +510,18 @@
             padding: 0;
             text-align: center;
             vertical-align: middle;
+            opacity: 0;
         }
 
         .modal-nav button:hover {
-            background-color: white;
-            transform: scale(1.15);
-            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.7);
+            opacity: 0.85;
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
         }
 
         .modal-nav button:disabled {
-            opacity: 0.3;
+            opacity: 0.2;
             cursor: not-allowed;
             transform: scale(1);
         }
@@ -526,7 +529,7 @@
         .modal-counter {
             position: absolute;
             bottom: 15px;
-            left: 0;
+            left: 10px;
             width: 100%;
             text-align: center;
             color: white;
@@ -535,15 +538,36 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 5px 0;
             border-radius: 20px;
-            max-width: 100px;
+            width: auto;
+            min-width: 80px;
+            max-width: 120px;
             margin: 0 auto;
             backdrop-filter: blur(5px);
+        }
+
+        /* 媒体查询适配不同设备 */
+        @media (max-width: 768px) {
+            .modal-counter {
+                font-size: var(--modal-counter-tablet);
+                max-width: 100px;
+                min-width: 60px;
+                bottom: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-counter {
+                font-size: var(--modal-counter-mobile);
+                max-width: 40px;
+                min-width: 30px;
+                bottom: 10px;
+            }
         }
 
         .zoom-tip {
             position: absolute;
             bottom: 50px;
-            left: 0;
+            left: 10px;
             width: 100%;
             text-align: center;
             color: rgba(255, 255, 255, 0.9);
@@ -555,7 +579,7 @@
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(5px);
             border-radius: 20px;
-            max-width: 250px;
+            max-width: 200px;
             margin: 0 auto;
         }
 
@@ -1203,6 +1227,30 @@
                 font-size: 12px !important;
             }
         }
+        
+        /* 超小屏幕设备的特殊处理 */
+        @media screen and (max-width: 375px) {
+            .date-selector-container {
+                gap: 6px;
+            }
+            
+            .date-selector-group {
+                min-width: 25%;
+                width: 25%;
+                margin: 0 2px;
+            }
+            
+            .date-selector select {
+                padding: 6px 2px;
+                font-size: calc(var(--date-size-mobile) - 1px);
+                background-size: 8px;
+                padding-right: 12px;
+            }
+            
+            .date-selector-label {
+                font-size: calc(var(--date-size-mobile) - 1px);
+            }
+        }
 
         .observer {
             height: 1px;
@@ -1436,6 +1484,9 @@
             background-size: 16px;
             padding-right: 30px;
             font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .date-selector select:hover, .date-selector select:focus {
@@ -1521,34 +1572,68 @@
 
         @media screen and (max-width: 480px) {
             .date-selector {
-                padding: 10px;
+                padding: 10px 8px;
+                width: 90%;
             }
             
             .date-selector-container {
-                gap: 10px;
+                gap: 8px;
+                flex-wrap: nowrap;
+                justify-content: center;
+                margin-bottom: 10px;
             }
             
             .date-selector-group {
-                min-width: 90px;
+                min-width: 26%;
+                width: 26%;
+                flex: 0 0 auto;
+                margin: 0 3px;
             }
             
             .date-selector select {
-                padding: 7px 10px;
+                padding: 7px 5px;
                 font-size: var(--date-size-mobile);
-                background-size: 14px;
-                padding-right: 25px;
+                background-size: 10px;
+                background-position: right 5px center;
+                padding-right: 15px;
                 border-radius: 8px;
+                width: 100%;
             }
             
             .date-selector-label {
                 font-size: var(--date-size-mobile);
-                margin-bottom: 5px;
+                margin-bottom: 4px;
             }
             
             .date-selector-button {
                 padding: 8px 18px;
                 font-size: var(--button-size-mobile);
                 border-radius: 18px;
+                width: 40%;
+                margin-top: 10px;
+            }
+        }
+        
+        /* 超小屏幕设备的特殊处理 */
+        @media screen and (max-width: 375px) {
+            .date-selector-container {
+                gap: 6px;
+            }
+            
+            .date-selector-group {
+                min-width: 26%;
+                width: 26%;
+            }
+            
+            .date-selector select {
+                padding: 6px 2px;
+                font-size: calc(var(--date-size-mobile) - 1px);
+                background-size: 8px;
+                padding-right: 12px;
+            }
+            
+            .date-selector-label {
+                font-size: calc(var(--date-size-mobile) - 1px);
             }
         }
 
@@ -1753,6 +1838,57 @@
                 background-position: 0% 50%;
             }
         }
+
+        /* 导航按钮的媒体查询 */
+        @media (max-width: 768px) {
+            .modal-nav {
+                padding: 0 8px;
+            }
+            
+            .modal-nav button {
+                width: 38px;
+                height: 38px;
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-nav {
+                padding: 0 5px;
+            }
+            
+            .modal-nav button {
+                width: 34px;
+                height: 34px;
+                font-size: 18px;
+                opacity: 0.5;
+            }
+            
+            .modal-nav button:hover {
+                opacity: 0.7;
+            }
+        }
+
+        .modal-content:hover .modal-nav button {
+            opacity: 0.6;
+        }
+
+        /* 添加触屏设备上的持续显示 */
+        .modal-content.touch-device .modal-nav button {
+            opacity: 0.5;
+        }
+
+        .modal-nav button:hover {
+            background-color: rgba(255, 255, 255, 0.7);
+            opacity: 0.85;
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 添加触屏设备上的持续显示 */
+        .modal-content.touch-device .modal-nav button {
+            opacity: 0.65;
+        }
     </style>
 </head>
 
@@ -1840,11 +1976,11 @@
         <div class="modal-content" id="modalContent">
             <img id="modalImage" src="" alt="放大图片">
             <div class="modal-nav">
-                <button id="prevImageBtn" onclick="navigateImage(-1)"><span style="position: relative; top: -1px;">&lsaquo;</span></button>
-                <button id="nextImageBtn" onclick="navigateImage(1)"><span style="position: relative; top: -1px;">&rsaquo;</span></button>
+                <button id="prevImageBtn" onclick="navigateImage(-1)"><span style="position: relative; top: -1px; font-size: 100%;">&lsaquo;</span></button>
+                <button id="nextImageBtn" onclick="navigateImage(1)"><span style="position: relative; top: -1px; font-size: 100%;">&rsaquo;</span></button>
             </div>
             <div class="modal-counter" id="imageCounter"></div>
-            <div class="zoom-tip" id="zoomTip">移动端请用双指缩放，PC端请使用滚轮缩放</div>
+            <div class="zoom-tip" id="zoomTip"></div>
         </div>
     </div>
 
@@ -1876,6 +2012,45 @@
         let totalWordsCount = 0; // 新增：用于存储总字数
         let totalImagesCount = 0; // 新增：用于存储总图片数
 
+        // 检测是否为移动设备
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || 
+                   (navigator.userAgent.indexOf('IEMobile') !== -1) ||
+                   (navigator.userAgent.match(/Android/i)) || 
+                   (navigator.userAgent.match(/iPhone|iPad|iPod/i));
+        }
+
+        // 根据设备类型和图库大小动态调整计数器宽度
+        function adjustCounterWidth(counterElement) {
+            if (!counterElement) return;
+            
+            // 根据设备类型和窗口宽度设置不同的基础宽度
+            let baseWidth = 50;
+            
+            if (window.innerWidth <= 480) {
+                // 移动设备小屏幕
+                baseWidth = 50;
+            } else if (window.innerWidth <= 768) {
+                // 平板或中等屏幕
+                baseWidth = 70;
+            } else {
+                // 桌面端或大屏幕
+                baseWidth = 80;
+            }
+            
+            // 根据图库数量动态调整宽度
+            if (currentGallery.length >= 100) {
+                baseWidth += 10;
+            } else if (currentGallery.length >= 10) {
+                baseWidth += 5;
+            }
+            
+            // 设置计数器宽度
+            counterElement.style.width = 'auto';
+            counterElement.style.minWidth = `${baseWidth}px`;
+            counterElement.style.maxWidth = `${baseWidth + 20}px`;
+        }
+
         // 音乐控制函数
         function toggleMusic() {
             const music = document.getElementById('bgMusic');
@@ -1903,6 +2078,14 @@
             // 初始化音乐控制按钮状态
             const musicControl = document.getElementById('musicControl');
             musicControl.classList.remove('playing');
+            
+            // 添加窗口大小变化时的处理
+            window.addEventListener('resize', function() {
+                const counter = document.getElementById('imageCounter');
+                if (counter && counter.style.display !== 'none') {
+                    adjustCounterWidth(counter);
+                }
+            });
             
             // 不再初始禁用登录按钮，改为允许点击并依靠checkPasswordAndVerify来检查空输入
             // const passwordButton = document.querySelector('.password-button');
@@ -2532,6 +2715,16 @@
             modalContent.style.opacity = '1';
             modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
             
+            // 自动检测设备类型并显示对应的缩放提示
+            if (isMobileDevice()) {
+                zoomTip.textContent = '请用双指缩放查看图片';
+            } else {
+                zoomTip.textContent = '请使用滚轮缩放查看图片';
+            }
+            
+            // 动态调整计数器的宽度
+            adjustCounterWidth(imageCounter);
+            
             currentGallery = [];
             currentImageIndex = 0;
 
@@ -2583,6 +2776,13 @@
                 // 无过渡效果，移除所有transition
                 modalContent.style.transition = 'none';
                 modal.style.transition = 'none';
+                
+                // 如果是触摸设备，为内容添加特殊类，使导航按钮始终可见
+                if (isMobileDevice()) {
+                    modalContent.classList.add('touch-device');
+                } else {
+                    modalContent.classList.remove('touch-device');
+                }
                 
                 // 添加点击缩放功能
                 setupImageZoom();
@@ -2677,6 +2877,8 @@
             } else {
                 counter.textContent = `${currentImageIndex + 1} / ${currentGallery.length}`;
                 counter.style.display = 'block';
+                // 动态调整计数器宽度
+                adjustCounterWidth(counter);
             }
         }
 
@@ -3790,14 +3992,6 @@
             // 应用变换的统一函数
             function applyTransform() {
                 modalImage.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
-            }
-            
-            // 检测是否为移动设备
-            function isMobileDevice() {
-                return (typeof window.orientation !== "undefined") || 
-                       (navigator.userAgent.indexOf('IEMobile') !== -1) ||
-                       (navigator.userAgent.match(/Android/i)) || 
-                       (navigator.userAgent.match(/iPhone|iPad|iPod/i));
             }
             
             // 限制拖动范围的函数
