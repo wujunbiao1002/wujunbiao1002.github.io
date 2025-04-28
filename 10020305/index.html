@@ -2527,55 +2527,113 @@
             isLoading = true;
             document.getElementById('loading').style.display = 'block';
 
-            const startIndex = currentPage * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
+            // 检查是否在筛选模式下
+            if (window.isFilteredMode && window.filteredMemoriesData) {
+                // 使用筛选后的数据
+                const filteredData = window.filteredMemoriesData;
+                const startIndex = currentPage * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
 
-            if (startIndex >= memories.length) {
-                hasMore = false;
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('loadMore').style.display = 'none';
-                isLoading = false;
-                return;
-            }
-
-            const currentPageData = memories.slice(startIndex, endIndex);
-
-            currentPageData.forEach((memory, index) => {
-                const memoryDiv = document.createElement('div');
-                memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
-
-                const formattedDate = formatDate(memory.d);
-                
-                // 设置当前处理的记忆对象
-                currentMemory = memory;
-
-                let imagesHTML = '';
-                if (memory.i && memory.i.length > 0) {
-                    imagesHTML = '<div class="gallery">';
-                    memory.i.forEach((img, i) => {
-                        const fullImagePath = getImagePath(img);
-                        imagesHTML += `<img src="${fullImagePath}" alt="记忆图片 ${i + 1}" onclick="openModal('${fullImagePath}')">`;
-                    });
-                    imagesHTML += '</div>';
+                if (startIndex >= filteredData.length) {
+                    hasMore = false;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loadMore').style.display = 'none';
+                    isLoading = false;
+                    return;
                 }
 
-                memoryDiv.innerHTML = `
-                    <div class="content" onclick="highlightTimelineNode(this)">
-                        <div class="date">${formattedDate}</div>
-                        <h2 class="title">${memory.t}</h2>
-                        <p class="text">${memory.c}</p>
-                        ${imagesHTML}
-                    </div>
-                `;
+                const currentPageData = filteredData.slice(startIndex, endIndex);
 
-                document.getElementById('timeline').appendChild(memoryDiv);
-            });
+                currentPageData.forEach((memory, index) => {
+                    const memoryDiv = document.createElement('div');
+                    memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
 
-            currentPage++;
+                    const formattedDate = formatDate(memory.d);
+                    
+                    // 设置当前处理的记忆对象
+                    currentMemory = memory;
+
+                    let imagesHTML = '';
+                    if (memory.i && memory.i.length > 0) {
+                        imagesHTML = '<div class="gallery">';
+                        memory.i.forEach((img, i) => {
+                            const fullImagePath = getImagePath(img);
+                            imagesHTML += `<img src="${fullImagePath}" alt="记忆图片 ${i + 1}" onclick="openModal('${fullImagePath}')">`;
+                        });
+                        imagesHTML += '</div>';
+                    }
+
+                    memoryDiv.innerHTML = `
+                        <div class="content" onclick="highlightTimelineNode(this)">
+                            <div class="date">${formattedDate}</div>
+                            <h2 class="title">${memory.t}</h2>
+                            <p class="text">${memory.c}</p>
+                            ${imagesHTML}
+                        </div>
+                    `;
+
+                    document.getElementById('timeline').appendChild(memoryDiv);
+                });
+
+                currentPage++;
+                
+                // 检查是否还有更多数据
+                hasMore = endIndex < filteredData.length;
+                if (!hasMore) {
+                    document.getElementById('loadMore').style.display = 'none';
+                }
+            } else {
+                // 原始加载逻辑（非筛选模式）
+                const startIndex = currentPage * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
+
+                if (startIndex >= memories.length) {
+                    hasMore = false;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loadMore').style.display = 'none';
+                    isLoading = false;
+                    return;
+                }
+
+                const currentPageData = memories.slice(startIndex, endIndex);
+
+                currentPageData.forEach((memory, index) => {
+                    const memoryDiv = document.createElement('div');
+                    memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
+
+                    const formattedDate = formatDate(memory.d);
+                    
+                    // 设置当前处理的记忆对象
+                    currentMemory = memory;
+
+                    let imagesHTML = '';
+                    if (memory.i && memory.i.length > 0) {
+                        imagesHTML = '<div class="gallery">';
+                        memory.i.forEach((img, i) => {
+                            const fullImagePath = getImagePath(img);
+                            imagesHTML += `<img src="${fullImagePath}" alt="记忆图片 ${i + 1}" onclick="openModal('${fullImagePath}')">`;
+                        });
+                        imagesHTML += '</div>';
+                    }
+
+                    memoryDiv.innerHTML = `
+                        <div class="content" onclick="highlightTimelineNode(this)">
+                            <div class="date">${formattedDate}</div>
+                            <h2 class="title">${memory.t}</h2>
+                            <p class="text">${memory.c}</p>
+                            ${imagesHTML}
+                        </div>
+                    `;
+
+                    document.getElementById('timeline').appendChild(memoryDiv);
+                });
+
+                currentPage++;
+                checkHasMore();
+            }
+
             isLoading = false;
             document.getElementById('loading').style.display = 'none';
-
-            checkHasMore();
 
             // 加载更多内容后应用禁止保存图片
             setTimeout(disableSaveImage, 500);
@@ -2584,6 +2642,10 @@
         function renderMemories() {
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
+
+            // 清除筛选模式状态
+            window.isFilteredMode = false;
+            window.filteredMemoriesData = null;
 
             const currentPageData = memories.slice(0, itemsPerPage);
 
@@ -2617,6 +2679,9 @@
 
                 timeline.appendChild(memoryDiv);
             });
+            
+            // 重置当前页索引为1，因为第一页已经渲染
+            currentPage = 1;
         }
 
         function formatDate(dateString) {
@@ -3837,10 +3902,13 @@
                 // 重置页面和数据
                 const timeline = document.getElementById('timeline');
                 timeline.innerHTML = '';
-                currentPage = 0;
                 
                 // 如果没有选择任何筛选条件（全部设为"全部"），则恢复默认状态
                 if (!selectedYear) {
+                    // 清除筛选模式和筛选数据
+                    window.isFilteredMode = false;
+                    window.filteredMemoriesData = null;
+                    
                     // 恢复默认状态，重新渲染所有数据
                     renderMemories();
                     document.getElementById('loadMore').style.display = 'block';
@@ -3869,11 +3937,20 @@
                 if (filteredMemories.length === 0) {
                     timeline.innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:var(--text-size-pc);">没有找到符合条件的记录</p>';
                     document.getElementById('loadMore').style.display = 'none';
+                    // 清除筛选模式
+                    window.isFilteredMode = false;
+                    window.filteredMemoriesData = null;
                     return;
                 }
                 
-                // 渲染筛选后的内容
-                filteredMemories.forEach((memory, index) => {
+                // 全局变量保存筛选后的数据
+                window.filteredMemoriesData = filteredMemories;
+                
+                // 只渲染第一页数据
+                const firstPageData = filteredMemories.slice(0, itemsPerPage);
+                
+                // 渲染筛选后的第一页内容
+                firstPageData.forEach((memory, index) => {
                     const memoryDiv = document.createElement('div');
                     memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
                     
@@ -3904,8 +3981,21 @@
                     timeline.appendChild(memoryDiv);
                 });
                 
-                // 隐藏"加载更多"按钮，因为已经显示了所有匹配的内容
-                document.getElementById('loadMore').style.display = 'none';
+                // 重置当前页索引
+                currentPage = 1;
+                
+                // 设置是否显示"加载更多"按钮
+                if (filteredMemories.length > itemsPerPage) {
+                    document.getElementById('loadMore').style.display = 'block';
+                    
+                    // 修改加载更多点击函数，使用特殊标记表示当前是筛选模式
+                    window.isFilteredMode = true;
+                    hasMore = true;
+                } else {
+                    document.getElementById('loadMore').style.display = 'none';
+                    window.isFilteredMode = false;
+                    hasMore = false;
+                }
                 
                 // 应用禁止保存图片
                 setTimeout(disableSaveImage, 500);
