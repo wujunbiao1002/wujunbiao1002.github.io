@@ -143,62 +143,539 @@
 
         header {
             text-align: center;
-            padding: 5px 0 30px 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 245, 248, 0.8));
-            border-radius: 20px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 159, 178, 0.1);
+            padding: 35px 0 15px 0;  /* 增加上下内边距 */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 248, 0.9) 100%);
+            border-radius: 24px;
+            margin-bottom: 30px;  /* 增加底部外边距 */
+            box-shadow: 0 12px 35px rgba(255, 92, 141, 0.18);  /* 增强阴影效果 */
+            border: 1px solid rgba(255, 159, 178, 0.2);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 159, 178, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 159, 178, 0.07) 0%, transparent 20%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 248, 0.9) 100%);
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;  /* 增加顶部渐变条高度 */
+            background: var(--pink-gradient);
+        }
+        
+        header::after {
+            content: '❤';
+            position: absolute;
+            bottom: 12px;  /* 调整底部位置 */
+            right: 18px;  /* 调整右侧位置 */
+            font-size: 16px;  /* 增大爱心大小 */
+            color: rgba(255, 92, 141, 0.4);  /* 增加透明度 */
+            animation: heartBeat 2s infinite;
+        }
+        
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        header:hover {
+            box-shadow: 0 12px 35px rgba(255, 92, 141, 0.2);
+            transform: translateY(-3px);
         }
 
         header h1 {
-            font-size: var(--h1-size-pc);
+            font-size: calc(var(--h1-size-pc) * 1.1);  /* 增大标题字体尺寸 */
             color: var(--accent-color);
-            margin-bottom: 15px;
+            margin-bottom: 22px;  /* 增加底部外边距 */
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
             font-weight: 700;
-            letter-spacing: 0.5px;
-            background: var(--pink-gradient);
+            letter-spacing: 1px;  /* 增加字间距 */
+            background: linear-gradient(45deg, #ff5c8d, #ff9fb2, #ff5c8d);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-fill-color: transparent;
-        }
-
-        header p {
-            font-size: var(--subtitle-size-pc);
-            color: var(--light-text);
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .current-time,
-        .time-counter {
-            font-size: var(--time-size-pc);
-            color: var(--light-text);
-            margin: 10px auto;
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 245, 248, 0.9));
-            padding: 8px 20px;
-            border-radius: 25px;
+            background-size: 200% auto;
+            animation: gradientText 6s ease infinite;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+            position: relative;
             display: inline-block;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-            max-width: 90%;
-            overflow: hidden;
+            padding: 0 10px;  /* 增加左右内边距 */
+        }
+        
+        header h1::before,
+        header h1::after {
+            content: '✨';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;  /* 增大装饰元素尺寸 */
+            opacity: 0.8;  /* 增加不透明度 */
+        }
+        
+        header h1::before {
+            left: -30px;  /* 增加距离 */
+            animation: sparkle 3s ease-in-out infinite;
+        }
+        
+        header h1::after {
+            right: -30px;  /* 增加距离 */
+            animation: sparkle 3s ease-in-out infinite 1.5s;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(0.9); }
+            50% { opacity: 1; transform: translateY(-50%) scale(1.1); }
+        }
+        
+        header h1:hover {
+            transform: scale(1.03);
+        }
+
+        @keyframes gradientText {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .time-display {
+            cursor: pointer;
+            position: relative;
+            padding: 5px 15px 30px;  /* 调整内边距 */
+            background: transparent;
+            transition: all 0.3s ease;
+            margin: 0 auto;  /* 居中 */
+            max-width: 90%;  /* 限制最大宽度 */
+        }
+
+        .current-time {
+            font-size: calc(var(--time-size-pc) * 1.05);  /* 增大时间字体 */
+            color: var(--light-text);
+            margin: 8px auto 4px;  /* 减小底部外边距 */
+            font-weight: 500;
+            letter-spacing: 0.7px;  /* 增加字间距 */
+            padding-bottom: 6px;  /* 减小底部内边距 */
+            border-bottom: 1px dashed rgba(255, 92, 141, 0.2);
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .current-time::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--pink-gradient);
+            transition: width 0.5s ease;
+        }
+        
+        .time-display:hover .current-time::after {
+            width: 100%;
+        }
+
+        .time-counter {
+            font-size: calc(var(--time-size-pc) * 1.05);  /* 增大时间字体 */
+            color: var(--light-text);
+            margin: 4px auto;  /* 减小顶部外边距 */
+            line-height: 1.6;  /* 增加行高 */
+            letter-spacing: 0.5px;  /* 增加字间距 */
+            transition: all 0.3s ease;
+            font-weight: 500;  /* 加粗字体 */
+        }
+
+        .date-indicator {
+            position: relative;
+            text-align: center;
+            margin: 5px auto 15px auto;  /* 增加上下外边距 */
+            color: var(--accent-color);
+            font-size: 16px;  /* 增大字体 */
+            opacity: 0.8;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .date-indicator:hover {
+            opacity: 1;
+        }
+
+        .date-indicator span {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(5px);
+            }
+        }
+
+        .date-selector {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 0 0 20px 20px;
+            padding: 22px 20px;  /* 增加内边距 */
+            margin-top: 5px;
+            transition: all 0.3s ease;
+            border-top: 1px dashed rgba(255, 92, 141, 0.15);
+            background-image: 
+                linear-gradient(45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .date-selector-title {
+            font-size: 1.25rem;  /* 增大字体 */
+            color: var(--accent-color);
+            margin-bottom: 20px;  /* 增加底部外边距 */
+            font-weight: 600;
+            letter-spacing: 0.7px;  /* 增加字间距 */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .date-selector-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;  /* 增加元素间距 */
+            margin-bottom: 22px;  /* 增加底部外边距 */
+        }
+
+        .date-selector-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 90px;  /* 增加最小宽度 */
+        }
+
+        .date-selector-label {
+            font-size: 1rem;  /* 增大字体 */
+            color: var(--light-text);
+            margin-bottom: 8px;  /* 增加底部外边距 */
+            font-weight: 500;  /* 加粗字体 */
+        }
+
+        .date-selector select {
+            width: 100%;
+            min-width: unset;
+            padding: 14px 35px 14px 20px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 182, 193, 0.5);
+            background-color: rgba(255, 255, 255, 0.95);
+            color: var(--text-color);
+            font-size: 1.15rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff69b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 14px;
+            text-align: center;
+            text-align-last: center;
+            font-weight: 500;
             text-overflow: ellipsis;
             white-space: nowrap;
-            min-width: 300px;
-            font-family: "Courier New", monospace;
-            text-align: center;
-            width: 90%;
-            border: 1px solid rgba(255, 159, 178, 0.15);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.15);
+            box-sizing: border-box;
         }
 
-        .time-counter {
-            color: var(--accent-color);
+        .date-selector select:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.25);
+            background-color: white;
+            transform: translateY(-2px);
+        }
+
+        .date-selector select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+            background-color: white;
+        }
+
+        .date-selector-button {
+            background: var(--pink-gradient);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: var(--button-size-pc);
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(255, 92, 141, 0.25);
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 5px;
+            transform: translateY(0);
+        }
+
+        .date-selector-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .date-selector-button:hover {
+            background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 92, 141, 0.35);
+        }
+
+        .date-selector-button:hover::before {
+            left: 100%;
+        }
+
+        .date-selector-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(255, 92, 141, 0.3);
+        }
+
+        @media screen and (max-width: 768px) {
+            .date-selector select {
+                padding: 12px 30px 12px 15px;
+                font-size: 1.05rem;
+                border-radius: 18px;
+                background-size: 12px;
+                background-position: right 12px center;
+            }
+            
+            .date-selector-button {
+                padding: 10px 25px;
+                font-size: 1rem;
+                letter-spacing: 0.6px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .date-selector select {
+                padding: 10px 25px 10px 12px;
+                font-size: 0.95rem;
+                border-radius: 16px;
+                background-size: 10px;
+                background-position: right 10px center;
+                border-width: 1.5px;
+            }
+            
+            .date-selector-button {
+                padding: 8px 20px;
+                font-size: 0.9rem;
+                letter-spacing: 0.5px;
+                border-radius: 25px;
+                margin-top: 3px;
+            }
+        }
+
+        .date-selector-button {
+            padding: 10px 20px;
+            background: var(--pink-gradient);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
             font-weight: 500;
-            background: linear-gradient(to right, rgba(255, 245, 248, 0.9), rgba(255, 240, 245, 0.95));
-            min-width: 330px;
-            box-shadow: 0 4px 10px rgba(255, 92, 141, 0.08);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 92, 141, 0.3);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .date-selector-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .date-selector-button:hover::before {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .date-selector-button:hover {
+            box-shadow: 0 6px 15px rgba(255, 92, 141, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @media screen and (max-width: 768px) {
+            header {
+                padding: 25px 0 12px 0;
+                border-radius: 22px;
+                margin-bottom: 25px;
+            }
+            
+            header h1 {
+                font-size: calc(var(--h1-size-tablet) * 1.05);
+                margin-bottom: 18px;
+                letter-spacing: 0.8px;
+            }
+            
+            header h1::before,
+            header h1::after {
+                font-size: 1rem;
+            }
+            
+            header h1::before {
+                left: -24px;
+            }
+            
+            header h1::after {
+                right: -24px;
+            }
+            
+            .time-display {
+                padding: 3px 12px 25px;
+                max-width: 95%;
+            }
+            
+            .current-time,
+            .time-counter {
+                font-size: calc(var(--time-size-tablet) * 1.05);
+                margin: 1px auto;
+            }
+            
+            .current-time {
+                padding-bottom: 10px;
+            }
+            
+            .date-selector-title {
+                font-size: 1.15rem;
+                margin-bottom: 16px;
+            }
+            
+            .date-selector-container {
+                gap: 14px;
+                margin-bottom: 18px;
+            }
+            
+            .date-selector-group {
+                min-width: 85px;
+            }
+            
+            .date-selector-label {
+                font-size: 0.95rem;
+                margin-bottom: 6px;
+            }
+            
+            .date-selector-button {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            header {
+                padding: 20px 0 10px 0;
+                border-radius: 20px;
+                margin-bottom: 22px;
+                background-image: 
+                    radial-gradient(circle at 10% 20%, rgba(255, 159, 178, 0.03) 0%, transparent 15%),
+                    radial-gradient(circle at 90% 80%, rgba(255, 159, 178, 0.04) 0%, transparent 15%),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 248, 0.9) 100%);
+            }
+            
+            header h1 {
+                font-size: calc(var(--h1-size-mobile) * 1.05);
+                margin-bottom: 14px;
+                letter-spacing: 0.6px;
+                padding: 0 5px;
+            }
+            
+            header h1::before,
+            header h1::after {
+                font-size: 0.9rem;
+            }
+            
+            header h1::before {
+                left: -20px;
+            }
+            
+            header h1::after {
+                right: -20px;
+            }
+            
+            .time-display {
+                padding: 2px 10px 20px;
+                max-width: 100%;
+            }
+            
+            .current-time,
+            .time-counter {
+                font-size: calc(var(--time-size-mobile) * 1.05);
+                margin: 3px auto;
+                letter-spacing: 0.3px;
+            }
+            
+            .current-time {
+                padding-bottom: 8px;
+            }
+            
+            .date-indicator {
+                margin: 5px auto 10px auto;
+                font-size: 14px;
+            }
+            
+            .date-selector {
+                padding: 15px 12px;
+                background-size: 16px 16px;
+            }
+            
+            .date-selector-title {
+                font-size: 1.05rem;
+                margin-bottom: 14px;
+                letter-spacing: 0.5px;
+            }
+            
+            .date-selector-container {
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .date-selector-group {
+                min-width: 75px;
+            }
+            
+            .date-selector-label {
+                font-size: 0.9rem;
+                margin-bottom: 5px;
+            }
         }
 
         .timeline {
@@ -946,28 +1423,34 @@
             }
 
             header {
-                padding: 20px 0 20px 0;
+                padding: 12px 0 0 0;
+                margin-bottom: 15px;
             }
 
             header h1 {
                 font-size: var(--h1-size-tablet);
+                margin-bottom: 10px;
             }
             
             header p {
                 font-size: var(--subtitle-size-tablet);
             }
 
+            .time-display {
+                padding: 12px 15px 25px 15px;
+                margin: 12px auto 0 auto;
+            }
+
             .current-time,
             .time-counter {
                 font-size: var(--time-size-tablet);
-                padding: 6px 12px;
-                max-width: 95%;
-                min-width: 270px;
-                width: 95%;
+                margin: 2px auto;
+                letter-spacing: 0.3px;
             }
 
-            .time-counter {
-                min-width: 300px;
+            .current-time {
+                margin-bottom: 6px;
+                padding-bottom: 6px;
             }
 
             .timeline::before {
@@ -1101,21 +1584,29 @@
             
             header h1 {
                 font-size: var(--h1-size-mobile);
+                margin-bottom: 8px;
             }
 
             header p {
                 font-size: var(--subtitle-size-mobile);
             }
 
+            .time-display {
+                padding: 10px 12px 25px 12px;
+                margin: 10px auto 0 auto;
+                max-width: 95%;
+            }
+
             .current-time,
             .time-counter {
                 font-size: var(--time-size-mobile);
-                margin: 5px auto;
-                width: 92%;
-                min-width: 92%;
-                max-width: 92%;
-                box-sizing: border-box;
-                padding: 5px 10px;
+                margin: 1px auto;
+                letter-spacing: 0.2px;
+            }
+
+            .current-time {
+                margin-bottom: 6px;
+                padding-bottom: 6px;
             }
 
             .memory {
@@ -1413,67 +1904,187 @@
 
         /* 日期选择器样式 */
         .date-selector {
-            margin: 15px auto;
-            padding: 15px;
-            background: linear-gradient(to right, rgba(255, 240, 245, 0.9), rgba(255, 230, 240, 0.8));
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
-            width: 90%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(255, 182, 193, 0.3);
-            display: none; /* 初始状态隐藏 */
-            transition: all 0.3s ease;
+            margin: 0;
+            padding: 0;
+            background: none;
+            border-radius: 0 0 25px 25px;
+            width: 100%;
+            max-width: 100%;
+            display: block; /* 默认显示，但初始透明 */
+            opacity: 0;
+            transform: translateY(-20px);
+            transform-origin: top center;
+            will-change: transform, opacity;
+            pointer-events: none;
+            position: relative;
+            margin-top: -10px;
+            padding-top: 0;
+            border-top: 1px solid rgba(255, 159, 178, 0.1);
+            background-image: 
+                linear-gradient(45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }
 
-        .date-selector:hover {
-            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
-            transform: translateY(-2px);
+        .date-selector.show {
+            display: block;
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: auto;
+        }
+
+        .date-selector.hide {
+            animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.98);
+            }
         }
 
         .date-selector-title {
-            font-size: var(--subtitle-size-pc);
+            font-size: 1.4rem;
             color: var(--accent-color);
-            margin-bottom: 15px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            margin: 15px 0;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: linear-gradient(45deg, #ff6b95, #ff5c8d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 5px 15px;
+            position: relative;
+        }
+
+        .date-selector-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+            opacity: 0.5;
         }
 
         .date-selector-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
-            gap: 15px;
+            gap: 20px;
             width: 100%;
-            margin-bottom: 15px;
+            margin: 15px 0;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+
+        .date-selector select {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1.5px solid rgba(255, 182, 193, 0.3);
+            box-shadow: 0 2px 6px rgba(255, 105, 180, 0.1);
+        }
+
+        .date-selector select:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-color: rgba(255, 182, 193, 0.5);
+            box-shadow: 0 4px 10px rgba(255, 105, 180, 0.15);
+        }
+
+        .date-selector-button {
+            margin: 10px 0 20px 0;
+            background: linear-gradient(45deg, #ff69b4, #ffb6c1);
+            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.2);
+        }
+
+        @media screen and (max-width: 768px) {
+            .date-selector {
+                margin-top: -8px;
+            }
+            
+            .date-selector-title {
+                font-size: 1.2rem;
+                margin: 12px 0;
+            }
+            
+            .date-selector-container {
+                gap: 12px;
+                margin: 12px 0;
+            }
+            
+            .date-selector-button {
+                margin: 8px 0 15px 0;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .date-selector {
+                margin-top: -5px;
+            }
+            
+            .date-selector-title {
+                font-size: 1.1rem;
+                margin: 10px 0;
+            }
+            
+            .date-selector-container {
+                gap: 8px;
+                margin: 10px 0;
+            }
+            
+            .date-selector-button {
+                margin: 5px 0 12px 0;
+            }
         }
 
         .date-selector-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 120px;
+            min-width: 130px;
+            max-width: 180px;
             position: relative;
+            margin: 0 5px;
+            flex: 1 1 0;
         }
 
         .date-selector-label {
-            font-size: var(--date-size-pc);
+            font-size: 1.1rem;
             color: var(--light-text);
-            margin-bottom: 8px;
-            font-weight: 500;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+            letter-spacing: 0.5px;
         }
 
         .date-selector select {
             width: 100%;
-            padding: 10px 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 182, 193, 0.5);
-            background-color: rgba(255, 255, 255, 0.9);
+            min-width: unset;
+            padding: 14px 35px 14px 20px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 182, 193, 0.5);
+            background-color: rgba(255, 255, 255, 0.95);
             color: var(--text-color);
-            font-size: var(--date-size-pc);
+            font-size: 1.15rem;
             cursor: pointer;
             outline: none;
             transition: all 0.3s ease;
@@ -1481,19 +2092,171 @@
             -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff69b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 16px;
-            padding-right: 30px;
+            background-position: right 15px center;
+            background-size: 14px;
+            text-align: center;
+            text-align-last: center;
             font-weight: 500;
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
+            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.1);
+            box-sizing: border-box;
         }
 
-        .date-selector select:hover, .date-selector select:focus {
+        .date-selector select:hover {
             border-color: var(--accent-color);
-            box-shadow: 0 0 8px rgba(255, 105, 180, 0.4);
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.2);
             background-color: white;
+            transform: translateY(-2px);
+        }
+
+        .date-selector select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+            background-color: white;
+        }
+
+        .date-selector-button {
+            margin-top: 15px;
+            padding: 14px 35px;
+            background: linear-gradient(45deg, #ff69b4, #ffb6c1);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .date-selector-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .date-selector-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+        }
+
+        .date-selector-button:hover:before {
+            left: 100%;
+        }
+
+        .date-selector-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            .date-selector {
+                padding: 15px;
+                margin: 12px auto;
+            }
+            
+            .date-selector-title {
+                font-size: 1.4rem;
+                margin-bottom: 15px;
+            }
+            
+            .date-selector-container {
+                gap: 12px;
+                padding: 0 10px;
+            }
+            
+            .date-selector-group {
+                min-width: 100px;
+                max-width: 140px;
+            }
+            
+            .date-selector-label {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+            
+            .date-selector select {
+                padding: 12px 30px 12px 15px;
+                font-size: 1.05rem;
+                background-size: 12px;
+                background-position: right 12px center;
+            }
+            
+            .date-selector-button {
+                padding: 12px 30px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .date-selector {
+                padding: 12px;
+                margin: 10px auto;
+                width: 95%;
+            }
+            
+            .date-selector-title {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+            
+            .date-selector-container {
+                gap: 8px;
+                padding: 0 5px;
+            }
+            
+            .date-selector-group {
+                min-width: 80px;
+                max-width: 120px;
+            }
+            
+            .date-selector-label {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+            
+            .date-selector select {
+                padding: 10px 25px 10px 12px;
+                font-size: 0.95rem;
+                background-size: 10px;
+                background-position: right 10px center;
+                border-width: 1.5px;
+            }
+            
+            .date-selector-button {
+                padding: 10px 25px;
+                font-size: 1rem;
+                letter-spacing: 1px;
+            }
+        }
+
+        /* 超小屏幕适配 */
+        @media screen and (max-width: 375px) {
+            .date-selector-container {
+                gap: 5px;
+            }
+            
+            .date-selector-group {
+                min-width: 70px;
+                max-width: 100px;
+            }
+            
+            .date-selector select {
+                padding: 8px 20px 8px 10px;
+                font-size: 0.9rem;
+            }
         }
 
         .date-selector-button {
@@ -1537,105 +2300,6 @@
         .date-selector-button:active {
             transform: translateY(0);
             box-shadow: 0 2px 5px rgba(255, 105, 180, 0.3);
-        }
-
-        @media screen and (max-width: 768px) {
-            .date-selector {
-                padding: 12px;
-            }
-            
-            .date-selector-title {
-                font-size: var(--subtitle-size-tablet);
-                margin-bottom: 12px;
-            }
-            
-            .date-selector-group {
-                min-width: 110px;
-            }
-            
-            .date-selector select {
-                padding: 8px 12px;
-                font-size: var(--date-size-tablet);
-                border-radius: 10px;
-            }
-            
-            .date-selector-label {
-                font-size: var(--date-size-tablet);
-                margin-bottom: 6px;
-            }
-            
-            .date-selector-button {
-                padding: 10px 20px;
-                font-size: var(--button-size-tablet);
-                border-radius: 20px;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            .date-selector {
-                padding: 10px 8px;
-                width: 90%;
-            }
-            
-            .date-selector-container {
-                gap: 8px;
-                flex-wrap: nowrap;
-                justify-content: center;
-                margin-bottom: 10px;
-            }
-            
-            .date-selector-group {
-                min-width: 26%;
-                width: 26%;
-                flex: 0 0 auto;
-                margin: 0 3px;
-            }
-            
-            .date-selector select {
-                padding: 7px 5px;
-                font-size: var(--date-size-mobile);
-                background-size: 10px;
-                background-position: right 5px center;
-                padding-right: 15px;
-                border-radius: 8px;
-                width: 100%;
-            }
-            
-            .date-selector-label {
-                font-size: var(--date-size-mobile);
-                margin-bottom: 4px;
-            }
-            
-            .date-selector-button {
-                padding: 8px 18px;
-                font-size: var(--button-size-mobile);
-                border-radius: 18px;
-                width: 40%;
-                margin-top: 10px;
-            }
-        }
-        
-        /* 超小屏幕设备的特殊处理 */
-        @media screen and (max-width: 375px) {
-            .date-selector-container {
-                gap: 6px;
-            }
-            
-            .date-selector-group {
-                min-width: 26%;
-                width: 26%;
-            }
-            
-            .date-selector select {
-                padding: 6px 2px;
-                font-size: calc(var(--date-size-mobile) - 1px);
-                background-size: 8px;
-                padding-right: 12px;
-            }
-            
-            .date-selector-label {
-                font-size: calc(var(--date-size-mobile) - 1px);
-            }
         }
 
         .memory .content {
@@ -1891,6 +2555,80 @@
         .modal-content.touch-device .modal-nav button {
             opacity: 0.65;
         }
+
+        /* 添加触发按钮样式 */
+        .date-selector-trigger {
+            display: none;
+        }
+
+        /* 添加时间显示区域的交互样式 */
+        .time-display {
+            cursor: pointer;
+            position: relative;
+            padding-bottom: 0px;
+        }
+
+        .current-time,
+        .time-counter {
+            font-size: var(--time-size-pc);
+            color: var(--light-text);
+            margin: 1px auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: "Courier New", monospace;
+            text-align: center;
+            width: 100%;
+            position: relative;
+            padding: 1px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .current-time {
+            color: #666;
+            font-weight: 500;
+            border-bottom: 1px dashed rgba(255, 92, 141, 0.15);
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+        }
+
+        .time-counter {
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-top: 1px;
+            background: linear-gradient(45deg, #ff6b95, #ff5c8d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(255, 92, 141, 0.1);
+        }
+
+        @media screen and (max-width: 768px) {
+            .current-time,
+            .time-counter {
+                font-size: var(--time-size-tablet);
+                margin: 1px auto;
+                letter-spacing: 0.3px;
+            }
+            
+            .current-time {
+                margin-bottom: 1px;
+                padding-bottom: 1px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .current-time,
+            .time-counter {
+                font-size: var(--time-size-mobile);
+                margin: 1px auto;
+                letter-spacing: 0.2px;
+            }
+            
+            .current-time {
+                margin-bottom: 1px;
+                padding-bottom: 1px;
+            }
+        }
     </style>
 </head>
 
@@ -1914,11 +2652,13 @@
     <div class="container" id="mainContent">
         <header>
             <h1>宝儿和宝子的时光轴</h1>
-            <!-- <p>记录每一个瞬间</p> -->
-            <!-- <div class="current-time" id="currentTime"></div> -->
-            <div class="time-counter" id="timeCounter"></div>
-            
-            <!-- 添加日期选择器 -->
+            <div class="time-display">
+                <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div>
+                <div class="time-counter" id="timeCounter">自我们相识的瞬间<br>已经在计算中...</div>
+            </div>
+            <div class="date-indicator" id="timeDisplay">
+                <span>▼</span>
+            </div>
             <div class="date-selector" id="dateSelector">
                 <div class="date-selector-title">✨ 选择日期查看珍贵回忆 ✨</div>
                 <div class="date-selector-container">
@@ -1988,16 +2728,6 @@
 
     <div class="music-control" id="musicControl" onclick="toggleMusic()">
     </div>
-    
-    <style>
-    @keyframes dotPulse {
-        0%, 100% { opacity: 0.2; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.2); }
-    }
-    body {
-        font-family: 'Noto Sans SC', Arial, 'Microsoft YaHei', sans-serif;
-    }
-    </style>
 
     <script>
         let memories = [];
@@ -2010,11 +2740,10 @@
         let currentGallery = [];
         let currentImageIndex = 0;
         let isMusicPlaying = false;
-        let currentMemory = null; // 用于跟踪当前正在处理的记忆对象
-        let totalWordsCount = 0; // 新增：用于存储总字数
-        let totalImagesCount = 0; // 新增：用于存储总图片数
+        let currentMemory = null;
+        let totalWordsCount = 0;
+        let totalImagesCount = 0;
 
-        // 检测是否为移动设备
         function isMobileDevice() {
             return (typeof window.orientation !== "undefined") || 
                    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
@@ -2022,38 +2751,30 @@
                    (navigator.userAgent.match(/iPhone|iPad|iPod/i));
         }
 
-        // 根据设备类型和图库大小动态调整计数器宽度
         function adjustCounterWidth(counterElement) {
             if (!counterElement) return;
             
-            // 根据设备类型和窗口宽度设置不同的基础宽度
             let baseWidth = 50;
             
             if (window.innerWidth <= 480) {
-                // 移动设备小屏幕
                 baseWidth = 50;
             } else if (window.innerWidth <= 768) {
-                // 平板或中等屏幕
                 baseWidth = 70;
             } else {
-                // 桌面端或大屏幕
                 baseWidth = 80;
             }
             
-            // 根据图库数量动态调整宽度
             if (currentGallery.length >= 100) {
                 baseWidth += 10;
             } else if (currentGallery.length >= 10) {
                 baseWidth += 5;
             }
             
-            // 设置计数器宽度
             counterElement.style.width = 'auto';
             counterElement.style.minWidth = `${baseWidth}px`;
             counterElement.style.maxWidth = `${baseWidth + 20}px`;
         }
 
-        // 音乐控制函数
         function toggleMusic() {
             const music = document.getElementById('bgMusic');
             const musicControl = document.getElementById('musicControl');
@@ -2069,19 +2790,68 @@
             isMusicPlaying = !isMusicPlaying;
         }
 
+        function updateTimes() {
+            if(!isAuthenticated) return;
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            
+            const startDate = new Date('2011-09-29T19:45:00');
+            const diffTime = Math.abs(now - startDate);
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const countHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const countMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+            const countSeconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+            const years = Math.floor(days / 365);
+            const remainingDays = days % 365;
+            
+            const memoryCount = memories ? memories.length : 0;
+            const daysStr = days.toString().padStart(4, '\u00A0');
+            
+            requestAnimationFrame(() => {
+                const currentTimeElement = document.getElementById('currentTime');
+                const timeCounterElement = document.getElementById('timeCounter');
+                
+                if(currentTimeElement) {
+                    currentTimeElement.textContent = "幸运 " + formattedDate + ' 我们还在';
+                }
+                
+                if(timeCounterElement) {
+                    timeCounterElement.innerHTML = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字 ${totalImagesCount}张照片)<br>已经${years}年${remainingDays}天(共${daysStr}天)${countHours.toString().padStart(2, '0')}小时${countMinutes.toString().padStart(2, '0')}分${countSeconds.toString().padStart(2, '0')}秒`;
+                }
+            });
+        }
+
+        function startTimeUpdates() {
+            updateTimes();
+            setInterval(updateTimes, 1000);
+            
+            const timeDisplay = document.getElementById('timeDisplay');
+            const dateSelector = document.getElementById('dateSelector');
+            if (timeDisplay && dateSelector) {
+                timeDisplay.classList.remove('active');
+                dateSelector.style.display = 'none';
+                dateSelector.classList.remove('show');
+                dateSelector.classList.remove('hide');
+            }
+        }
+
         window.onload = function () {
             document.getElementById('passwordModal').style.display = 'flex';
-            document.getElementById('mainContent').style.display = 'none';
             document.getElementById('imageModal').style.display = 'none';
 
-            // 创建粒子背景
             createParticles();
 
-            // 初始化音乐控制按钮状态
             const musicControl = document.getElementById('musicControl');
             musicControl.classList.remove('playing');
             
-            // 添加窗口大小变化时的处理
             window.addEventListener('resize', function() {
                 const counter = document.getElementById('imageCounter');
                 if (counter && counter.style.display !== 'none') {
@@ -2089,118 +2859,48 @@
                 }
             });
             
-            // 不再初始禁用登录按钮，改为允许点击并依靠checkPasswordAndVerify来检查空输入
-            // const passwordButton = document.querySelector('.password-button');
             const passwordInput = document.getElementById('passwordInput');
-            // passwordButton.disabled = !passwordInput.value.trim();
             
-            // 添加输入框变化监听
-            // passwordInput.addEventListener('input', updateButtonState);
-
-            // 禁用右键菜单
             document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 return false;
             });
 
-            // 禁用键盘快捷键
-            document.addEventListener('keydown', function (e) {
-                // 禁止 Ctrl/Command + S, Ctrl/Command + P, Ctrl/Command + C, Ctrl/Command + U, F12
-                if ((e.ctrlKey || e.metaKey) &&
-                    (e.key === 's' || e.key === 'p' || e.key === 'c' || e.key === 'u' ||
-                        e.key === 'S' || e.key === 'P' || e.key === 'C' || e.key === 'U')) {
-                    e.preventDefault();
-                    showContentProtectionNotice();
-                    return false;
-                }
-
-                // 禁止打印屏幕
-                if (e.key === 'PrintScreen') {
-                    showScreenshotAlert();
-                    e.preventDefault();
-                    return false;
-                }
-
-                // 禁止F12键、开发者工具
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-
-            // 禁止拖动内容
-            document.addEventListener('dragstart', function (e) {
-                e.preventDefault();
-                return false;
-            });
-
-            // 移动端触摸保护
-            document.addEventListener('touchstart', handleTouchStart, { passive: false });
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-            // 剪贴板保护
-            document.addEventListener('cut', preventCopyAction);
-            document.addEventListener('copy', preventCopyAction);
-            document.addEventListener('paste', preventCopyAction);
-
-            // 监听截图事件（尝试检测）
-            document.addEventListener('keyup', function (e) {
-                if (e.key === 'PrintScreen') {
-                    showScreenshotAlert();
-                }
-            });
-
-            // 增强的屏幕截图检测
-            enhancedScreenshotDetection();
-
-            // 监控剪贴板变化
-            monitorClipboard();
-
-            // 保护页面选择
-            protectPageSelection();
-
-            // 检查是否处于锁定状态
             checkLockStatus();
             
-            // 为内容卡片添加点击波纹效果
             initRippleEffect();
+            
+            startTimeUpdates();
         };
 
-        // 添加点击波纹效果函数
+        function onSuccessfulAuth() {
+            loadMemories();
+        }
+
         function initRippleEffect() {
-            // 添加事件委托，监听可能包含内容卡片的容器
             document.addEventListener('click', function(e) {
-                // 找到点击的是否是内容卡片或其后代元素
                 const contentElement = e.target.closest('.content');
                 
                 if (contentElement) {
-                    // 创建波纹元素
                     const ripple = document.createElement('div');
                     ripple.className = 'ripple';
                     contentElement.appendChild(ripple);
                     
-                    // 计算波纹位置和大小
                     const rect = contentElement.getBoundingClientRect();
                     const size = Math.max(rect.width, rect.height) * 2;
-                    // 波纹以点击位置为中心
                     const x = e.clientX - rect.left - size / 2;
                     const y = e.clientY - rect.top - size / 2;
                     
-                    // 设置波纹样式
                     ripple.style.width = ripple.style.height = `${size}px`;
                     ripple.style.left = `${x}px`;
                     ripple.style.top = `${y}px`;
                     
-                    // 添加激活类
                     ripple.classList.add('active');
                     
-                    // 添加触觉反馈（如果设备支持）
                     if (window.navigator && window.navigator.vibrate) {
-                        window.navigator.vibrate(50); // 轻微振动50毫秒
+                        window.navigator.vibrate(50);
                     }
                     
-                    // 波纹动画结束后移除元素
                     setTimeout(() => {
                         ripple.remove();
                     }, 600);
@@ -2208,69 +2908,33 @@
             });
         }
 
-        // 移动端触摸事件处理
-        let touchStartTime = 0;
-        let touchTimeout;
-        let lastTouchPoint = { x: 0, y: 0 };
-
-        function handleTouchStart(e) {
-            touchStartTime = Date.now();
-            lastTouchPoint.x = e.touches[0].clientX;
-            lastTouchPoint.y = e.touches[0].clientY;
-
-            // 如果是图片元素，不阻止默认行为，但移除可能出现的高亮效果
-            if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
-                clearTimeout(touchTimeout);
-                // 防止移动设备上的点击高亮
-                e.target.style.webkitTapHighlightColor = "transparent";
-                return true; // 允许默认行为
+        function createParticles() {
+            const container = document.getElementById('rose-petals-container');
+            if (!container) return;
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 60 + 20;
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight;
+                const animDuration = Math.random() * 30 + 10;
+                const animDelay = Math.random() * 5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                particle.style.opacity = Math.random() * 0.2 + 0.1;
+                particle.style.animationDuration = `${animDuration}s`;
+                particle.style.animationDelay = `-${animDelay}s`;
+                
+                container.appendChild(particle);
             }
-
-            // 检测长按操作（非图片元素）
-            touchTimeout = setTimeout(function () {
-                if (e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
-                    e.preventDefault();
-                }
-            }, 500);
-        }
-
-        function handleTouchMove(e) {
-            // 清除长按定时器
-            clearTimeout(touchTimeout);
-
-            // 仅对非图片元素阻止双指缩放
-            if (e.touches.length > 1 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
-                e.preventDefault();
-                return false;
-            }
-        }
-
-        function handleTouchEnd(e) {
-            // 清除长按定时器
-            clearTimeout(touchTimeout);
-
-            // 图片元素不阻止点击
-            if (e.target.tagName === 'IMG' || e.target.closest('.gallery')) {
-                return true;
-            }
-
-            // 检测其他元素的长按
-            const touchDuration = Date.now() - touchStartTime;
-            if (touchDuration > 500 && e.target.tagName !== 'IMG' && !e.target.closest('.gallery')) {
-                e.preventDefault();
-                return false;
-            }
-        }
-
-        // 禁止复制操作
-        function preventCopyAction(e) {
-            e.preventDefault();
-            showContentProtectionNotice();
-            return false;
         }
 
         let isAuthenticated = false;
-
         let passwordAttempts = 0;
         let isLocked = false;
         let lockEndTime = 0;
@@ -2284,7 +2948,6 @@
             "我要惩罚你。"
         ];
 
-        // 检查锁定状态
         function checkLockStatus() {
             const storedLockEndTime = localStorage.getItem('lockEndTime');
             const storedPasswordAttempts = localStorage.getItem('passwordAttempts');
@@ -2294,7 +2957,6 @@
                 const now = new Date().getTime();
 
                 if (now < lockEnd) {
-                    // 仍在锁定期内
                     isLocked = true;
                     lockEndTime = lockEnd;
                     passwordAttempts = parseInt(storedPasswordAttempts || '5', 10);
@@ -2316,16 +2978,13 @@
                     updateLockTimer();
                     lockTimerInterval = setInterval(updateLockTimer, 1000);
                 } else {
-                    // 锁定期已过
                     clearLockStatus();
                 }
             } else if (storedPasswordAttempts) {
-                // 有错误尝试但未锁定
                 passwordAttempts = parseInt(storedPasswordAttempts, 10);
             }
         }
 
-        // 清除锁定状态
         function clearLockStatus() {
             localStorage.removeItem('lockEndTime');
             localStorage.removeItem('passwordAttempts');
@@ -2333,12 +2992,10 @@
             passwordAttempts = 0;
         }
 
-        // 包装函数，先检查密码是否为空，然后调用验证函数
         function checkPasswordAndVerify() {
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // 检查密码是否为空
             if (!password.trim() || password.length < 1) {
                 errorMessage.textContent = "请输入…";
                 errorMessage.style.display = 'block';
@@ -2351,13 +3008,10 @@
             if (isLocked) return;
             
             if (md5(password) === PASSWORD_HASH) {
-                // 使用美化后的成功验证效果
                 successfulAuthentication();
                 isAuthenticated = true;
-                // 清除密码尝试状态
                 clearLockStatus();
                 
-                // 调用新的onSuccessfulAuth函数
                 onSuccessfulAuth();
             } else {
                 passwordAttempts++;
@@ -2370,18 +3024,42 @@
                     errorMessage.style.display = 'block';
                     document.getElementById('passwordInput').value = '';
                     
-                    // 重置动画
                     errorMessage.style.animation = 'none';
                     void errorMessage.offsetWidth;
                     errorMessage.style.animation = 'shake 0.5s ease';
                     
-                    // 震动密码输入框
                     const passwordContent = document.querySelector('.password-content');
                     passwordContent.classList.remove('shake');
-                    void passwordContent.offsetWidth; // 重置动画
+                    void passwordContent.offsetWidth;
                     passwordContent.classList.add('shake');
                 }
             }
+        }
+
+        function successfulAuthentication() {
+            const authMask = document.getElementById('authMask');
+            const passwordModal = document.getElementById('passwordModal');
+            const mainContent = document.getElementById('mainContent');
+            
+            document.body.classList.add('authenticated');
+            
+            const fadeOutAuth = function() {
+                passwordModal.style.opacity = '0';
+                passwordModal.style.transform = 'translateY(-40px) scale(0.95)';
+                
+                setTimeout(function() {
+                    passwordModal.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    
+                    setTimeout(function() {
+                        authMask.style.display = 'none';
+                    }, 300);
+                }, 400);
+            };
+            
+            passwordModal.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            
+            fadeOutAuth();
         }
 
         function lockAccount() {
@@ -2393,7 +3071,6 @@
 
             lockEndTime = new Date().getTime() + 5 * 60 * 1000;
 
-            // 保存锁定结束时间到本地存储
             localStorage.setItem('lockEndTime', lockEndTime.toString());
             localStorage.setItem('passwordAttempts', passwordAttempts.toString());
 
@@ -2430,7 +3107,6 @@
             isLocked = false;
             passwordAttempts = 0;
 
-            // 清除锁定状态
             clearLockStatus();
 
             const lockedMessage = document.getElementById('lockedMessage');
@@ -2451,59 +3127,77 @@
         });
 
         function loadMemories() {
-            fetch('/polly/data.json')
-                .then(response => response.json())
-                .then(data => {
-                    memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
-                    
-                    // 计算总字数
-                    calculateTotalWords(memories);
-                    
-                    // 初始化日期选择器
-                    initializeDateSelector(memories);
-                    
-                    renderMemories();
-                    updateTimeCounter();
-                    checkHasMore();
+            const maxRetries = 3;
+            let retryCount = 0;
 
-                    // 在内容加载后应用禁止保存图片
-                    setTimeout(disableSaveImage, 500);
-                })
-                .catch(error => {
-                    console.error('加载数据失败:', error);
-                    document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:red;">加载数据失败，请刷新页面重试</p>';
-                });
+            function tryLoadData() {
+                fetch('/polly/data.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data || !Array.isArray(data)) {
+                            throw new Error('Invalid data format');
+                        }
+                        
+                        memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
+                        
+                        calculateTotalWords(memories);
+                        
+                        initializeDateSelector(memories);
+                        
+                        renderMemories();
+                        
+                        checkHasMore();
+
+                        setTimeout(disableSaveImage, 500);
+                    })
+                    .catch(error => {
+                        console.error('加载数据失败:', error);
+                        retryCount++;
+                        
+                        if (retryCount < maxRetries) {
+                            setTimeout(tryLoadData, 1000 * retryCount);
+                        } else {
+                            document.getElementById('timeline').innerHTML = 
+                                '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
+                                '加载数据失败，<a href="javascript:void(0)" onclick="retryLoad()" ' +
+                                'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
+                        }
+                    });
+            }
+
+            tryLoadData();
         }
 
-        // 统计所有文本的总字数
+        function retryLoad() {
+            document.getElementById('timeline').innerHTML = 
+                '<p style="text-align:center;color:var(--accent-color);padding:20px;">正在重新加载...</p>';
+            loadMemories();
+        }
+
         function calculateTotalWords(data) {
             totalWordsCount = 0;
             totalImagesCount = 0;
             
-            // 遍历所有文章
             data.forEach(memory => {
-                // 标题字数统计
                 if (memory.t) {
-                    // 移除HTML标签，只计算纯文本内容
                     const titleText = memory.t.replace(/<[^>]*>/g, '');
                     totalWordsCount += titleText.length;
                 }
                 
-                // 正文字数统计
                 if (memory.c) {
-                    // 移除HTML标签，只计算纯文本内容
                     const contentText = memory.c.replace(/<[^>]*>/g, '');
                     totalWordsCount += contentText.length;
                 }
                 
-                // 图片数量统计
                 if (memory.i && Array.isArray(memory.i)) {
                     totalImagesCount += memory.i.length;
                 }
             });
-            
-            console.log('总字数:', totalWordsCount);
-            console.log('总图片数:', totalImagesCount);
         }
 
         function checkHasMore() {
@@ -2527,9 +3221,7 @@
             isLoading = true;
             document.getElementById('loading').style.display = 'block';
 
-            // 检查是否在筛选模式下
             if (window.isFilteredMode && window.filteredMemoriesData) {
-                // 使用筛选后的数据
                 const filteredData = window.filteredMemoriesData;
                 const startIndex = currentPage * itemsPerPage;
                 const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
@@ -2550,7 +3242,6 @@
 
                     const formattedDate = formatDate(memory.d);
                     
-                    // 设置当前处理的记忆对象
                     currentMemory = memory;
 
                     let imagesHTML = '';
@@ -2577,13 +3268,11 @@
 
                 currentPage++;
                 
-                // 检查是否还有更多数据
                 hasMore = endIndex < filteredData.length;
                 if (!hasMore) {
                     document.getElementById('loadMore').style.display = 'none';
                 }
             } else {
-                // 原始加载逻辑（非筛选模式）
                 const startIndex = currentPage * itemsPerPage;
                 const endIndex = Math.min(startIndex + itemsPerPage, memories.length);
 
@@ -2603,7 +3292,6 @@
 
                     const formattedDate = formatDate(memory.d);
                     
-                    // 设置当前处理的记忆对象
                     currentMemory = memory;
 
                     let imagesHTML = '';
@@ -2635,7 +3323,6 @@
             isLoading = false;
             document.getElementById('loading').style.display = 'none';
 
-            // 加载更多内容后应用禁止保存图片
             setTimeout(disableSaveImage, 500);
         }
 
@@ -2643,7 +3330,6 @@
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
 
-            // 清除筛选模式状态
             window.isFilteredMode = false;
             window.filteredMemoriesData = null;
 
@@ -2655,7 +3341,6 @@
 
                 const formattedDate = formatDate(memory.d);
                 
-                // 设置当前处理的记忆对象
                 currentMemory = memory;
 
                 let imagesHTML = '';
@@ -2680,82 +3365,57 @@
                 timeline.appendChild(memoryDiv);
             });
             
-            // 重置当前页索引为1，因为第一页已经渲染
             currentPage = 1;
         }
 
         function formatDate(dateString) {
-            // 处理简单的年份格式，如 "2026"
             if (/^\d{4}$/.test(dateString)) {
                 return `${dateString}年`;
             }
             
-            // 处理年月格式，如 "2025-04"
             if (/^\d{4}-\d{2}$/.test(dateString)) {
                 const [year, month] = dateString.split('-');
                 return `${year}年${month}月`;
             }
             
-            // 处理完整日期格式，如 "2025-04-05"
             const date = new Date(dateString);
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const day = date.getDate().toString().padStart(2, '0');
             
-            // 获取星期几
             const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
             const weekDay = weekDays[date.getDay()];
             
             return `${year}年${month}月${day}日 ${weekDay}`;
         }
         
-        // 处理图片路径的函数，将简化路径转换为完整路径
         function getImagePath(imgPath) {
-            // 如果已经是完整路径（以/polly/开头），则直接返回
-            // 使用场景：JSON中已经存储完整路径的情况，无需转换
-            // 示例："/polly/images/2025/04/2025-04-16-01.jpg" -> 原样返回
             if (imgPath.startsWith('/polly/images/')) {
                 return imgPath;
             }
             
-            // 格式: "2025/04/2025-04-16-01.jpg" -> "/polly/images/2025/04/2025-04-16-01.jpg"
-            // 使用场景：JSON中存储了相对路径（包含年月目录），只需添加前缀即可
-            // 示例："2025/04/2025-04-16-01.jpg" -> "/polly/images/2025/04/2025-04-16-01.jpg"
             if (imgPath.match(/^\d{4}\/\d{2}\/.*\.(jpg|jpeg|png|gif)$/i)) {
                 return `/polly/images/${imgPath}`;
             }
             
-            // 支持特殊格式，如 "2025-04-16-01.jpg" -> "/polly/images/2025/04/2025-04-16-01.jpg"
-            // 使用场景：JSON中只存储文件名（包含年月日和序号），需要根据日期构建目录结构
-            // 示例："2025-04-16-01.jpg" -> "/polly/images/2025/04/2025-04-16-01.jpg"
             const match = imgPath.match(/^(\d{4})-(\d{2})-(\d{2})-(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (match) {
                 const [_, year, month, day, num, ext] = match;
                 return `/polly/images/${year}/${month}/${year}-${month}-${day}-${num}.${ext}`;
             }
             
-            // 支持特殊格式，如 "2025-02-JZ-01.jpg" -> "/polly/images/2025/02/2025-02-JZ-01.jpg"
-            // 使用场景：JSON中存储的文件名包含年月和特殊标签（如JZ代表剧照）
-            // 示例："2025-02-JZ-01.jpg" -> "/polly/images/2025/02/2025-02-JZ-01.jpg"
-            // 或任何2025-02-任意标签-01.jpg的格式
             const specialMatch = imgPath.match(/^(\d{4})-(\d{2})-([A-Za-z0-9_-]+)-(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (specialMatch) {
                 const [_, year, month, tag, num, ext] = specialMatch;
                 return `/polly/images/${year}/${month}/${year}-${month}-${tag}-${num}.${ext}`;
             }
             
-            // 通用格式: 任何带年月的格式，如 "2025-02-任意内容.jpg" -> "/polly/images/2025/02/2025-02-任意内容.jpg"
-            // 使用场景：处理其他不规则但包含年月信息的文件名
-            // 示例："2025-02-特殊照片.jpg" -> "/polly/images/2025/02/2025-02-特殊照片.jpg"
             const genericMatch = imgPath.match(/^(\d{4})-(\d{2})-(.+)\.(jpg|jpeg|png|gif)$/i);
             if (genericMatch) {
                 const [_, year, month, filename, ext] = genericMatch;
                 return `/polly/images/${year}/${month}/${imgPath}`;
             }
             
-            // 支持仅文件名格式，如 "01.jpg" -> 使用记忆的日期构建路径
-            // 使用场景：JSON中只存储序号，通过当前记忆对象的日期信息构建完整路径
-            // 示例：当前记忆日期为"2025-04-16"，文件名为"01.jpg" -> "/polly/images/2025/04/2025-04-16-01.jpg"
             const numMatch = imgPath.match(/^(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (numMatch && currentMemory && currentMemory.d) {
                 const [_, num, ext] = numMatch;
@@ -2766,8 +3426,6 @@
                 }
             }
             
-            // 如果以上都不匹配，返回原始路径
-            // 使用场景：作为兜底处理，确保不会因为格式不匹配而导致图片加载失败
             return imgPath;
         }
 
@@ -2778,18 +3436,15 @@
             const modalContent = document.getElementById('modalContent');
             const zoomTip = document.getElementById('zoomTip');
 
-            // 不使用过渡效果
             modalContent.style.opacity = '1';
             modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
             
-            // 自动检测设备类型并显示对应的缩放提示
             if (isMobileDevice()) {
                 zoomTip.textContent = '请用双指缩放查看图片';
             } else {
                 zoomTip.textContent = '请使用滚轮缩放查看图片';
             }
             
-            // 动态调整计数器的宽度
             adjustCounterWidth(imageCounter);
             
             currentGallery = [];
@@ -2828,50 +3483,40 @@
                 }
             }
 
-            // 先加载图片
             const img = new Image();
             img.onload = function() {
-                // 直接显示图片和模态框，无过渡效果
                 modalImage.src = imageSrc;
                 updateImageCounter();
                 updateNavigationButtons();
                 
-                // 立即显示模态框
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
                 
-                // 无过渡效果，移除所有transition
                 modalContent.style.transition = 'none';
                 modal.style.transition = 'none';
                 
-                // 如果是触摸设备，为内容添加特殊类，使导航按钮始终可见
                 if (isMobileDevice()) {
                     modalContent.classList.add('touch-device');
                 } else {
                     modalContent.classList.remove('touch-device');
                 }
                 
-                // 添加点击缩放功能
                 setupImageZoom();
                 
-                // 对模态框中的图片应用禁止保存
                 disableSaveImage();
                 
-                // 显示缩放提示，然后淡出
                 zoomTip.style.opacity = '1';
                 setTimeout(() => {
                     zoomTip.style.opacity = '0';
                 }, 2500);
             };
             
-            // 开始加载图片
             img.src = imageSrc;
         }
 
         function closeModal() {
             const modalImage = document.getElementById('modalImage');
             
-            // 重置缩放状态
             if (modalImage) {
                 modalImage.classList.remove('zoomed');
                 modalImage.style.transform = 'scale(1)';
@@ -2887,13 +3532,11 @@
         function navigateImage(direction) {
             if (currentGallery.length <= 1) return;
 
-            // 禁用按钮，防止重复点击
             const prevButton = document.getElementById('prevImageBtn');
             const nextButton = document.getElementById('nextImageBtn');
             prevButton.disabled = true;
             nextButton.disabled = true;
             
-            // 直接更新图片索引
             currentImageIndex += direction;
 
             if (currentImageIndex < 0) {
@@ -2901,22 +3544,17 @@
             } else if (currentImageIndex >= currentGallery.length) {
                 currentImageIndex = currentGallery.length - 1;
             } else {
-                // 直接切换图片，无过渡效果
                 const modalImage = document.getElementById('modalImage');
                 
-                // 重置缩放状态
                 modalImage.classList.remove('zoomed');
                 modalImage.style.transform = 'scale(1)';
                 
-                // 更换图片源
                 modalImage.src = currentGallery[currentImageIndex];
             }
 
-            // 更新按钮状态和计数器
             updateNavigationButtons();
             updateImageCounter();
             
-            // 重新启用按钮
             prevButton.disabled = currentImageIndex === 0;
             nextButton.disabled = currentImageIndex === currentGallery.length - 1;
         }
@@ -2944,7 +3582,6 @@
             } else {
                 counter.textContent = `${currentImageIndex + 1} / ${currentGallery.length}`;
                 counter.style.display = 'block';
-                // 动态调整计数器宽度
                 adjustCounterWidth(counter);
             }
         }
@@ -2967,64 +3604,13 @@
             }
         });
 
-        function updateCurrentTime() {
-            const now = new Date();
-            
-            // 格式化为 yyyy-mm-dd HH:MM:SS 格式
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-            
-            // 使用固定宽度的空格字符来确保时间格式一致
-            const currentTimeElement = document.getElementById('currentTime');
-            
-            // 使用固定内容长度，确保即使内容变化，长度也一致
-            const fixedContent = "幸运 " + formattedDate + ' 我们还在';
-            currentTimeElement.textContent = fixedContent;
-        }
-
-        function updateTimeCounter() {
-            const startDate = new Date('2011-09-29T19:45:00');
-            const now = new Date();
-            const diffTime = Math.abs(now - startDate);
-
-            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
-
-            // 计算年数和剩余天数
-            const years = Math.floor(days / 365);
-            const remainingDays = days % 365;
-            
-            const memoryCount = memories ? memories.length : 0;
-            
-            // 确保数字始终占用相同宽度的空间
-            const daysStr = days.toString().padStart(4, '\u00A0'); // 使用不换行空格填充
-            const hoursStr = hours.toString().padStart(2, '0');
-            const minutesStr = minutes.toString().padStart(2, '0');
-            const secondsStr = seconds.toString().padStart(2, '0');
-            
-            const timeCounterElement = document.getElementById('timeCounter');
-            const fixedContent = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字 ${totalImagesCount}张照片)<br>已经${years}年${remainingDays}天(共${daysStr}天)${hoursStr}小时${minutesStr}分${secondsStr}秒`;
-            timeCounterElement.innerHTML = fixedContent;
-        }
-
-        // 阻止保存图片的函数
         function disableSaveImage() {
-            // 对所有图片禁用右键菜单和拖拽
             const images = document.querySelectorAll('img');
             images.forEach(img => {
                 if (!img.dataset.protected) {
                     img.dataset.protected = "true";
                     img.style.pointerEvents = 'auto';
                     
-                    // 为普通图片添加安全容器
                     if (img.id !== 'modalImage') {
                         const parent = img.parentNode;
                         const wrapper = document.createElement('div');
@@ -3037,7 +3623,6 @@
                     }
                 }
                 
-                // 统一添加事件监听
                 img.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     return false;
@@ -3049,7 +3634,6 @@
                 });
             });
             
-            // 对模态框中的图片添加水印
             const modalImage = document.getElementById('modalImage');
             if (modalImage && !modalImage.dataset.watermarked) {
                 if (modalImage.complete) {
@@ -3062,7 +3646,6 @@
             }
         }
 
-        // 显示截图警告
         function showScreenshotAlert() {
             const alertDiv = document.getElementById('screenshotProtect');
             alertDiv.style.display = 'flex';
@@ -3072,16 +3655,13 @@
             }, 5000);
         }
 
-        // 增强的屏幕截图检测
         function enhancedScreenshotDetection() {
-            // 使用统一的事件监听处理全屏变化
             const fullscreenEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
             
             fullscreenEvents.forEach(event => {
                 document.addEventListener(event, checkForScreenCapture);
             });
             
-            // 检测MediaCapture API的使用
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
                 try {
                     const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
@@ -3094,7 +3674,6 @@
         }
 
         function checkForScreenCapture() {
-            // 检测全屏后的截图可能
             if (!document.fullscreenElement &&
                 !document.webkitFullscreenElement &&
                 !document.mozFullScreenElement &&
@@ -3103,12 +3682,10 @@
             }
         }
 
-        // 监控剪贴板变化
         function monitorClipboard() {
             if (navigator.clipboard && navigator.clipboard.readText) {
                 navigator.clipboard.addEventListener = navigator.clipboard.addEventListener || function() {};
                 
-                // 使用事件监听替代轮询(注：大多数浏览器不支持clipboard事件，此代码作为未来兼容预留)
                 try {
                     navigator.clipboard.addEventListener('clipboardchange', function(e) {
                         navigator.clipboard.readText().then(function(text) {
@@ -3122,8 +3699,6 @@
         }
 
         function isLikelyFromOurPage(text) {
-            // 检查文本是否很可能来自我们的页面内容
-            // 这里可以检查特定的关键词或格式
             return text.includes('时光轴') || text.includes('瞬间') || text.includes('回忆');
         }
 
@@ -3131,7 +3706,6 @@
             alert('检测到剪贴板操作！复制内容已被阻止。');
         }
 
-        // 为图片添加隐形水印
         function addInvisibleWatermark(img) {
             try {
                 if (!img.dataset.watermarked) {
@@ -3560,59 +4134,56 @@
             loveMessage.style.zIndex = '10';
             passwordModal.appendChild(loveMessage);
             
-            // 延迟1.5秒后添加淡出效果，给用户足够时间观察爱心动画开始
+            // 延迟1.5秒后添加淡出效果
             setTimeout(() => {
-                // 设置CSS过渡效果和透明度变化
                 passwordContent.style.transition = 'opacity 1.5s ease-out';
                 passwordContent.style.opacity = '0';
-                
-                // 显示爱你哟消息
                 loveMessage.style.opacity = '1';
             }, 1500);
             
-            // 延迟3秒后完成页面切换，并初始化主界面内容
+            // 延迟3秒后完成页面切换
             setTimeout(function() {
+                // 设置认证状态
+                isAuthenticated = true;
+                
                 // 隐藏登录相关元素
                 passwordModal.style.display = 'none';
                 authMask.style.display = 'none';
-                // 添加身份验证标记类，用于控制其他功能的显示与否
+                
+                // 添加身份验证标记类
                 document.body.classList.add('authenticated');
+                
                 // 显示主内容区域
                 mainContent.style.display = 'block';
                 
                 // 启动花瓣背景动画
                 startPetalAnimation();
                 
-                // 加载纪念内容数据
+                // 加载数据并初始化显示
                 loadMemories();
                 
-                // 初始化时间计数器
-                updateTimeCounter();
-                
-                // 设置定时器，每秒更新当前时间显示
-                setInterval(updateCurrentTime, 1000);
-                // 设置定时器，每秒更新时间计数器显示
-                setInterval(updateTimeCounter, 1000);
+                // 启动时间更新
+                startTimeUpdates();
                 
                 // 尝试自动播放背景音乐
                 const music = document.getElementById('bgMusic');
                 const musicControl = document.getElementById('musicControl');
                 music.play().then(() => {
-                    // 播放成功，更新音乐状态和控制按钮样式
                     isMusicPlaying = true;
                     musicControl.classList.add('playing');
                 }).catch(() => {
-                    // 静默处理播放失败的情况，通常是浏览器策略限制
-                    // 不输出错误信息，避免控制台杂乱
+                    // 静默处理播放失败
                 });
                 
-                // 设置身份验证Cookie，保持登录状态7天
-                // 使用安全属性samesite=strict防止CSRF攻击
+                // 设置身份验证Cookie
                 document.cookie = "authenticated=true; max-age=604800; path=/; samesite=strict";
                 
-                // 延迟0.5秒后禁用图片保存功能，保护内容版权
+                // 延迟0.5秒后禁用图片保存功能
                 setTimeout(disableSaveImage, 500);
-            }, 3500); // 总延迟3秒，给用户充分时间欣赏爱心升起效果
+                
+                // 调用onSuccessfulAuth处理其他初始化
+                onSuccessfulAuth();
+            }, 3500);
         }
         
         // 创建心形粒子效果 - 密码验证成功时的爱心飘动特效
@@ -4004,14 +4575,6 @@
                 if (filteredMemories.length > 0) {
                     window.scrollTo(0, 0);
                 }
-            }
-        }
-
-        function onSuccessfulAuth() {
-            // 显示日期选择器
-            const dateSelector = document.getElementById('dateSelector');
-            if (dateSelector) {
-                dateSelector.style.display = 'flex';
             }
         }
 
@@ -4419,6 +4982,34 @@
                 }
             }
         }
+
+        // 修改日期选择器的展开/收起功能
+        document.getElementById('timeDisplay').addEventListener('click', function() {
+            const dateSelector = document.getElementById('dateSelector');
+            const timeDisplay = this;
+            const isShown = dateSelector.classList.contains('show');
+            
+            if (isShown) {
+                // 收起动画
+                dateSelector.classList.remove('show');
+                dateSelector.classList.add('hide');
+                timeDisplay.classList.remove('active');
+                
+                // 动画结束后隐藏元素
+                dateSelector.addEventListener('animationend', function handler() {
+                    dateSelector.style.display = 'none';
+                    dateSelector.classList.remove('hide');
+                    dateSelector.removeEventListener('animationend', handler);
+                }, { once: true });
+            } else {
+                // 展开动画
+                dateSelector.style.display = 'block';
+                // 强制重排触发动画
+                void dateSelector.offsetWidth;
+                dateSelector.classList.add('show');
+                timeDisplay.classList.add('active');
+            }
+        });
     </script>
 </body>
 
