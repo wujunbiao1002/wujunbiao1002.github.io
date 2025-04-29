@@ -5133,11 +5133,11 @@
             if (target === 'babyGirl') {
                 // 显示的计数值从1开始，所以加1显示
                 displayCount = babyGirlClickCount + 1;
-                message = displayCount >= 99 ? `宝儿我真的好爱你 (${displayCount})` : `宝儿我爱你 (${displayCount})`;
+                message = displayCount >= 9 ? `宝儿我真的爱你 (${displayCount})` : `宝儿我爱你 (${displayCount})`;
             } else if (target === 'babyBoy') {
                 // 显示的计数值从1开始，所以加1显示
                 displayCount = babyBoyClickCount + 1;
-                message = displayCount >= 99 ? `宝子我真的好爱你 (${displayCount})` : `宝子我爱你 (${displayCount})`;
+                message = displayCount >= 9 ? `宝子我真的爱你 (${displayCount})` : `宝子我爱你 (${displayCount})`;
             }
             
             loveMessage.textContent = message;
