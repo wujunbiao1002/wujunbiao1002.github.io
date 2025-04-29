@@ -151,7 +151,6 @@
             border: 1px solid rgba(255, 159, 178, 0.2);
             overflow: hidden;
             position: relative;
-            transition: all 0.3s ease;
             backdrop-filter: blur(5px);
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(255, 159, 178, 0.05) 0%, transparent 20%),
@@ -182,11 +181,6 @@
         @keyframes heartBeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
-        }
-
-        header:hover {
-            box-shadow: 0 12px 35px rgba(255, 92, 141, 0.2);
-            transform: translateY(-3px);
         }
 
         header h1 {
@@ -421,7 +415,7 @@
             background: var(--pink-gradient);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 10px 30px;
             border-radius: 30px;
             cursor: pointer;
             font-size: var(--button-size-pc);
@@ -2236,7 +2230,7 @@
             }
             
             .date-selector-button {
-                padding: 10px 25px;
+                padding: 10px 15px;
                 font-size: 1rem;
                 letter-spacing: 1px;
             }
@@ -2259,9 +2253,29 @@
             }
         }
 
+        /* 自定义date-select样式 */
+        .date-select {
+            width: 80px !important;
+            padding: 8px 22px 8px 10px !important;
+            font-size: 0.9rem !important;
+            background-size: 10px !important;
+            background-position: right 8px center !important;
+        }
+
+        /* PC端选择框样式 */
+        @media screen and (min-width: 769px) {
+            .date-select {
+                width: 120px !important;
+                padding: 10px 25px 10px 15px !important;
+                font-size: 1rem !important;
+                background-size: 12px !important;
+                background-position: right 10px center !important;
+            }
+        }
+
         .date-selector-button {
             margin-top: 10px;
-            padding: 12px 25px;
+            padding: 10px 15px;
             background: linear-gradient(to right, #ff69b4, #ffb6c1);
             color: white;
             border: none;
@@ -2629,6 +2643,37 @@
                 padding-bottom: 1px;
             }
         }
+
+        /* 添加消息提示框样式 */
+        .love-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 92, 141, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            z-index: 10000;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(255, 92, 141, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: pulse 2s infinite;
+            max-width: 80%;
+        }
+
+        .love-name {
+            cursor: pointer;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 
@@ -2648,10 +2693,13 @@
     </div>
 
     <div id="contentNotice" class="content-usage-notice">内容受保护，禁止复制</div>
+    
+    <!-- 添加消息提示框 -->
+    <div id="loveMessage" class="love-message"></div>
 
     <div class="container" id="mainContent">
         <header>
-            <h1>宝儿和宝子的时光轴</h1>
+            <h1><span id="babyGirl" class="love-name">宝儿</span>和<span id="babyBoy" class="love-name">宝子</span>的时光轴</h1>
             <div class="time-display">
                 <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div>
                 <div class="time-counter" id="timeCounter">自我们相识的瞬间<br>已经在计算中...</div>
@@ -2663,19 +2711,31 @@
                 <div class="date-selector-title">✨ 选择日期查看珍贵回忆 ✨</div>
                 <div class="date-selector-container">
                     <div class="date-selector-group">
-                        <label class="date-selector-label" for="yearSelect">年份</label>
-                        <select id="yearSelect"></select>
+                        <label class="date-selector-label" for="yearSelect">
+                            <i class="date-icon">📅</i>
+                            <span>年份</span>
+                        </label>
+                        <select id="yearSelect" class="date-select"></select>
                     </div>
                     <div class="date-selector-group">
-                        <label class="date-selector-label" for="monthSelect">月份</label>
-                        <select id="monthSelect"></select>
+                        <label class="date-selector-label" for="monthSelect">
+                            <i class="date-icon">🗓️</i>
+                            <span>月份</span>
+                        </label>
+                        <select id="monthSelect" class="date-select"></select>
                     </div>
                     <div class="date-selector-group">
-                        <label class="date-selector-label" for="daySelect">日期</label>
-                        <select id="daySelect"></select>
+                        <label class="date-selector-label" for="daySelect">
+                            <i class="date-icon">📆</i>
+                            <span>日期</span>
+                        </label>
+                        <select id="daySelect" class="date-select"></select>
                     </div>
                 </div>
-                <button class="date-selector-button" id="jumpToDateBtn">寻找回忆 💖</button>
+                <button class="date-selector-button" id="jumpToDateBtn">
+                    <span class="button-text">寻找回忆</span>
+                    <i class="button-icon">💖</i>
+                </button>
             </div>
         </header>
 
@@ -2743,6 +2803,10 @@
         let currentMemory = null;
         let totalWordsCount = 0;
         let totalImagesCount = 0;
+        
+        // 添加点击计数变量
+        let babyGirlClickCount = 0;
+        let babyBoyClickCount = 0;
 
         function isMobileDevice() {
             return (typeof window.orientation !== "undefined") || 
@@ -2875,6 +2939,8 @@
 
         function onSuccessfulAuth() {
             loadMemories();
+            // 初始化爱的点击事件
+            initializeLoveClicks();
         }
 
         function initRippleEffect() {
@@ -3037,29 +3103,55 @@
         }
 
         function successfulAuthentication() {
-            const authMask = document.getElementById('authMask');
-            const passwordModal = document.getElementById('passwordModal');
-            const mainContent = document.getElementById('mainContent');
+            // 创建花瓣动画
+            createFlowerPetals();
             
+            // 播放音乐
+            const music = document.getElementById('bgMusic');
+            if (music) {
+                try {
+                    const playPromise = music.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(_ => {
+                            isMusicPlaying = true;
+                            document.getElementById('musicControl').classList.add('playing');
+                        }).catch(error => {
+                            isMusicPlaying = false;
+                        });
+                    } else {
+                        isMusicPlaying = true;
+                        document.getElementById('musicControl').classList.add('playing');
+                    }
+                } catch (e) {
+                    console.error('Error playing audio:', e);
+                }
+            }
+            
+            // 移除遮罩
+            document.getElementById('passwordModal').style.display = 'none';
+            
+            // 显示内容
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // 标记为已认证
             document.body.classList.add('authenticated');
+            isAuthenticated = true;
             
-            const fadeOutAuth = function() {
-                passwordModal.style.opacity = '0';
-                passwordModal.style.transform = 'translateY(-40px) scale(0.95)';
-                
-                setTimeout(function() {
-                    passwordModal.style.display = 'none';
-                    mainContent.style.display = 'block';
-                    
-                    setTimeout(function() {
-                        authMask.style.display = 'none';
-                    }, 300);
-                }, 400);
-            };
+            // 清除密码尝试次数
+            passwordAttempts = 0;
+            localStorage.removeItem('passwordAttempts');
+            localStorage.removeItem('lockEndTime');
             
-            passwordModal.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            // 开始时间更新
+            startTimeUpdates();
             
-            fadeOutAuth();
+            // 初始化爱的点击
+            initializeLoveClicks();
+            
+            localStorage.setItem('authenticated', 'true');
+            
+            // 加载内容
+            loadMemories();
         }
 
         function lockAccount() {
@@ -5010,6 +5102,57 @@
                 timeDisplay.classList.add('active');
             }
         });
+
+        // 添加点击事件处理函数
+        function initializeLoveClicks() {
+            const babyGirl = document.getElementById('babyGirl');
+            const babyBoy = document.getElementById('babyBoy');
+            const loveMessage = document.getElementById('loveMessage');
+            
+            if (babyGirl) {
+                babyGirl.addEventListener('click', function() {
+                    babyGirlClickCount++;
+                    showLoveMessage('babyGirl');
+                });
+            }
+            
+            if (babyBoy) {
+                babyBoy.addEventListener('click', function() {
+                    babyBoyClickCount++;
+                    showLoveMessage('babyBoy');
+                });
+            }
+        }
+        
+        // 显示爱的消息
+        function showLoveMessage(target) {
+            const loveMessage = document.getElementById('loveMessage');
+            let message = '';
+            let displayCount = 0;
+            
+            if (target === 'babyGirl') {
+                // 显示的计数值从1开始，所以加1显示
+                displayCount = babyGirlClickCount + 1;
+                message = displayCount >= 99 ? `宝儿我真的好爱你 (${displayCount})` : `宝儿我爱你 (${displayCount})`;
+            } else if (target === 'babyBoy') {
+                // 显示的计数值从1开始，所以加1显示
+                displayCount = babyBoyClickCount + 1;
+                message = displayCount >= 99 ? `宝子我真的好爱你 (${displayCount})` : `宝子我爱你 (${displayCount})`;
+            }
+            
+            loveMessage.textContent = message;
+            loveMessage.style.display = 'block';
+            loveMessage.style.opacity = '1';
+            
+            // 3秒后隐藏消息
+            setTimeout(function() {
+                loveMessage.style.animation = 'fadeOut 1s forwards';
+                setTimeout(function() {
+                    loveMessage.style.display = 'none';
+                    loveMessage.style.animation = 'pulse 2s infinite';
+                }, 1000);
+            }, 2000);
+        }
     </script>
 </body>
 
