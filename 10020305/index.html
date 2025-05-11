@@ -2795,7 +2795,21 @@
         const itemsPerPage = 10;
         let isLoading = false;
         let hasMore = true;
-        const PASSWORD_HASH = '828591d462674bdd332dbc730a439fd1';
+        // 使用自定义盐值和多重哈希增强安全性
+        function enhancedHash(input) {
+            // 自定义盐值（不公开）
+            const salt = "Sx7#P9!qR@2L";
+            // 迭代次数
+            const iterations = 1000;
+            // 组合盐值和密码
+            let result = md5(salt + input + "junlyPolly");
+            // 多次哈希迭代提高计算复杂度
+            for (let i = 0; i < iterations; i++) {
+                result = md5(result + salt + (i % 5 == 0 ? input : ""));
+            }
+            return result;
+        }
+        const PASSWORD_HASH = 'dbca18190a77ceaf53b259ee933ae1a2';
 
         let currentGallery = [];
         let currentImageIndex = 0;
@@ -3073,7 +3087,7 @@
             
             if (isLocked) return;
             
-            if (md5(password) === PASSWORD_HASH) {
+            if (enhancedHash(password) === PASSWORD_HASH) {
                 successfulAuthentication();
                 isAuthenticated = true;
                 clearLockStatus();
@@ -4556,7 +4570,7 @@
                 return;
             }
             
-            if (md5(password) === PASSWORD_HASH) {
+            if (enhancedHash(password) === PASSWORD_HASH) {
                 // 使用美化后的成功验证效果
                 successfulAuthentication();
             } else {
