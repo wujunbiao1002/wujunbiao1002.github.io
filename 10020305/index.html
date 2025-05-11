@@ -3219,33 +3219,57 @@
         });
 
         function loadMemories() {
-            const maxRetries = 3;
+            const maxRetries = 1; // 减少重试次数从3改为1
             let retryCount = 0;
 
             function tryLoadData() {
-                fetch('/polly/data/2025/04/30/data.json')
+                fetch('/polly/data/encrypted_data.json')
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         return response.json();
                     })
-                    .then(data => {
-                        if (!data || !Array.isArray(data)) {
-                            throw new Error('Invalid data format');
+                    .then(encryptedData => {
+                        if (!encryptedData || !encryptedData.data || !Array.isArray(encryptedData.data)) {
+                            throw new Error('Invalid encrypted data format');
                         }
                         
-                        memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
+                        // 从响应中获取加密数据块
+                        const encryptedChunks = encryptedData.data;
                         
-                        calculateTotalWords(memories);
-                        
-                        initializeDateSelector(memories);
-                        
-                        renderMemories();
-                        
-                        checkHasMore();
+                        // 使用PASSWORD_HASH作为密钥种子解密数据
+                        decryptData(encryptedChunks, PASSWORD_HASH)
+                            .then(data => {
+                                if (!data || !Array.isArray(data)) {
+                                    throw new Error('Invalid decrypted data format');
+                                }
+                                
+                                memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
+                                
+                                calculateTotalWords(memories);
+                                
+                                initializeDateSelector(memories);
+                                
+                                renderMemories();
+                                
+                                checkHasMore();
 
-                        setTimeout(disableSaveImage, 500);
+                                setTimeout(disableSaveImage, 500);
+                            })
+                            .catch(error => {
+                                console.error('解密数据失败:', error);
+                                retryCount++;
+                                
+                                if (retryCount < maxRetries) {
+                                    setTimeout(tryLoadData, 1000 * retryCount);
+                                } else {
+                                    document.getElementById('timeline').innerHTML = 
+                                        '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
+                                        '解密数据失败，可能是因为密码不匹配或数据格式错误。<a href="javascript:void(0)" onclick="retryLoad()" ' +
+                                        'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
+                                }
+                            });
                     })
                     .catch(error => {
                         console.error('加载数据失败:', error);
@@ -3256,13 +3280,121 @@
                         } else {
                             document.getElementById('timeline').innerHTML = 
                                 '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
-                                '加载数据失败，<a href="javascript:void(0)" onclick="retryLoad()" ' +
+                                '无法加载加密数据文件，请检查文件是否存在。<a href="javascript:void(0)" onclick="retryLoad()" ' +
                                 'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
                         }
                     });
             }
 
             tryLoadData();
+        }
+
+        // 客户端解密函数 - 与Node.js端保持一致
+        async function decryptData(encryptedChunks, passphrase) {
+            try {
+                // 解密各个数据块
+                const decryptedChunks = [];
+                
+                for (let i = 0; i < encryptedChunks.length; i++) {
+                    try {
+                        // 从Base64解码
+                        const base64String = encryptedChunks[i];
+                        const binary = atob(base64String);
+                        const encryptedBuffer = new Uint8Array(binary.length);
+                        for (let j = 0; j < binary.length; j++) {
+                            encryptedBuffer[j] = binary.charCodeAt(j);
+                        }
+                        
+                        // 提取IV (前16字节)
+                        const iv = encryptedBuffer.slice(0, 16);
+                        
+                        // 提取认证标签 (接下来的16字节)
+                        const authTag = encryptedBuffer.slice(16, 32);
+                        
+                        // 提取加密数据 
+                        const encrypted = encryptedBuffer.slice(32);
+                        
+                        // 从密码派生加密密钥
+                        const encoder = new TextEncoder();
+                        const keyMaterial = await crypto.subtle.importKey(
+                            "raw",
+                            encoder.encode(passphrase),
+                            { name: "PBKDF2" },
+                            false,
+                            ["deriveBits", "deriveKey"]
+                        );
+                        
+                        const salt = encoder.encode("polly-lover-salt");
+                        
+                        const key = await crypto.subtle.deriveKey(
+                            {
+                                name: "PBKDF2",
+                                salt: salt,
+                                iterations: 100000,
+                                hash: "SHA-256"
+                            },
+                            keyMaterial,
+                            { name: "AES-GCM", length: 256 },
+                            false,
+                            ["decrypt"]
+                        );
+                        
+                        // 尝试两种方式解密，增强兼容性
+                        let decrypted;
+                        
+                        try {
+                            // 方式1: 直接使用encrypted数据
+                            decrypted = await crypto.subtle.decrypt(
+                                {
+                                    name: "AES-GCM",
+                                    iv: iv,
+                                    tagLength: 128 // 16 bytes
+                                },
+                                key,
+                                encrypted
+                            );
+                        } catch(err) {
+                            // 方式2: 将认证标签附加到加密数据
+                            const ciphertextWithTag = new Uint8Array(encrypted.length + authTag.length);
+                            ciphertextWithTag.set(encrypted, 0);
+                            ciphertextWithTag.set(authTag, encrypted.length);
+                            
+                            decrypted = await crypto.subtle.decrypt(
+                                {
+                                    name: "AES-GCM",
+                                    iv: iv,
+                                    tagLength: 128 // 16 bytes
+                                },
+                                key,
+                                ciphertextWithTag
+                            );
+                        }
+                        
+                        // 转换为字符串
+                        const decryptedText = new TextDecoder().decode(decrypted);
+                        decryptedChunks.push(decryptedText);
+                    } catch (error) {
+                        console.error(`解密块 ${i+1} 失败:`, error);
+                        console.error('错误详情:', error.message);
+                        throw error;
+                    }
+                }
+                
+                // 合并所有解密后的块
+                const decryptedData = decryptedChunks.join('');
+                
+                try {
+                    // 尝试解析JSON
+                    const parsedData = JSON.parse(decryptedData);
+                    return parsedData;
+                } catch (parseError) {
+                    console.error('JSON解析失败:', parseError);
+                    throw new Error('解密成功但JSON格式无效');
+                }
+            } catch (error) {
+                console.error('解密过程中出错:', error);
+                throw error;
+            }
         }
 
         function retryLoad() {
