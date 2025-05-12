@@ -3253,6 +3253,274 @@
         const itemsPerPage = 10;
         let isLoading = false;
         let hasMore = true;
+
+        // 禁用F12、右键菜单和开发者工具的代码
+        (function() {
+            // 禁用F12、Ctrl+Shift+I、Ctrl+Shift+J、Ctrl+Shift+C等开发者工具快捷键
+            document.addEventListener('keydown', function(e) {
+                // F12键
+                if(e.keyCode === 123) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+                if(e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Ctrl+U (查看源代码)
+                if(e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+            
+            // 检测开发者工具打开状态
+            let devToolsStatus = false;
+            let isAuthenticated = false; // 记录用户是否已认证
+            
+            // 监听window.resize事件可能表明开发工具打开
+            window.addEventListener('resize', function() {
+                // 如果开发工具占据了足够的屏幕宽度/高度，可能表示开发工具已打开
+                if((window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) && isAuthenticated) {
+                    if(!devToolsStatus) {
+                        devToolsStatus = true;
+                        // 仅在用户已认证后显示警告
+                        alert('出于安全考虑，禁止使用开发者工具！');
+                    }
+                } else {
+                    devToolsStatus = false;
+                }
+            });
+            
+            // 使用另一种方法检测开发者工具
+            setInterval(function() {
+                const widthThreshold = window.outerWidth - window.innerWidth > 160;
+                const heightThreshold = window.outerHeight - window.innerHeight > 160;
+                
+                // 使用console.devtools属性检测开发者工具
+                let isDevToolOpen = false;
+                
+                const checkDevTool = function() {
+                    if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) {
+                        isDevToolOpen = true;
+                        return true;
+                    }
+                    
+                    const devtools = /./;
+                    devtools.toString = function() {
+                        isDevToolOpen = true;
+                        return '';
+                    };
+                    
+                    console.log('%c', devtools);
+                    
+                    return isDevToolOpen;
+                };
+                
+                if((widthThreshold || heightThreshold || checkDevTool()) && isAuthenticated) {
+                    if(!devToolsStatus) {
+                        devToolsStatus = true;
+                        // 仅在用户已认证后显示警告
+                        alert('出于安全考虑，禁止使用开发者工具！');
+                    }
+                } else {
+                    devToolsStatus = false;
+                }
+                
+                // 使用console.clear()混淆控制台，仅在用户已认证状态下
+                if(devToolsStatus && isAuthenticated) {
+                    console.clear();
+                    console.log("%c⚠️ 安全警告 ⚠️", "color:red; font-size:40px; font-weight:bold");
+                    console.log("%c请不要在此粘贴任何代码，这可能会影响您的账户安全！", "color:red; font-size:20px; font-weight:bold");
+                }
+            }, 1000);
+            
+            // 禁用右键菜单
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // 阻止debugger
+            (function() {
+                let currentTime = new Date().getTime();
+                
+                function debuggerProtection(timeout = 100) {
+                    // 只有在用户认证后才执行debugger保护
+                    if(!isAuthenticated) return;
+                    
+                    if(new Date().getTime() - currentTime > timeout) {
+                        // 如果执行时间超过阈值，表示可能有调试行为
+                        alert('出于安全考虑，禁止使用开发者工具！');
+                        currentTime = new Date().getTime();
+                    }
+                    
+                    debuggerProtection.isDebugging = arguments[0];
+                    debuggerProtection.isDebugging.constructor.constructor("debugger")();
+                }
+                
+                setInterval(function() {
+                    currentTime = new Date().getTime();
+                    try {
+                        // 只有在用户认证后才执行debugger保护
+                        if(isAuthenticated) {
+                            debuggerProtection(100);
+                        }
+                    } catch(err) { }
+                }, 1000);
+            })();
+            
+            // 使用性能API检测
+            (function() {
+                const devToolsChecker = function() {
+                    // 只有在用户认证后才执行检测
+                    if(!isAuthenticated) return;
+                    
+                    const startTime = performance.now();
+                    debugger;
+                    const endTime = performance.now();
+                    
+                    // 如果执行时间超过阈值，可能是开发工具打开状态
+                    if (endTime - startTime > 100) {
+                        alert('出于安全考虑，禁止使用开发者工具！');
+                        window.location.reload(); // 可选：重新加载页面
+                    }
+                };
+                
+                // 间隔检查，但只在认证后启用
+                setInterval(function() {
+                    if(isAuthenticated) {
+                        devToolsChecker();
+                    }
+                }, 1000);
+                
+                // 也可以在用户交互时检查，但只在认证后启用
+                document.addEventListener('click', function() {
+                    if(isAuthenticated) {
+                        setTimeout(devToolsChecker, 500);
+                    }
+                });
+            })();
+            
+            // 禁止复制、选择文本和拖拽功能
+            (function() {
+                // 禁止选择文本
+                document.onselectstart = function() {
+                    const contentNotice = document.getElementById('contentNotice');
+                    if (contentNotice) {
+                        contentNotice.style.opacity = '1';
+                        setTimeout(function() {
+                            contentNotice.style.opacity = '0';
+                        }, 2000);
+                    }
+                    return false;
+                };
+                
+                // 禁止复制
+                document.oncopy = function(e) {
+                    e.preventDefault();
+                    const contentNotice = document.getElementById('contentNotice');
+                    if (contentNotice) {
+                        contentNotice.style.opacity = '1';
+                        setTimeout(function() {
+                            contentNotice.style.opacity = '0';
+                        }, 2000);
+                    }
+                    return false;
+                };
+                
+                // 禁止剪切
+                document.oncut = function(e) {
+                    e.preventDefault();
+                    return false;
+                };
+                
+                // 禁止粘贴
+                document.onpaste = function(e) {
+                    e.preventDefault();
+                    return false;
+                };
+                
+                // 禁止拖拽
+                document.ondragstart = function(e) {
+                    e.preventDefault();
+                    return false;
+                };
+                
+                // 禁止鼠标右键保存图片
+                document.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    const contentNotice = document.getElementById('contentNotice');
+                    if (contentNotice) {
+                        contentNotice.style.opacity = '1';
+                        setTimeout(function() {
+                            contentNotice.style.opacity = '0';
+                        }, 2000);
+                    }
+                    return false;
+                });
+                
+                // 禁止键盘快捷键保存图片 (Ctrl+S)
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 's') {
+                        e.preventDefault();
+                        const contentNotice = document.getElementById('contentNotice');
+                        if (contentNotice) {
+                            contentNotice.style.opacity = '1';
+                            setTimeout(function() {
+                                contentNotice.style.opacity = '0';
+                            }, 2000);
+                        }
+                        return false;
+                    }
+                });
+                
+                // 添加额外的图片保护
+                window.addEventListener('load', function() {
+                    // 为所有图片添加保护
+                    const images = document.querySelectorAll('img');
+                    images.forEach(function(img) {
+                        // 禁止拖拽
+                        img.setAttribute('draggable', 'false');
+                        // 防止右键菜单
+                        img.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            return false;
+                        });
+                        // 添加不可复制属性
+                        img.style.userSelect = 'none';
+                        img.style.webkitUserSelect = 'none';
+                        img.style.mozUserSelect = 'none';
+                        img.style.msUserSelect = 'none';
+                        // 添加水印保护 (可选)
+                        // 这里可以添加动态水印，但会影响图片观看体验
+                    });
+                });
+                
+                // 监听打印事件
+                window.addEventListener('beforeprint', function(e) {
+                    e.preventDefault();
+                    alert('禁止打印页面内容！');
+                    return false;
+                });
+                
+                // 屏幕截图检测
+                document.addEventListener('keyup', function(e) {
+                    // Mac 截图快捷键: Command+Shift+3/4/5
+                    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) {
+                        showScreenshotAlert();
+                    }
+                    // Windows 截图快捷键: Win+Shift+S 或 PrintScreen
+                    if ((e.key === 'PrintScreen' || (e.shiftKey && e.key === 'S' && e.metaKey))) {
+                        showScreenshotAlert();
+                    }
+                });
+            })();
+        })();
+        
         // 使用自定义盐值和多重哈希增强安全性
         function enhancedHash(input) {
             // 自定义盐值（不公开）
@@ -3283,6 +3551,113 @@
         // 添加弹幕点击锁定变量，防止短时间内重复触发点击事件
         let babyGirlClickLock = false;
         let babyBoyClickLock = false;
+
+        // 增强内容保护，禁止复制和保存图片的函数
+        function enhanceContentProtection() {
+            // 禁止文本选择
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.mozUserSelect = 'none';
+            document.body.style.msUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            
+            // 禁止复制功能
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+                const contentNotice = document.getElementById('contentNotice');
+                if (contentNotice) {
+                    contentNotice.style.opacity = '1';
+                    setTimeout(function() {
+                        contentNotice.style.opacity = '0';
+                    }, 2000);
+                }
+                return false;
+            });
+            
+            // 禁止右键菜单
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const contentNotice = document.getElementById('contentNotice');
+                if (contentNotice) {
+                    contentNotice.style.opacity = '1';
+                    setTimeout(function() {
+                        contentNotice.style.opacity = '0';
+                    }, 2000);
+                }
+                return false;
+            });
+            
+            // 禁止拖拽内容
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // 禁止移动设备上的长按操作（通常用于保存图片）
+            document.addEventListener('touchstart', function(e) {
+                // 检查是否点击的是图片
+                if (e.target.tagName.toLowerCase() === 'img') {
+                    e.preventDefault();
+                }
+            }, {passive: false}); // passive: false 允许preventDefault生效
+            
+            // 为所有图片添加保护
+            const applyImageProtection = function() {
+                const images = document.querySelectorAll('img');
+                images.forEach(function(img) {
+                    // 禁止拖拽
+                    img.setAttribute('draggable', 'false');
+                    
+                    // 防止图片被右键保存
+                    img.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        return false;
+                    });
+                    
+                    // 防止选择
+                    img.style.webkitUserSelect = 'none';
+                    img.style.mozUserSelect = 'none';
+                    img.style.msUserSelect = 'none';
+                    img.style.userSelect = 'none';
+                    
+                    // 使用CSS阻止拖拽
+                    img.style.pointerEvents = 'none';
+                });
+            };
+            
+            // 页面加载完成后应用图片保护
+            applyImageProtection();
+            
+            // 在DOM更新时重新应用图片保护（例如加载新内容后）
+            if (window.MutationObserver) {
+                const observer = new MutationObserver(function(mutations) {
+                    applyImageProtection();
+                });
+                
+                // 开始观察DOM变化
+                observer.observe(document.body, { 
+                    childList: true, 
+                    subtree: true 
+                });
+            }
+            
+            // 截图检测 (监听键盘快捷键)
+            document.addEventListener('keydown', function(e) {
+                // Windows: PrintScreen, Alt+PrintScreen 
+                if (e.key === 'PrintScreen' || (e.altKey && e.key === 'PrintScreen')) {
+                    showScreenshotAlert();
+                }
+                
+                // Windows: Win+Shift+S (Windows 10的截图工具)
+                if (e.shiftKey && e.key === 'S' && (e.metaKey || e.ctrlKey)) {
+                    showScreenshotAlert();
+                }
+                
+                // Mac: Command+Shift+3, Command+Shift+4, Command+Shift+5
+                if (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) {
+                    showScreenshotAlert();
+                }
+            });
+        }
 
         function isMobileDevice() {
             return (typeof window.orientation !== "undefined") || 
@@ -3414,6 +3789,9 @@
             initRippleEffect();
             
             startTimeUpdates();
+            
+            // 启用增强内容保护
+            enhanceContentProtection();
         };
 
         function onSuccessfulAuth() {
@@ -3422,7 +3800,6 @@
             // initializeLoveClicks();
         }
 
-        let isAuthenticated = false;
         let passwordAttempts = 0;
         let isLocked = false;
         let lockEndTime = 0;
@@ -3685,10 +4062,8 @@
                                 if (retryCount < maxRetries) {
                                     setTimeout(tryLoadData, 1000 * retryCount);
                                 } else {
-                                    document.getElementById('timeline').innerHTML = 
-                                        '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
-                                        '解密数据失败，快叫宝子看看。<a href="javascript:void(0)" onclick="retryLoad()" ' 
-                                        'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
+                                    // 使用一个完整的字符串而不是拼接多个字符串
+                                    document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">出问题了快叫宝子看看，<a href="javascript:void(0)" onclick="retryLoad()" style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
                                 }
                             });
                     })
@@ -3699,10 +4074,8 @@
                         if (retryCount < maxRetries) {
                             setTimeout(tryLoadData, 1000 * retryCount);
                         } else {
-                            document.getElementById('timeline').innerHTML = 
-                                '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
-                                '无法加载加密数据文件，请检查文件是否存在。<a href="javascript:void(0)" onclick="retryLoad()" ' +
-                                'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
+                            // 使用一个完整的字符串而不是拼接多个字符串
+                            document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">无法加载加密数据文件，请检查文件是否存在。<a href="javascript:void(0)" onclick="retryLoad()" style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
                         }
                     });
             }
@@ -3918,9 +4291,10 @@
             }
         }
 
+        // 重试加载函数
         function retryLoad() {
             document.getElementById('timeline').innerHTML = 
-                '<p style="text-align:center;color:var(--accent-color);padding:20px;">正在重新加载...</p>';
+                '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">正在重新加载数据...</p>';
             loadMemories();
         }
 
