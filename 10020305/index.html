@@ -2674,6 +2674,464 @@
             80% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        /* 添加弹幕样式 - 优化动画效果 */
+        .danmaku {
+            position: fixed;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 999;
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+            animation: danmakuMove 24s linear forwards; /* 增加持续时间，使运动更加平滑 */
+            opacity: 0;
+            user-select: none;
+            transform-origin: center center;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            letter-spacing: 1px;
+            border-radius: 50px;
+            padding: 2px 8px;
+        }
+
+        /* 修改弹幕动画，使其可以完全穿过屏幕边缘，并优化速度均匀性 */
+        @keyframes danmakuMove {
+            0% {
+                opacity: 0;
+                transform: translateX(115vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+            2% {
+                opacity: 1;
+                transform: translateX(110vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            12% {
+                transform: translateX(100vw) translateY(-5px) scale(1.05);
+                filter: blur(0px);
+            }
+            22% {
+                transform: translateX(90vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            32% {
+                transform: translateX(80vw) translateY(5px) scale(0.95);
+                filter: blur(0px);
+            }
+            42% {
+                transform: translateX(70vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            52% {
+                transform: translateX(60vw) translateY(-5px) scale(1.05);
+                filter: blur(0px);
+            }
+            62% {
+                transform: translateX(45vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            72% {
+                transform: translateX(30vw) translateY(5px) scale(0.95);
+                filter: blur(0px);
+            }
+            82% {
+                transform: translateX(15vw) translateY(0) scale(1);
+                opacity: 0.9;
+                filter: blur(0px);
+            }
+            92% {
+                transform: translateX(0vw) translateY(-5px) scale(1.05);
+                opacity: 0.7;
+                filter: blur(0px);
+            }
+            97% {
+                transform: translateX(-10vw) translateY(0) scale(0.9);
+                opacity: 0.4;
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-20vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+        }
+
+        /* 添加额外的弹幕动画变体，增加弹幕动画多样性 */
+        @keyframes danmakuMoveVariant1 {
+            0% {
+                opacity: 0;
+                transform: translateX(115vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+            2% {
+                opacity: 1;
+                transform: translateX(110vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            15% {
+                transform: translateX(95vw) translateY(-15px) scale(1.05);
+                filter: blur(0px);
+            }
+            25% {
+                transform: translateX(85vw) translateY(10px) scale(0.95);
+                filter: blur(0px);
+            }
+            35% {
+                transform: translateX(75vw) translateY(-10px) scale(1);
+                filter: blur(0px);
+            }
+            45% {
+                transform: translateX(65vw) translateY(15px) scale(1.03);
+                filter: blur(0px);
+            }
+            55% {
+                transform: translateX(50vw) translateY(-5px) scale(0.97);
+                filter: blur(0px);
+            }
+            65% {
+                transform: translateX(40vw) translateY(10px) scale(1);
+                filter: blur(0px);
+            }
+            75% {
+                transform: translateX(30vw) translateY(-15px) scale(1.05);
+                filter: blur(0px);
+            }
+            85% {
+                transform: translateX(15vw) translateY(5px) scale(0.98);
+                opacity: 0.8;
+                filter: blur(0px);
+            }
+            95% {
+                transform: translateX(-10vw) translateY(-5px) scale(0.9);
+                opacity: 0.4;
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-20vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes danmakuMoveVariant2 {
+            0% {
+                opacity: 0;
+                transform: translateX(115vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+            2% {
+                opacity: 1;
+                transform: translateX(110vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            20% {
+                transform: translateX(90vw) translateY(20px) scale(1.08);
+                filter: blur(0px);
+            }
+            35% {
+                transform: translateX(75vw) translateY(-15px) scale(0.92);
+                filter: blur(0px);
+            }
+            50% {
+                transform: translateX(60vw) translateY(0) scale(1.05);
+                filter: blur(0px);
+            }
+            65% {
+                transform: translateX(45vw) translateY(15px) scale(0.95);
+                filter: blur(0px);
+            }
+            80% {
+                transform: translateX(25vw) translateY(-20px) scale(1.02);
+                opacity: 0.9;
+                filter: blur(0px);
+            }
+            90% {
+                transform: translateX(10vw) translateY(0) scale(0.95);
+                opacity: 0.7;
+                filter: blur(0px);
+            }
+            95% {
+                transform: translateX(-5vw) translateY(0) scale(0.9);
+                opacity: 0.4;
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-20vw) translateY(5px) scale(0.8);
+                filter: blur(0px);
+            }
+        }
+
+        /* 为移动设备优化弹幕样式 */
+        @media screen and (max-width: 768px) {
+            .danmaku {
+                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+                letter-spacing: 0.5px;
+                border-radius: 30px;
+                padding: 1px 6px;
+                /* 增加对比度和可读性 */
+                font-weight: 700;
+                /* 移动端弹幕宽度限制，避免太长 */
+                max-width: 90vw;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                /* 移动端加长动画时间，使移动更平滑 */
+                animation-duration: 22s !important;
+            }
+            
+            /* 简化移动端动画，去除模糊效果，保持线性平滑运动 */
+            @keyframes danmakuMove {
+                0% {
+                    opacity: 0;
+                    transform: translateX(110vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+                5% {
+                    opacity: 1;
+                    transform: translateX(105vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                15% {
+                    transform: translateX(90vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                30% {
+                    transform: translateX(75vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                45% {
+                    transform: translateX(60vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                60% {
+                    transform: translateX(45vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                75% {
+                    transform: translateX(30vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                85% {
+                    transform: translateX(15vw) translateY(0) scale(1);
+                    opacity: 0.9;
+                    filter: blur(0px);
+                }
+                95% {
+                    transform: translateX(-5vw) translateY(0) scale(0.95);
+                    opacity: 0.5;
+                    filter: blur(0px);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateX(-20vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+            }
+            
+            /* 简化移动端的动画变体1，确保流畅性，添加微小垂直位移 */
+            @keyframes danmakuMoveVariant1 {
+                0% {
+                    opacity: 0;
+                    transform: translateX(110vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+                5% {
+                    opacity: 1;
+                    transform: translateX(105vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                15% {
+                    transform: translateX(90vw) translateY(-3px) scale(1);
+                    filter: blur(0px);
+                }
+                30% {
+                    transform: translateX(75vw) translateY(3px) scale(1);
+                    filter: blur(0px);
+                }
+                45% {
+                    transform: translateX(60vw) translateY(-3px) scale(1);
+                    filter: blur(0px);
+                }
+                60% {
+                    transform: translateX(45vw) translateY(3px) scale(1);
+                    filter: blur(0px);
+                }
+                75% {
+                    transform: translateX(30vw) translateY(-3px) scale(1);
+                    filter: blur(0px);
+                }
+                85% {
+                    transform: translateX(15vw) translateY(0) scale(1);
+                    opacity: 0.9;
+                    filter: blur(0px);
+                }
+                95% {
+                    transform: translateX(-5vw) translateY(0) scale(0.95);
+                    opacity: 0.5;
+                    filter: blur(0px);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateX(-20vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+            }
+            
+            /* 简化移动端的动画变体2，确保流畅性，添加微小垂直位移 */
+            @keyframes danmakuMoveVariant2 {
+                0% {
+                    opacity: 0;
+                    transform: translateX(110vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+                5% {
+                    opacity: 1;
+                    transform: translateX(105vw) translateY(0) scale(1);
+                    filter: blur(0px);
+                }
+                15% {
+                    transform: translateX(90vw) translateY(3px) scale(1);
+                    filter: blur(0px);
+                }
+                30% {
+                    transform: translateX(75vw) translateY(-3px) scale(1);
+                    filter: blur(0px);
+                }
+                45% {
+                    transform: translateX(60vw) translateY(3px) scale(1);
+                    filter: blur(0px);
+                }
+                60% {
+                    transform: translateX(45vw) translateY(-3px) scale(1);
+                    filter: blur(0px);
+                }
+                75% {
+                    transform: translateX(30vw) translateY(3px) scale(1);
+                    filter: blur(0px);
+                }
+                85% {
+                    transform: translateX(15vw) translateY(0) scale(1);
+                    opacity: 0.9;
+                    filter: blur(0px);
+                }
+                95% {
+                    transform: translateX(-5vw) translateY(0) scale(0.95);
+                    opacity: 0.5;
+                    filter: blur(0px);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateX(-20vw) translateY(0) scale(0.9);
+                    filter: blur(0px);
+                }
+            }
+            
+            /* 小屏幕(如iPhone SE)额外优化 */
+            @media screen and (max-width: 375px) {
+                .danmaku {
+                    font-size: 14px !important;
+                    letter-spacing: 0.3px;
+                    padding: 1px 5px;
+                    animation-duration: 20s !important;
+                }
+            }
+        }
+
+        /* 添加闪烁和脉动特效 */
+        @keyframes sparkle {
+            0% {
+                filter: brightness(1) drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+            }
+            20% {
+                filter: brightness(1.1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+            }
+            40% {
+                filter: brightness(1) drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+            }
+            60% {
+                filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+            }
+            80% {
+                filter: brightness(1.05) drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+            }
+            100% {
+                filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 增加第三种全新的弹幕动画变体 - 起伏波浪式 */
+        @keyframes danmakuMoveVariant3 {
+            0% {
+                opacity: 0;
+                transform: translateX(115vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+            2% {
+                opacity: 1;
+                transform: translateX(110vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            10% {
+                transform: translateX(100vw) translateY(0) scale(1);
+                filter: blur(0px);
+            }
+            20% {
+                transform: translateX(90vw) translateY(10px) scale(1.02);
+                filter: blur(0px);
+            }
+            30% {
+                transform: translateX(80vw) translateY(15px) scale(1);
+                filter: blur(0px);
+            }
+            40% {
+                transform: translateX(70vw) translateY(5px) scale(0.98);
+                filter: blur(0px);
+            }
+            50% {
+                transform: translateX(60vw) translateY(-10px) scale(1);
+                filter: blur(0px);
+            }
+            60% {
+                transform: translateX(45vw) translateY(-15px) scale(1.02);
+                filter: blur(0px);
+            }
+            70% {
+                transform: translateX(35vw) translateY(-5px) scale(1);
+                filter: blur(0px);
+            }
+            80% {
+                transform: translateX(25vw) translateY(10px) scale(0.98);
+                opacity: 0.9;
+                filter: blur(0px);
+            }
+            90% {
+                transform: translateX(10vw) translateY(0) scale(1);
+                opacity: 0.7;
+                filter: blur(0px);
+            }
+            95% {
+                transform: translateX(-5vw) translateY(-5px) scale(0.9);
+                opacity: 0.4;
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-20vw) translateY(0) scale(0.8);
+                filter: blur(0px);
+            }
+        }
     </style>
 </head>
 
@@ -2822,6 +3280,10 @@
         let babyGirlClickCount = 0;
         let babyBoyClickCount = 0;
 
+        // 添加弹幕点击锁定变量，防止短时间内重复触发点击事件
+        let babyGirlClickLock = false;
+        let babyBoyClickLock = false;
+
         function isMobileDevice() {
             return (typeof window.orientation !== "undefined") || 
                    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
@@ -2937,6 +3399,9 @@
                 }
             });
             
+            // 只在页面加载时注册一次点击事件，避免重复
+            initializeLoveClicks();
+            
             const passwordInput = document.getElementById('passwordInput');
             
             document.addEventListener('contextmenu', function (e) {
@@ -2953,65 +3418,8 @@
 
         function onSuccessfulAuth() {
             loadMemories();
-            // 初始化爱的点击事件
-            initializeLoveClicks();
-        }
-
-        function initRippleEffect() {
-            document.addEventListener('click', function(e) {
-                const contentElement = e.target.closest('.content');
-                
-                if (contentElement) {
-                    const ripple = document.createElement('div');
-                    ripple.className = 'ripple';
-                    contentElement.appendChild(ripple);
-                    
-                    const rect = contentElement.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height) * 2;
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.width = ripple.style.height = `${size}px`;
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    ripple.classList.add('active');
-                    
-                    if (window.navigator && window.navigator.vibrate) {
-                        window.navigator.vibrate(50);
-                    }
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                }
-            });
-        }
-
-        function createParticles() {
-            const container = document.getElementById('rose-petals-container');
-            if (!container) return;
-            
-            for (let i = 0; i < 15; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                const size = Math.random() * 60 + 20;
-                const posX = Math.random() * window.innerWidth;
-                const posY = Math.random() * window.innerHeight;
-                const animDuration = Math.random() * 30 + 10;
-                const animDelay = Math.random() * 5;
-                
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                particle.style.left = `${posX}px`;
-                particle.style.top = `${posY}px`;
-                particle.style.opacity = Math.random() * 0.2 + 0.1;
-                particle.style.animationDuration = `${animDuration}s`;
-                particle.style.animationDelay = `-${animDelay}s`;
-                
-                container.appendChild(particle);
-            }
+            // 注释掉这一行，因为我们在页面加载时已经调用了
+            // initializeLoveClicks();
         }
 
         let isAuthenticated = false;
@@ -3159,8 +3567,8 @@
             // 开始时间更新
             startTimeUpdates();
             
-            // 初始化爱的点击
-            initializeLoveClicks();
+            // 移除这里的初始化调用，统一在onSuccessfulAuth()函数中调用
+            // initializeLoveClicks();
             
             localStorage.setItem('authenticated', 'true');
             
@@ -3272,7 +3680,6 @@
                                 setTimeout(disableSaveImage, 500);
                             })
                             .catch(error => {
-                                console.error('解密数据失败:', error);
                                 retryCount++;
                                 
                                 if (retryCount < maxRetries) {
@@ -3280,7 +3687,7 @@
                                 } else {
                                     document.getElementById('timeline').innerHTML = 
                                         '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">' +
-                                        '解密数据失败，可能是因为密码不匹配或数据格式错误。<a href="javascript:void(0)" onclick="retryLoad()" ' +
+                                        '解密数据失败，快叫宝子看看。<a href="javascript:void(0)" onclick="retryLoad()" ' 
                                         'style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
                                 }
                             });
@@ -3311,12 +3718,51 @@
                 
                 for (let i = 0; i < encryptedChunks.length; i++) {
                     try {
-                        // 从Base64解码
+                        // 从Base64解码 - 使用更兼容的方法
                         const base64String = encryptedChunks[i];
-                        const binary = atob(base64String);
-                        const encryptedBuffer = new Uint8Array(binary.length);
-                        for (let j = 0; j < binary.length; j++) {
-                            encryptedBuffer[j] = binary.charCodeAt(j);
+                        let encryptedBuffer;
+                        
+                        try {
+                            // 方法1: 使用标准atob
+                            const binary = atob(base64String);
+                            encryptedBuffer = new Uint8Array(binary.length);
+                            for (let j = 0; j < binary.length; j++) {
+                                encryptedBuffer[j] = binary.charCodeAt(j);
+                            }
+                        } catch (e) {
+                            // 方法2: 兼容方法 - 适用于某些移动设备
+                            console.log("尝试使用替代Base64解码方法");
+                            // 定义Base64解码的替代方法
+                            const b64ToUint6 = (nChr) => {
+                                return nChr > 64 && nChr < 91 ? nChr - 65
+                                    : nChr > 96 && nChr < 123 ? nChr - 71
+                                    : nChr > 47 && nChr < 58 ? nChr + 4
+                                    : nChr === 43 ? 62
+                                    : nChr === 47 ? 63
+                                    : 0;
+                            };
+                            
+                            const base64DecToArr = (sBase64, nBlocksSize) => {
+                                const sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+                                const nInLen = sB64Enc.length;
+                                const nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
+                                const taBytes = new Uint8Array(nOutLen);
+                                
+                                let nMod3, nMod4, nUint24 = 0, nOutIdx = 0;
+                                for (let nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+                                    nMod4 = nInIdx & 3;
+                                    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 6 * (3 - nMod4);
+                                    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+                                        for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                                            taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+                                        }
+                                        nUint24 = 0;
+                                    }
+                                }
+                                return taBytes;
+                            };
+                            
+                            encryptedBuffer = base64DecToArr(base64String, 1);
                         }
                         
                         // 提取IV (前16字节)
@@ -3353,35 +3799,96 @@
                             ["decrypt"]
                         );
                         
-                        // 尝试两种方式解密，增强兼容性
-                        let decrypted;
+                        // 尝试多种方式解密，增强兼容性
+                        let decrypted = null;
+                        const decryptMethods = [
+                            // 方法1: 直接使用encrypted数据
+                            async () => {
+                                console.log("尝试解密方法1");
+                                return await crypto.subtle.decrypt(
+                                    {
+                                        name: "AES-GCM",
+                                        iv: iv,
+                                        tagLength: 128 // 16 bytes
+                                    },
+                                    key,
+                                    encrypted
+                                );
+                            },
+                            // 方法2: 将认证标签附加到加密数据
+                            async () => {
+                                console.log("尝试解密方法2");
+                                const ciphertextWithTag = new Uint8Array(encrypted.length + authTag.length);
+                                ciphertextWithTag.set(encrypted, 0);
+                                ciphertextWithTag.set(authTag, encrypted.length);
+                                
+                                return await crypto.subtle.decrypt(
+                                    {
+                                        name: "AES-GCM",
+                                        iv: iv,
+                                        tagLength: 128 // 16 bytes
+                                    },
+                                    key,
+                                    ciphertextWithTag
+                                );
+                            },
+                            // 方法3: 以不同方式合并标签 - 适用于某些移动浏览器
+                            async () => {
+                                console.log("尝试解密方法3");
+                                const combined = new Uint8Array(iv.length + encrypted.length + authTag.length);
+                                combined.set(iv, 0);
+                                combined.set(encrypted, iv.length);
+                                combined.set(authTag, iv.length + encrypted.length);
+                                
+                                return await crypto.subtle.decrypt(
+                                    {
+                                        name: "AES-GCM",
+                                        iv: iv,
+                                        tagLength: 128 // 16 bytes
+                                    },
+                                    key,
+                                    combined.slice(iv.length)
+                                );
+                            },
+                            // 方法4: 移动设备特殊处理
+                            async () => {
+                                console.log("尝试解密方法4 - 移动设备特殊处理");
+                                // 检测是否为移动设备
+                                if (isMobileDevice()) {
+                                    // 一些移动浏览器可能需要不同的标签处理方式
+                                    const combinedData = new Uint8Array(encrypted.length + authTag.length);
+                                    // 先放加密数据，再放标签（与方法2相反顺序）
+                                    combinedData.set(authTag, 0);
+                                    combinedData.set(encrypted, authTag.length);
+                                    
+                                    return await crypto.subtle.decrypt(
+                                        {
+                                            name: "AES-GCM",
+                                            iv: iv,
+                                            tagLength: 128 // 16 bytes
+                                        },
+                                        key,
+                                        combinedData
+                                    );
+                                }
+                                throw new Error("不是移动设备，跳过方法4");
+                            }
+                        ];
                         
-                        try {
-                            // 方式1: 直接使用encrypted数据
-                            decrypted = await crypto.subtle.decrypt(
-                                {
-                                    name: "AES-GCM",
-                                    iv: iv,
-                                    tagLength: 128 // 16 bytes
-                                },
-                                key,
-                                encrypted
-                            );
-                        } catch(err) {
-                            // 方式2: 将认证标签附加到加密数据
-                            const ciphertextWithTag = new Uint8Array(encrypted.length + authTag.length);
-                            ciphertextWithTag.set(encrypted, 0);
-                            ciphertextWithTag.set(authTag, encrypted.length);
-                            
-                            decrypted = await crypto.subtle.decrypt(
-                                {
-                                    name: "AES-GCM",
-                                    iv: iv,
-                                    tagLength: 128 // 16 bytes
-                                },
-                                key,
-                                ciphertextWithTag
-                            );
+                        // 依次尝试所有解密方法，直到成功
+                        for (const method of decryptMethods) {
+                            try {
+                                decrypted = await method();
+                                if (decrypted) break; // 如果成功解密，跳出循环
+                            } catch (err) {
+                                console.log("解密方法失败:", err.message);
+                                // 继续尝试下一种方法
+                            }
+                        }
+                        
+                        // 如果所有方法都失败
+                        if (!decrypted) {
+                            throw new Error("所有解密方法都失败");
                         }
                         
                         // 转换为字符串
@@ -5253,19 +5760,38 @@
         function initializeLoveClicks() {
             const babyGirl = document.getElementById('babyGirl');
             const babyBoy = document.getElementById('babyBoy');
-            const loveMessage = document.getElementById('loveMessage');
             
             if (babyGirl) {
                 babyGirl.addEventListener('click', function() {
-                    babyGirlClickCount++;
-                    showLoveMessage('babyGirl');
+                    // 检查锁定状态，防止短时间内重复触发
+                    if (babyGirlClickLock) return;
+                    
+                    // 设置锁定，0.2秒后解锁，允许更频繁点击
+                    babyGirlClickLock = true;
+                    setTimeout(() => { babyGirlClickLock = false; }, 200);
+                    
+                    // 每次点击只发送一条弹幕
+                    // 随机选择一条弹幕文字
+                    const randomIndex = Math.floor(Math.random() * girlLovePhrases.length);
+                    const text = girlLovePhrases[randomIndex];
+                    createDanmaku(text, true);
                 });
             }
             
             if (babyBoy) {
                 babyBoy.addEventListener('click', function() {
-                    babyBoyClickCount++;
-                    showLoveMessage('babyBoy');
+                    // 检查锁定状态，防止短时间内重复触发
+                    if (babyBoyClickLock) return;
+                    
+                    // 设置锁定，0.2秒后解锁，允许更频繁点击
+                    babyBoyClickLock = true;
+                    setTimeout(() => { babyBoyClickLock = false; }, 200);
+                    
+                    // 每次点击只发送一条弹幕
+                    // 随机选择一条弹幕文字
+                    const randomIndex = Math.floor(Math.random() * boyLovePhrases.length);
+                    const text = boyLovePhrases[randomIndex];
+                    createDanmaku(text, false);
                 });
             }
         }
@@ -5274,30 +5800,229 @@
         function showLoveMessage(target) {
             const loveMessage = document.getElementById('loveMessage');
             let message = '';
-            let displayCount = 0;
             
             if (target === 'babyGirl') {
-                // 显示的计数值从1开始，所以加1显示
-                displayCount = babyGirlClickCount + 1;
-                message = displayCount >= 9 ? `宝儿我真的爱你 (${displayCount})` : `宝儿我爱你 (${displayCount})`;
+                // 移除计数显示，只显示固定文本
+                message = '宝儿我爱你';
             } else if (target === 'babyBoy') {
-                // 显示的计数值从1开始，所以加1显示
-                displayCount = babyBoyClickCount + 1;
-                message = displayCount >= 9 ? `宝子我真的爱你 (${displayCount})` : `宝子我爱你 (${displayCount})`;
+                // 移除计数显示，只显示固定文本
+                message = '宝子我爱你';
             }
             
             loveMessage.textContent = message;
             loveMessage.style.display = 'block';
             loveMessage.style.opacity = '1';
             
-            // 3秒后隐藏消息
+            // 1.5秒后隐藏消息
             setTimeout(function() {
-                loveMessage.style.animation = 'fadeOut 1s forwards';
+                loveMessage.style.animation = 'fadeOut 0.5s forwards';
                 setTimeout(function() {
                     loveMessage.style.display = 'none';
                     loveMessage.style.animation = 'pulse 2s infinite';
-                }, 1000);
-            }, 2000);
+                }, 500);
+            }, 1000);
+        }
+
+        // 弹幕文字库
+        const girlLovePhrases = [
+            "宝儿我爱你",
+            "宝儿我真的爱你",
+            "宝儿你真漂亮",
+            "宝儿我想你了",
+            "宝儿你是我的唯一",
+            "宝儿抱抱我",
+            "想和宝儿一直在一起",
+            "宝儿你是最棒的",
+            "宝儿我永远爱你",
+            "宝儿我们一起去旅行吧",
+            "宝儿笑起来真好看",
+            "宝儿是我的小可爱",
+            "宝儿让我感到幸福",
+            "有宝儿的日子都是晴天",
+            "宝儿我好想你",
+            "宝儿是我的小心肝",
+            "宝儿是我的林黛玉",
+            "宝儿是我的林妹妹",
+            "宝儿是我的小仙女",
+            "宝儿是我的小宝贝"
+        ];
+
+        const boyLovePhrases = [
+            "宝子我爱你",
+            "宝子我真的爱你",
+            "宝子你真帅气",
+            "宝子我想你了",
+            "宝子你是我的唯一",
+            "宝子抱抱我",
+            "想和宝子一直在一起",
+            "宝子你是最棒的",
+            "宝子我永远爱你",
+            "宝子我们一起去旅行吧",
+            "宝子笑起来真好看",
+            "宝子是我的大可爱",
+            "宝子让我感到幸福",
+            "有宝子的日子都是晴天",
+            "宝子我好想你",
+            "宝子是我的心肝宝贝"
+        ];
+
+        // 创建弹幕的函数
+        function createDanmaku(text, isGirl) {
+            const danmaku = document.createElement('div');
+            danmaku.className = 'danmaku';
+            danmaku.textContent = text;
+            
+            // 检测是否为移动设备
+            const isMobile = window.innerWidth <= 768;
+            
+            // 根据设备类型设置不同的字体大小范围
+            let fontSize;
+            if (isMobile) {
+                // 移动设备字体更小 (14px-22px)
+                fontSize = Math.floor(Math.random() * 8) + 14;
+            } else {
+                // 桌面设备字体更大 (18px-30px)，略微增大字体范围
+                fontSize = Math.floor(Math.random() * 12) + 18;
+            }
+            danmaku.style.fontSize = `${fontSize}px`;
+            
+            // 随机垂直位置 (5%-95%)
+            const top = Math.floor(Math.random() * 90) + 5;
+            danmaku.style.top = `${top}%`;
+            
+            // 根据设备调整动画速度
+            const durationBase = isMobile ? 10 : 15; // 移动端基础速度更快
+            const durationRange = isMobile ? 8 : 15; // 移动端变化范围更小
+            const duration = Math.floor(Math.random() * durationRange) + durationBase;
+            danmaku.style.animationDuration = `${duration}s`;
+            
+            // 随机透明度 (0.85-1.0)，增强可见度
+            const baseOpacity = 0.85 + Math.random() * 0.15;
+            
+            // 随机动画延迟 (0-1s)
+            const delay = Math.random();
+            danmaku.style.animationDelay = `${delay}s`;
+            
+            // 随机选择动画变体 - 添加第三种变体
+            const animationVariants = ['', 'Variant1', 'Variant2', 'Variant3'];
+            const animationVariant = animationVariants[Math.floor(Math.random() * animationVariants.length)];
+            if (animationVariant) {
+                danmaku.style.animationName = `danmakuMove${animationVariant}`;
+            }
+            
+            // 根据不同角色设置不同的颜色和特效
+            if (isGirl) {
+                // 女孩粉色系，增加更多色彩变化
+                const pinkHue1 = Math.floor(Math.random() * 25) + 330; // 330-355
+                const pinkHue2 = Math.floor(Math.random() * 20) + 350; // 350-370
+                
+                // 移动设备使用更浅的背景色和细一点的阴影
+                if (isMobile) {
+                    danmaku.style.background = `linear-gradient(135deg, hsla(${pinkHue1}, 100%, 80%, ${baseOpacity}), hsla(${pinkHue2}, 100%, 70%, ${baseOpacity}))`;
+                    danmaku.style.boxShadow = `0 1px 5px rgba(255, 105, 180, 0.4)`;
+                    // 减小内边距
+                    danmaku.style.padding = `1px 6px`;
+                } else {
+                    // PC端增强视觉效果
+                    danmaku.style.background = `linear-gradient(135deg, hsla(${pinkHue1}, 100%, 75%, ${baseOpacity}), hsla(${pinkHue2}, 100%, 65%, ${baseOpacity}))`;
+                    danmaku.style.boxShadow = `0 2px 12px rgba(255, 105, 180, 0.5)`;
+                    // 随机添加轻微边框效果
+                    if (Math.random() < 0.3) {
+                        danmaku.style.border = `1px solid rgba(255, 255, 255, 0.3)`;
+                    }
+                }
+                danmaku.style.color = 'white';
+                
+                // 移动端降低特效概率，PC端增强特效
+                if (!isMobile && Math.random() < 0.25) {
+                    danmaku.style.animation = `${danmaku.style.animation}, sparkle 2s infinite alternate`;
+                    // 增加文字描边效果
+                    danmaku.style.textShadow = `0 0 1px #fff, 0 0 2px #fff, 0 0 3px #ff3c7d, 0 0 4px #ff3c7d`;
+                }
+            } else {
+                // 男孩蓝色系，增加更多色彩变化
+                const blueHue1 = Math.floor(Math.random() * 25) + 200; // 200-225
+                const blueHue2 = Math.floor(Math.random() * 20) + 220; // 220-240
+                
+                // 移动设备使用更浅的背景色和细一点的阴影
+                if (isMobile) {
+                    danmaku.style.background = `linear-gradient(135deg, hsla(${blueHue1}, 100%, 80%, ${baseOpacity}), hsla(${blueHue2}, 100%, 70%, ${baseOpacity}))`;
+                    danmaku.style.boxShadow = `0 1px 5px rgba(0, 105, 255, 0.4)`;
+                    // 减小内边距
+                    danmaku.style.padding = `1px 6px`;
+                } else {
+                    // PC端增强视觉效果
+                    danmaku.style.background = `linear-gradient(135deg, hsla(${blueHue1}, 100%, 75%, ${baseOpacity}), hsla(${blueHue2}, 100%, 65%, ${baseOpacity}))`;
+                    danmaku.style.boxShadow = `0 2px 12px rgba(0, 105, 255, 0.5)`;
+                    // 随机添加轻微边框效果
+                    if (Math.random() < 0.3) {
+                        danmaku.style.border = `1px solid rgba(255, 255, 255, 0.3)`;
+                    }
+                }
+                danmaku.style.color = 'white';
+                
+                // 移动端降低特效概率，PC端增强特效
+                if (!isMobile && Math.random() < 0.25) {
+                    danmaku.style.animation = `${danmaku.style.animation}, pulse 2s infinite alternate`;
+                    // 增加文字描边效果
+                    danmaku.style.textShadow = `0 0 1px #fff, 0 0 2px #fff, 0 0 3px #4287f5, 0 0 4px #4287f5`;
+                }
+            }
+            
+            // 移动端降低表情符号添加概率，PC端增加
+            const emojiProbability = isMobile ? 0.05 : 0.2;
+            if (Math.random() < emojiProbability) {
+                const emojiList = isGirl ? 
+                    ['💖', '💕', '💗', '💓', '💞', '❤️', '😘', '🥰', '✨', '🌸'] : 
+                    ['💙', '💯', '✨', '🔥', '👑', '⭐', '🌟', '😎', '🚀', '💪'];
+                const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+                danmaku.textContent = `${danmaku.textContent} ${emoji}`;
+            }
+            
+            document.body.appendChild(danmaku);
+            
+            // 动画结束后移除元素
+            danmaku.addEventListener('animationend', function() {
+                if (danmaku.parentNode) {
+                    document.body.removeChild(danmaku);
+                }
+            });
+        }
+
+        function initRippleEffect() {
+            // 为卡片添加波纹效果
+            document.addEventListener('click', function(e) {
+                // 查找最近的内容卡片元素
+                const content = e.target.closest('.content');
+                if (content) {
+                    // 创建波纹元素
+                    const ripple = document.createElement('div');
+                    ripple.className = 'ripple';
+                    
+                    // 计算点击位置相对于卡片的坐标
+                    const rect = content.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // 设置波纹直径，取卡片宽高的较大值的2.5倍
+                    const size = Math.max(rect.width, rect.height) * 2.5;
+                    
+                    // 设置波纹样式
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x - size / 2}px`;
+                    ripple.style.top = `${y - size / 2}px`;
+                    
+                    // 添加到卡片中
+                    content.appendChild(ripple);
+                    
+                    // 动画结束后移除波纹元素
+                    setTimeout(() => {
+                        if (ripple.parentNode) {
+                            ripple.parentNode.removeChild(ripple);
+                        }
+                    }, 600); // 波纹动画持续500ms，稍微延长一些以确保完全消失
+                }
+            });
         }
     </script>
 </body>
