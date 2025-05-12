@@ -1,0 +1,55 @@
+User-agent: *
+Allow: /
+Disallow: /10020305/
+
+# 禁止所有爬虫爬取该页面
+User-agent: Googlebot
+Disallow: /10020305/
+
+User-agent: Baiduspider
+Disallow: /10020305/
+
+User-agent: Sogou web spider
+Disallow: /10020305/
+
+User-agent: Sogou inst spider
+Disallow: /10020305/
+
+User-agent: Sogou spider2
+Disallow: /10020305/
+
+User-agent: Sogou blog
+Disallow: /10020305/
+
+User-agent: Sogou News Spider
+Disallow: /10020305/
+
+User-agent: Sogou Orion spider
+Disallow: /10020305/
+
+User-agent: YoudaoBot
+Disallow: /10020305/
+
+User-agent: Sosospider
+Disallow: /10020305/
+
+User-agent: 360Spider
+Disallow: /10020305/
+
+User-agent: Yahoo! Slurp
+Disallow: /10020305/
+
+User-agent: Bingbot
+Disallow: /10020305/
+
+User-agent: msnbot
+Disallow: /10020305/
+
+User-agent: YisouSpider
+Disallow: /10020305/
+
+User-agent: bytespider
+Disallow: /10020305/
+
+User-agent: *
+Sitemap: https://junly.top/sitemap.xml 
