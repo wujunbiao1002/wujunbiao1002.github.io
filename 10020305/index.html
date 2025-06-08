@@ -3147,7 +3147,7 @@
         <header>
             <h1><span id="babyGirl" class="love-name">宝儿</span>和<span id="babyBoy" class="love-name">宝子</span>的时光轴</h1>
             <div class="time-display">
-                <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div>
+                <div class="current-time" id="currentTime">加载中... 我们还在么</div>
                 <div class="time-counter" id="timeCounter">自我们相识的瞬间<br>已经在计算中...</div>
             </div>
             <div class="date-indicator" id="timeDisplay">
@@ -3207,7 +3207,7 @@
 
     <div class="password-modal" id="passwordModal">
         <div class="password-content">
-            <h2>爱的开始</h2>
+            <h2>爱的秘密基地</h2>
             <input type="password" class="password-input" id="passwordInput" placeholder="请输入……">
             <button class="password-button" onclick="checkPasswordAndVerify()">爱你😘</button>
             <p class="error-message" id="errorMessage">再想想。</p>
@@ -3723,7 +3723,7 @@
                 const timeCounterElement = document.getElementById('timeCounter');
                 
                 if(currentTimeElement) {
-                    currentTimeElement.textContent = "幸运 " + formattedDate + ' 我们还在';
+                    currentTimeElement.textContent = formattedDate + ' 我们还在么';
                 }
                 
                 if(timeCounterElement) {
@@ -4051,7 +4051,7 @@
                                     setTimeout(tryLoadData, 1000 * retryCount);
                                 } else {
                                     // 使用一个完整的字符串而不是拼接多个字符串
-                                    document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">出问题了快叫宝子看看，<a href="javascript:void(0)" onclick="retryLoad()" style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
+                                    document.getElementById('timeline').innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">出问题了快叫宝子，<a href="javascript:void(0)" onclick="retryLoad()" style="color:var(--accent-color);text-decoration:underline;">点击重试</a></p>';
                                 }
                             });
                     })
