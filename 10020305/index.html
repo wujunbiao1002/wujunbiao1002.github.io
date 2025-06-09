@@ -19,10 +19,10 @@
     <audio id="bgMusic" loop>
         <source src="/assets/music/G.E.M.邓紫棋-唯一.mp3" type="audio/mpeg">
     </audio>
-    
+
     <!-- 添加favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💖</text></svg>">
-    
+
     <style>
         :root {
             --primary-color: #ff9fb2;
@@ -33,56 +33,56 @@
             --shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
             --pink-gradient: linear-gradient(45deg, #ff9fb2, #ff5c8d);
             --light-pink-bg: rgba(255, 159, 178, 0.15);
-            
+
             /* 字体大小变量 */
             --h1-size-pc: 2.4rem;
             --h1-size-tablet: 2.1rem;
             --h1-size-mobile: 1.8rem;
-            
+
             --subtitle-size-pc: 1.4rem;
             --subtitle-size-tablet: 1.25rem;
             --subtitle-size-mobile: 1.15rem;
-            
+
             --time-size-pc: 1.05rem;
             --time-size-tablet: 0.95rem;
             --time-size-mobile: 0.9rem;
-            
+
             --title-size-pc: 1.3rem;
             --title-size-tablet: 1.2rem;
             --title-size-mobile: 1.1rem;
-            
+
             --text-size-pc: 1.05rem;
             --text-size-tablet: 1rem;
             --text-size-mobile: 0.95rem;
-            
+
             --date-size-pc: 1.05rem;
             --date-size-tablet: 0.95rem;
             --date-size-mobile: 0.9rem;
-            
+
             --button-size-pc: 1rem;
             --button-size-tablet: 0.95rem;
             --button-size-mobile: 0.9rem;
-            
+
             --footer-size-pc: 1.05rem;
             --footer-size-tablet: 1rem;
             --footer-size-mobile: 0.95rem;
-            
+
             --modal-counter-pc: 0.9rem;
             --modal-counter-tablet: 0.85rem;
             --modal-counter-mobile: 0.8rem;
-            
+
             --password-title-pc: 2rem;
             --password-title-tablet: 1.8rem;
             --password-title-mobile: 1.6rem;
-            
+
             --password-input-pc: 1rem;
             --password-input-tablet: 0.95rem;
             --password-input-mobile: 0.9rem;
-            
+
             --notice-size-pc: 0.85rem;
             --notice-size-tablet: 0.8rem;
             --notice-size-mobile: 0.75rem;
-            
+
             --line-height-pc: 1.7;
             --line-height-tablet: 1.65;
             --line-height-mobile: 1.6;
@@ -138,7 +138,7 @@
             margin: 0 auto;
             padding: 20px;
             display: none;
-            margin-bottom: 5px; 
+            margin-bottom: 5px;
         }
 
         header {
@@ -152,7 +152,7 @@
             overflow: hidden;
             position: relative;
             backdrop-filter: blur(5px);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(255, 159, 178, 0.05) 0%, transparent 20%),
                 radial-gradient(circle at 90% 80%, rgba(255, 159, 178, 0.07) 0%, transparent 20%),
                 linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 248, 0.9) 100%);
@@ -167,7 +167,7 @@
             height: 8px;  /* 增加顶部渐变条高度 */
             background: var(--pink-gradient);
         }
-        
+
         header::after {
             content: '❤';
             position: absolute;
@@ -177,7 +177,7 @@
             color: rgba(255, 92, 141, 0.4);  /* 增加透明度 */
             animation: heartBeat 2s infinite;
         }
-        
+
         @keyframes heartBeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -203,7 +203,7 @@
             display: inline-block;
             padding: 0 10px;  /* 增加左右内边距 */
         }
-        
+
         header h1::before,
         header h1::after {
             content: '✨';
@@ -213,22 +213,22 @@
             font-size: 1.2rem;  /* 增大装饰元素尺寸 */
             opacity: 0.8;  /* 增加不透明度 */
         }
-        
+
         header h1::before {
             left: -30px;  /* 增加距离 */
             animation: sparkle 3s ease-in-out infinite;
         }
-        
+
         header h1::after {
             right: -30px;  /* 增加距离 */
             animation: sparkle 3s ease-in-out infinite 1.5s;
         }
-        
+
         @keyframes sparkle {
             0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(0.9); }
             50% { opacity: 1; transform: translateY(-50%) scale(1.1); }
         }
-        
+
         header h1:hover {
             transform: scale(1.03);
         }
@@ -267,7 +267,7 @@
             transition: all 0.3s ease;
             position: relative;
         }
-        
+
         .current-time::after {
             content: '';
             position: absolute;
@@ -278,7 +278,7 @@
             background: var(--pink-gradient);
             transition: width 0.5s ease;
         }
-        
+
         .time-display:hover .current-time::after {
             width: 100%;
         }
@@ -330,7 +330,7 @@
             margin-top: 5px;
             transition: all 0.3s ease;
             border-top: 1px dashed rgba(255, 92, 141, 0.15);
-            background-image: 
+            background-image:
                 linear-gradient(45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
                 linear-gradient(-45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
                 linear-gradient(45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%),
@@ -463,7 +463,7 @@
                 background-size: 12px;
                 background-position: right 12px center;
             }
-            
+
             .date-selector-button {
                 padding: 10px 25px;
                 font-size: 1rem;
@@ -480,7 +480,7 @@
                 background-position: right 10px center;
                 border-width: 1.5px;
             }
-            
+
             .date-selector-button {
                 padding: 8px 20px;
                 font-size: 0.9rem;
@@ -505,7 +505,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .date-selector-button::before {
             content: '';
             position: absolute;
@@ -517,7 +517,7 @@
             opacity: 0;
             transition: opacity 0.5s ease;
         }
-        
+
         .date-selector-button:hover::before {
             opacity: 1;
             transform: scale(1.2);
@@ -534,60 +534,60 @@
                 border-radius: 22px;
                 margin-bottom: 25px;
             }
-            
+
             header h1 {
                 font-size: calc(var(--h1-size-tablet) * 1.05);
                 margin-bottom: 18px;
                 letter-spacing: 0.8px;
             }
-            
+
             header h1::before,
             header h1::after {
                 font-size: 1rem;
             }
-            
+
             header h1::before {
                 left: -24px;
             }
-            
+
             header h1::after {
                 right: -24px;
             }
-            
+
             .time-display {
                 padding: 3px 12px 25px;
                 max-width: 95%;
             }
-            
+
             .current-time,
             .time-counter {
                 font-size: calc(var(--time-size-tablet) * 1.05);
                 margin: 1px auto;
             }
-            
+
             .current-time {
                 padding-bottom: 10px;
             }
-            
+
             .date-selector-title {
                 font-size: 1.15rem;
                 margin-bottom: 16px;
             }
-            
+
             .date-selector-container {
                 gap: 14px;
                 margin-bottom: 18px;
             }
-            
+
             .date-selector-group {
                 min-width: 85px;
             }
-            
+
             .date-selector-label {
                 font-size: 0.95rem;
                 margin-bottom: 6px;
             }
-            
+
             .date-selector-button {
                 padding: 10px 20px;
                 font-size: 0.95rem;
@@ -599,73 +599,73 @@
                 padding: 20px 0 10px 0;
                 border-radius: 20px;
                 margin-bottom: 22px;
-                background-image: 
+                background-image:
                     radial-gradient(circle at 10% 20%, rgba(255, 159, 178, 0.03) 0%, transparent 15%),
                     radial-gradient(circle at 90% 80%, rgba(255, 159, 178, 0.04) 0%, transparent 15%),
                     linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 248, 0.9) 100%);
             }
-            
+
             header h1 {
                 font-size: calc(var(--h1-size-mobile) * 1.05);
                 margin-bottom: 14px;
                 letter-spacing: 0.6px;
                 padding: 0 5px;
             }
-            
+
             header h1::before,
             header h1::after {
                 font-size: 0.9rem;
             }
-            
+
             header h1::before {
                 left: -20px;
             }
-            
+
             header h1::after {
                 right: -20px;
             }
-            
+
             .time-display {
                 padding: 2px 10px 20px;
                 max-width: 100%;
             }
-            
+
             .current-time,
             .time-counter {
                 font-size: calc(var(--time-size-mobile) * 1.05);
                 margin: 3px auto;
                 letter-spacing: 0.3px;
             }
-            
+
             .current-time {
                 padding-bottom: 8px;
             }
-            
+
             .date-indicator {
                 margin: 5px auto 10px auto;
                 font-size: 14px;
             }
-            
+
             .date-selector {
                 padding: 15px 12px;
                 background-size: 16px 16px;
             }
-            
+
             .date-selector-title {
                 font-size: 1.05rem;
                 margin-bottom: 14px;
                 letter-spacing: 0.5px;
             }
-            
+
             .date-selector-container {
                 gap: 10px;
                 margin-bottom: 15px;
             }
-            
+
             .date-selector-group {
                 min-width: 75px;
             }
-            
+
             .date-selector-label {
                 font-size: 0.9rem;
                 margin-bottom: 5px;
@@ -1023,7 +1023,7 @@
                 bottom: 12px;
             }
         }
-        
+
         @media (max-width: 480px) {
             .modal-counter {
                 font-size: var(--modal-counter-mobile);
@@ -1159,7 +1159,7 @@
             align-items: center;
             overflow: hidden;
         }
-        
+
         /* 添加粒子背景样式 */
         .particles {
             position: absolute;
@@ -1170,7 +1170,7 @@
             pointer-events: none;
             z-index: -1;
         }
-        
+
         .particle {
             position: absolute;
             background-color: var(--accent-color);
@@ -1178,7 +1178,7 @@
             opacity: 0.2;
             animation: float 20s linear infinite;
         }
-        
+
         @keyframes float {
             0% {
                 transform: translate(0, 0) rotate(0deg);
@@ -1212,7 +1212,7 @@
             z-index: 10;
             transform: perspective(1000px);
         }
-        
+
         /* 添加闪亮边框效果 */
         .password-content::before {
             content: '';
@@ -1221,9 +1221,9 @@
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, 
-                #ffc8dd, #fdafc2, 
-                #e7f1fb, #ffc8dd, 
+            background: linear-gradient(45deg,
+                #ffc8dd, #fdafc2,
+                #e7f1fb, #ffc8dd,
                 #fdafc2, #e7f1fb);
             z-index: -1;
             border-radius: 26px;
@@ -1231,7 +1231,7 @@
             animation: glowingBorder 6s linear infinite;
             opacity: 0.8;
         }
-        
+
         @keyframes glowingBorder {
             0% { background-position: 0 0; }
             50% { background-position: 100% 0; }
@@ -1264,7 +1264,7 @@
             background-clip: text;
             text-fill-color: transparent;
         }
-        
+
         /* 添加标题下划线效果 */
         .password-content h2::after {
             content: '';
@@ -1276,7 +1276,7 @@
             background: linear-gradient(to right, transparent, var(--accent-color), transparent);
             animation: widthPulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes widthPulse {
             0%, 100% { width: 80%; left: 10%; }
             50% { width: 100%; left: 0; }
@@ -1319,7 +1319,7 @@
             overflow: hidden;
             letter-spacing: 0.5px;
         }
-        
+
         /* 添加按钮波纹效果 */
         .password-button::before {
             content: '';
@@ -1332,7 +1332,7 @@
             transition: none;
             animation: btnShine 2s infinite;
         }
-        
+
         @keyframes btnShine {
             100% {
                 left: 100%;
@@ -1407,11 +1407,11 @@
             html, body {
                 font-size: 15px;
             }
-            
+
             body {
                 line-height: var(--line-height-tablet);
             }
-            
+
             .container {
                 padding: 15px;
             }
@@ -1425,7 +1425,7 @@
                 font-size: var(--h1-size-tablet);
                 margin-bottom: 10px;
             }
-            
+
             header p {
                 font-size: var(--subtitle-size-tablet);
             }
@@ -1500,7 +1500,7 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
-            
+
             .modal-counter {
                 font-size: var(--modal-counter-tablet);
             }
@@ -1509,42 +1509,42 @@
                 padding: 10px 25px;
                 font-size: var(--button-size-tablet);
             }
-            
+
             .footer {
                 font-size: var(--footer-size-tablet);
             }
-            
+
             .password-content {
                 padding: 35px;
                 max-width: 380px;
                 width: 85%;
             }
-            
+
             .password-content h2 {
                 font-size: var(--password-title-tablet);
                 margin-bottom: 20px;
             }
-            
+
             .password-input,
             .password-button {
                 font-size: var(--password-input-tablet);
                 padding: 14px 22px;
             }
-            
+
             .password-button {
                 margin-top: 18px;
             }
-            
+
             .error-message,
             .locked-message {
                 font-size: var(--password-input-tablet);
                 margin-top: 12px;
             }
-            
+
             .content-usage-notice {
                 font-size: var(--notice-size-tablet);
             }
-            
+
             .music-control {
                 bottom: 15px;
                 left: 13px;
@@ -1557,7 +1557,7 @@
             .music-control:not(.playing)::after {
                 display: none;
             }
-            
+
             .music-control.playing::before {
                 font-size: 18px;
             }
@@ -1571,11 +1571,11 @@
             html, body {
                 font-size: 14px;
             }
-            
+
             body {
                 line-height: var(--line-height-mobile);
             }
-            
+
             header h1 {
                 font-size: var(--h1-size-mobile);
                 margin-bottom: 8px;
@@ -1637,11 +1637,11 @@
             .gallery {
                 gap: 8px;
             }
-            
+
             .modal-counter {
                 font-size: var(--modal-counter-mobile);
             }
-            
+
             .load-more button {
                 font-size: var(--button-size-mobile);
                 padding: 8px 20px;
@@ -1651,47 +1651,47 @@
                 font-size: var(--footer-size-mobile);
                 padding: 12px 0;
             }
-            
+
             .password-content {
                 padding: 25px 20px;
                 max-width: 320px;
                 width: 85%;
                 border-width: 1px;
             }
-            
+
             .password-content h2 {
                 font-size: var(--password-title-mobile);
                 margin-bottom: 15px;
             }
-            
+
             .password-content h2::after {
                 height: 2px;
                 bottom: -7px;
             }
-            
+
             .password-input,
             .password-button {
                 font-size: var(--password-input-mobile);
                 padding: 12px 20px;
                 margin: 12px 0;
             }
-            
+
             .password-button {
                 padding: 12px 25px;
                 margin-top: 10px;
             }
-            
+
             .error-message,
             .locked-message {
                 font-size: var(--password-input-mobile);
                 margin-top: 10px;
             }
-            
+
             .content-usage-notice {
                 font-size: var(--notice-size-mobile);
                 padding: 8px 12px;
             }
-            
+
             .music-control {
                 bottom: 20px !important;
                 left: 13px !important;
@@ -1704,7 +1704,7 @@
             .music-control:not(.playing)::after {
                 display: none;
             }
-            
+
             .music-control.playing::before {
                 font-size: 14px !important;
             }
@@ -1713,26 +1713,26 @@
                 font-size: 12px !important;
             }
         }
-        
+
         /* 超小屏幕设备的特殊处理 */
         @media screen and (max-width: 375px) {
             .date-selector-container {
                 gap: 6px;
             }
-            
+
             .date-selector-group {
                 min-width: 25%;
                 width: 25%;
                 margin: 0 2px;
             }
-            
+
             .date-selector select {
                 padding: 6px 2px;
                 font-size: calc(var(--date-size-mobile) - 1px);
                 background-size: 8px;
                 padding-right: 12px;
             }
-            
+
             .date-selector-label {
                 font-size: calc(var(--date-size-mobile) - 1px);
             }
@@ -1914,7 +1914,7 @@
             margin-top: -10px;
             padding-top: 0;
             border-top: 1px solid rgba(255, 159, 178, 0.1);
-            background-image: 
+            background-image:
                 linear-gradient(45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
                 linear-gradient(-45deg, rgba(255, 159, 178, 0.03) 25%, transparent 25%),
                 linear-gradient(45deg, transparent 75%, rgba(255, 159, 178, 0.03) 75%),
@@ -2013,17 +2013,17 @@
             .date-selector {
                 margin-top: -8px;
             }
-            
+
             .date-selector-title {
                 font-size: 1.2rem;
                 margin: 12px 0;
             }
-            
+
             .date-selector-container {
                 gap: 12px;
                 margin: 12px 0;
             }
-            
+
             .date-selector-button {
                 margin: 8px 0 15px 0;
             }
@@ -2033,17 +2033,17 @@
             .date-selector {
                 margin-top: -5px;
             }
-            
+
             .date-selector-title {
                 font-size: 1.1rem;
                 margin: 10px 0;
             }
-            
+
             .date-selector-container {
                 gap: 8px;
                 margin: 10px 0;
             }
-            
+
             .date-selector-button {
                 margin: 5px 0 12px 0;
             }
@@ -2160,34 +2160,34 @@
                 padding: 15px;
                 margin: 12px auto;
             }
-            
+
             .date-selector-title {
                 font-size: 1.4rem;
                 margin-bottom: 15px;
             }
-            
+
             .date-selector-container {
                 gap: 12px;
                 padding: 0 10px;
             }
-            
+
             .date-selector-group {
                 min-width: 100px;
                 max-width: 140px;
             }
-            
+
             .date-selector-label {
                 font-size: 1rem;
                 margin-bottom: 10px;
             }
-            
+
             .date-selector select {
                 padding: 12px 30px 12px 15px;
                 font-size: 1.05rem;
                 background-size: 12px;
                 background-position: right 12px center;
             }
-            
+
             .date-selector-button {
                 padding: 12px 30px;
                 font-size: 1.1rem;
@@ -2200,27 +2200,27 @@
                 margin: 10px auto;
                 width: 95%;
             }
-            
+
             .date-selector-title {
                 font-size: 1.2rem;
                 margin-bottom: 12px;
             }
-            
+
             .date-selector-container {
                 gap: 8px;
                 padding: 0 5px;
             }
-            
+
             .date-selector-group {
                 min-width: 80px;
                 max-width: 120px;
             }
-            
+
             .date-selector-label {
                 font-size: 0.9rem;
                 margin-bottom: 8px;
             }
-            
+
             .date-selector select {
                 padding: 10px 25px 10px 12px;
                 font-size: 0.95rem;
@@ -2228,7 +2228,7 @@
                 background-position: right 10px center;
                 border-width: 1.5px;
             }
-            
+
             .date-selector-button {
                 padding: 10px 15px;
                 font-size: 1rem;
@@ -2241,12 +2241,12 @@
             .date-selector-container {
                 gap: 5px;
             }
-            
+
             .date-selector-group {
                 min-width: 70px;
                 max-width: 100px;
             }
-            
+
             .date-selector select {
                 padding: 8px 20px 8px 10px;
                 font-size: 0.9rem;
@@ -2349,26 +2349,26 @@
                 padding: 18px;
                 width: 97%; /* 从95%增加到97% */
             }
-            
+
             .date {
                 font-size: var(--date-size-tablet);
                 padding: 4px 12px;
             }
-            
+
             .title {
                 font-size: var(--title-size-tablet);
             }
-            
+
             .text {
                 font-size: var(--text-size-tablet);
                 line-height: var(--line-height-tablet);
             }
-            
+
             .gallery {
                 gap: 10px;
                 margin-top: 15px;
             }
-            
+
             /* 调整气泡尾巴位置 */
             .left .content:after {
                 top: 15px;
@@ -2377,7 +2377,7 @@
                 height: 10px;
                 background: #ffffff;
             }
-            
+
             .right .content:after {
                 top: 15px;
                 right: -8px;
@@ -2393,34 +2393,34 @@
                 width: 95%; /* 从92%增加到95% */
                 max-width: 95%; /* 从92%增加到95% */
             }
-            
+
             /* 删除右侧内容使用特定背景色的样式 */
             /* .right .content {
-                background-color: #fff9fb; 
+                background-color: #fff9fb;
             } */
-            
+
             .date {
                 font-size: var(--date-size-mobile);
                 padding: 3px 10px;
                 margin-bottom: 10px;
             }
-            
+
             .title {
                 font-size: var(--title-size-mobile);
                 margin-bottom: 10px;
             }
-            
+
             .text {
                 font-size: var(--text-size-mobile);
                 line-height: var(--line-height-mobile);
                 margin-bottom: 15px;
             }
-            
+
             .gallery {
                 gap: 8px;
                 margin-top: 12px;
             }
-            
+
             /* 调整气泡尾巴位置 */
             .left .content:after {
                 top: 12px;
@@ -2429,7 +2429,7 @@
                 height: 8px;
                 background: #ffffff;
             }
-            
+
             .right .content:after {
                 top: 12px;
                 right: -7px;
@@ -2524,26 +2524,26 @@
             .modal-nav {
                 padding: 0 8px;
             }
-            
+
             .modal-nav button {
                 width: 38px;
                 height: 38px;
                 font-size: 20px;
             }
         }
-        
+
         @media (max-width: 480px) {
             .modal-nav {
                 padding: 0 5px;
             }
-            
+
             .modal-nav button {
                 width: 34px;
                 height: 34px;
                 font-size: 18px;
                 opacity: 0.5;
             }
-            
+
             .modal-nav button:hover {
                 opacity: 0.7;
             }
@@ -2623,7 +2623,7 @@
                 margin: 1px auto;
                 letter-spacing: 0.3px;
             }
-            
+
             .current-time {
                 margin-bottom: 1px;
                 padding-bottom: 1px;
@@ -2637,7 +2637,7 @@
                 margin: 1px auto;
                 letter-spacing: 0.2px;
             }
-            
+
             .current-time {
                 margin-bottom: 1px;
                 padding-bottom: 1px;
@@ -2668,7 +2668,7 @@
         .love-name {
             cursor: pointer;
         }
-        
+
         @keyframes fadeOut {
             0% { opacity: 1; }
             80% { opacity: 1; }
@@ -2878,7 +2878,7 @@
                 /* 移动端加长动画时间，使移动更平滑 */
                 animation-duration: 22s !important;
             }
-            
+
             /* 简化移动端动画，去除模糊效果，保持线性平滑运动 */
             @keyframes danmakuMove {
                 0% {
@@ -2927,7 +2927,7 @@
                     filter: blur(0px);
                 }
             }
-            
+
             /* 简化移动端的动画变体1，确保流畅性，添加微小垂直位移 */
             @keyframes danmakuMoveVariant1 {
                 0% {
@@ -2976,7 +2976,7 @@
                     filter: blur(0px);
                 }
             }
-            
+
             /* 简化移动端的动画变体2，确保流畅性，添加微小垂直位移 */
             @keyframes danmakuMoveVariant2 {
                 0% {
@@ -3025,7 +3025,7 @@
                     filter: blur(0px);
                 }
             }
-            
+
             /* 小屏幕(如iPhone SE)额外优化 */
             @media screen and (max-width: 375px) {
                 .danmaku {
@@ -3147,7 +3147,7 @@
         <header>
             <h1><span id="babyGirl" class="love-name">宝儿</span>和<span id="babyBoy" class="love-name">宝子</span>的时光轴</h1>
             <div class="time-display">
-                <div class="current-time" id="currentTime">加载中... 我们还在么</div>
+                <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div>
                 <div class="time-counter" id="timeCounter">自我们相识的瞬间<br>已经在计算中...</div>
             </div>
             <div class="date-indicator" id="timeDisplay">
@@ -3251,24 +3251,24 @@
                     e.preventDefault();
                     return false;
                 }
-                
+
                 // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
                 if(e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
                     e.preventDefault();
                     return false;
                 }
-                
+
                 // Ctrl+U (查看源代码)
                 if(e.ctrlKey && e.keyCode === 85) {
                     e.preventDefault();
                     return false;
                 }
             });
-            
+
             // 检测开发者工具打开状态
             let devToolsStatus = false;
             let isAuthenticated = false; // 记录用户是否已认证
-            
+
             // 监听window.resize事件可能表明开发工具打开
             window.addEventListener('resize', function() {
                 // 如果开发工具占据了足够的屏幕宽度/高度，可能表示开发工具已打开
@@ -3282,32 +3282,32 @@
                     devToolsStatus = false;
                 }
             });
-            
+
             // 使用另一种方法检测开发者工具
             setInterval(function() {
                 const widthThreshold = window.outerWidth - window.innerWidth > 160;
                 const heightThreshold = window.outerHeight - window.innerHeight > 160;
-                
+
                 // 使用console.devtools属性检测开发者工具
                 let isDevToolOpen = false;
-                
+
                 const checkDevTool = function() {
                     if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) {
                         isDevToolOpen = true;
                         return true;
                     }
-                    
+
                     const devtools = /./;
                     devtools.toString = function() {
                         isDevToolOpen = true;
                         return '';
                     };
-                    
+
                     console.log('%c', devtools);
-                    
+
                     return isDevToolOpen;
                 };
-                
+
                 if((widthThreshold || heightThreshold || checkDevTool()) && isAuthenticated) {
                     if(!devToolsStatus) {
                         devToolsStatus = true;
@@ -3317,7 +3317,7 @@
                 } else {
                     devToolsStatus = false;
                 }
-                
+
                 // 使用console.clear()混淆控制台，仅在用户已认证状态下
                 if(devToolsStatus && isAuthenticated) {
                     console.clear();
@@ -3325,31 +3325,31 @@
                     console.log("%c请不要在此粘贴任何代码，这可能会影响您的账户安全！", "color:red; font-size:20px; font-weight:bold");
                 }
             }, 1000);
-            
+
             // 禁用右键菜单
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 return false;
             });
-            
+
             // 阻止debugger
             (function() {
                 let currentTime = new Date().getTime();
-                
+
                 function debuggerProtection(timeout = 100) {
                     // 只有在用户认证后才执行debugger保护
                     if(!isAuthenticated) return;
-                    
+
                     if(new Date().getTime() - currentTime > timeout) {
                         // 如果执行时间超过阈值，表示可能有调试行为
                         alert('出于安全考虑，禁止使用开发者工具！');
                         currentTime = new Date().getTime();
                     }
-                    
+
                     debuggerProtection.isDebugging = arguments[0];
                     debuggerProtection.isDebugging.constructor.constructor("debugger")();
                 }
-                
+
                 setInterval(function() {
                     currentTime = new Date().getTime();
                     try {
@@ -3360,31 +3360,31 @@
                     } catch(err) { }
                 }, 1000);
             })();
-            
+
             // 使用性能API检测
             (function() {
                 const devToolsChecker = function() {
                     // 只有在用户认证后才执行检测
                     if(!isAuthenticated) return;
-                    
+
                     const startTime = performance.now();
                     debugger;
                     const endTime = performance.now();
-                    
+
                     // 如果执行时间超过阈值，可能是开发工具打开状态
                     if (endTime - startTime > 100) {
                         alert('出于安全考虑，禁止使用开发者工具！');
                         window.location.reload(); // 可选：重新加载页面
                     }
                 };
-                
+
                 // 间隔检查，但只在认证后启用
                 setInterval(function() {
                     if(isAuthenticated) {
                         devToolsChecker();
                     }
                 }, 1000);
-                
+
                 // 也可以在用户交互时检查，但只在认证后启用
                 document.addEventListener('click', function() {
                     if(isAuthenticated) {
@@ -3392,7 +3392,7 @@
                     }
                 });
             })();
-            
+
             // 禁止复制、选择文本和拖拽功能
             (function() {
                 // 禁止选择文本
@@ -3406,7 +3406,7 @@
                     }
                     return false;
                 };
-                
+
                 // 禁止复制
                 document.oncopy = function(e) {
                     e.preventDefault();
@@ -3419,25 +3419,25 @@
                     }
                     return false;
                 };
-                
+
                 // 禁止剪切
                 document.oncut = function(e) {
                     e.preventDefault();
                     return false;
                 };
-                
+
                 // 禁止粘贴
                 document.onpaste = function(e) {
                     e.preventDefault();
                     return false;
                 };
-                
+
                 // 禁止拖拽
                 document.ondragstart = function(e) {
                     e.preventDefault();
                     return false;
                 };
-                
+
                 // 禁止鼠标右键保存图片
                 document.addEventListener('contextmenu', function(e) {
                     e.preventDefault();
@@ -3450,7 +3450,7 @@
                     }
                     return false;
                 });
-                
+
                 // 禁止键盘快捷键保存图片 (Ctrl+S)
                 document.addEventListener('keydown', function(e) {
                     if (e.ctrlKey && e.key === 's') {
@@ -3465,7 +3465,7 @@
                         return false;
                     }
                 });
-                
+
                 // 添加额外的图片保护
                 window.addEventListener('load', function() {
                     // 为所有图片添加保护
@@ -3487,14 +3487,14 @@
                         // 这里可以添加动态水印，但会影响图片观看体验
                     });
                 });
-                
+
                 // 监听打印事件
                 window.addEventListener('beforeprint', function(e) {
                     e.preventDefault();
                     alert('禁止打印页面内容！');
                     return false;
                 });
-                
+
                 // 屏幕截图检测
                 document.addEventListener('keyup', function(e) {
                     // Mac 截图快捷键: Command+Shift+3/4/5
@@ -3508,7 +3508,7 @@
                 });
             })();
         })();
-        
+
         // 使用自定义盐值和多重哈希增强安全性
         function enhancedHash(input) {
             // 自定义盐值（不公开）
@@ -3531,7 +3531,7 @@
         let currentMemory = null;
         let totalWordsCount = 0;
         let totalImagesCount = 0;
-        
+
         // 添加点击计数变量
         let babyGirlClickCount = 0;
         let babyBoyClickCount = 0;
@@ -3547,7 +3547,7 @@
             document.body.style.mozUserSelect = 'none';
             document.body.style.msUserSelect = 'none';
             document.body.style.userSelect = 'none';
-            
+
             // 禁止复制功能
             document.addEventListener('copy', function(e) {
                 e.preventDefault();
@@ -3560,7 +3560,7 @@
                 }
                 return false;
             });
-            
+
             // 禁止右键菜单
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
@@ -3573,13 +3573,13 @@
                 }
                 return false;
             });
-            
+
             // 禁止拖拽内容
             document.addEventListener('dragstart', function(e) {
                 e.preventDefault();
                 return false;
             });
-            
+
             // 禁止移动设备上的长按操作（通常用于保存图片）
             document.addEventListener('touchstart', function(e) {
                 // 检查是否点击的是图片
@@ -3587,59 +3587,59 @@
                     e.preventDefault();
                 }
             }, {passive: false}); // passive: false 允许preventDefault生效
-            
+
             // 为所有图片添加保护
             const applyImageProtection = function() {
                 const images = document.querySelectorAll('img');
                 images.forEach(function(img) {
                     // 禁止拖拽
                     img.setAttribute('draggable', 'false');
-                    
+
                     // 防止图片被右键保存
                     img.addEventListener('contextmenu', function(e) {
                         e.preventDefault();
                         return false;
                     });
-                    
+
                     // 防止选择
                     img.style.webkitUserSelect = 'none';
                     img.style.mozUserSelect = 'none';
                     img.style.msUserSelect = 'none';
                     img.style.userSelect = 'none';
-                    
+
                     // 使用CSS阻止拖拽
                     img.style.pointerEvents = 'none';
                 });
             };
-            
+
             // 页面加载完成后应用图片保护
             applyImageProtection();
-            
+
             // 在DOM更新时重新应用图片保护（例如加载新内容后）
             if (window.MutationObserver) {
                 const observer = new MutationObserver(function(mutations) {
                     applyImageProtection();
                 });
-                
+
                 // 开始观察DOM变化
-                observer.observe(document.body, { 
-                    childList: true, 
-                    subtree: true 
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
                 });
             }
-            
+
             // 截图检测 (监听键盘快捷键)
             document.addEventListener('keydown', function(e) {
-                // Windows: PrintScreen, Alt+PrintScreen 
+                // Windows: PrintScreen, Alt+PrintScreen
                 if (e.key === 'PrintScreen' || (e.altKey && e.key === 'PrintScreen')) {
                     showScreenshotAlert();
                 }
-                
+
                 // Windows: Win+Shift+S (Windows 10的截图工具)
                 if (e.shiftKey && e.key === 'S' && (e.metaKey || e.ctrlKey)) {
                     showScreenshotAlert();
                 }
-                
+
                 // Mac: Command+Shift+3, Command+Shift+4, Command+Shift+5
                 if (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) {
                     showScreenshotAlert();
@@ -3648,17 +3648,17 @@
         }
 
         function isMobileDevice() {
-            return (typeof window.orientation !== "undefined") || 
+            return (typeof window.orientation !== "undefined") ||
                    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
-                   (navigator.userAgent.match(/Android/i)) || 
+                   (navigator.userAgent.match(/Android/i)) ||
                    (navigator.userAgent.match(/iPhone|iPad|iPod/i));
         }
 
         function adjustCounterWidth(counterElement) {
             if (!counterElement) return;
-            
+
             let baseWidth = 50;
-            
+
             if (window.innerWidth <= 480) {
                 baseWidth = 50;
             } else if (window.innerWidth <= 768) {
@@ -3666,13 +3666,13 @@
             } else {
                 baseWidth = 80;
             }
-            
+
             if (currentGallery.length >= 100) {
                 baseWidth += 10;
             } else if (currentGallery.length >= 10) {
                 baseWidth += 5;
             }
-            
+
             counterElement.style.width = 'auto';
             counterElement.style.minWidth = `${baseWidth}px`;
             counterElement.style.maxWidth = `${baseWidth + 20}px`;
@@ -3695,7 +3695,7 @@
 
         function updateTimes() {
             if(!isAuthenticated) return;
-            
+
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -3703,9 +3703,9 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            
+
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-            
+
             const startDate = new Date('2011-09-29T19:45:00');
             const diffTime = Math.abs(now - startDate);
             const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -3714,18 +3714,18 @@
             const countSeconds = Math.floor((diffTime % (1000 * 60)) / 1000);
             const years = Math.floor(days / 365);
             const remainingDays = days % 365;
-            
+
             const memoryCount = memories ? memories.length : 0;
             const daysStr = days.toString().padStart(4, '\u00A0');
-            
+
             requestAnimationFrame(() => {
                 const currentTimeElement = document.getElementById('currentTime');
                 const timeCounterElement = document.getElementById('timeCounter');
-                
+
                 if(currentTimeElement) {
-                    currentTimeElement.textContent = formattedDate + ' 我们还在么';
+                    currentTimeElement.textContent = "幸运 " + formattedDate + ' 我们还在';
                 }
-                
+
                 if(timeCounterElement) {
                     timeCounterElement.innerHTML = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字 ${totalImagesCount}张照片)<br>已经${years}年${remainingDays}天(共${daysStr}天)${countHours.toString().padStart(2, '0')}小时${countMinutes.toString().padStart(2, '0')}分${countSeconds.toString().padStart(2, '0')}秒`;
                 }
@@ -3735,7 +3735,7 @@
         function startTimeUpdates() {
             updateTimes();
             setInterval(updateTimes, 1000);
-            
+
             const timeDisplay = document.getElementById('timeDisplay');
             const dateSelector = document.getElementById('dateSelector');
             if (timeDisplay && dateSelector) {
@@ -3754,30 +3754,30 @@
 
             const musicControl = document.getElementById('musicControl');
             musicControl.classList.remove('playing');
-            
+
             window.addEventListener('resize', function() {
                 const counter = document.getElementById('imageCounter');
                 if (counter && counter.style.display !== 'none') {
                     adjustCounterWidth(counter);
                 }
             });
-            
+
             // 只在页面加载时注册一次点击事件，避免重复
             initializeLoveClicks();
-            
+
             const passwordInput = document.getElementById('passwordInput');
-            
+
             document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 return false;
             });
 
             checkLockStatus();
-            
+
             initRippleEffect();
-            
+
             startTimeUpdates();
-            
+
             // 启用增强内容保护
             enhanceContentProtection();
         };
@@ -3848,7 +3848,7 @@
         function checkPasswordAndVerify() {
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-            
+
             if (!password.trim() || password.length < 1) {
                 errorMessage.textContent = "请输入…";
                 errorMessage.style.display = 'block';
@@ -3857,30 +3857,30 @@
                 errorMessage.style.animation = 'shake 0.5s ease';
                 return;
             }
-            
+
             if (isLocked) return;
-            
+
             if (enhancedHash(password) === PASSWORD_HASH) {
                 successfulAuthentication();
                 isAuthenticated = true;
                 clearLockStatus();
-                
+
                 onSuccessfulAuth();
             } else {
                 passwordAttempts++;
                 localStorage.setItem('passwordAttempts', passwordAttempts.toString());
-                
+
                 if (passwordAttempts >= 5) {
                     lockAccount();
                 } else {
                     errorMessage.textContent = errorMessages[passwordAttempts - 1];
                     errorMessage.style.display = 'block';
                     document.getElementById('passwordInput').value = '';
-                    
+
                     errorMessage.style.animation = 'none';
                     void errorMessage.offsetWidth;
                     errorMessage.style.animation = 'shake 0.5s ease';
-                    
+
                     const passwordContent = document.querySelector('.password-content');
                     passwordContent.classList.remove('shake');
                     void passwordContent.offsetWidth;
@@ -3892,7 +3892,7 @@
         function successfulAuthentication() {
             // 创建花瓣动画
             createFlowerPetals();
-            
+
             // 播放音乐
             const music = document.getElementById('bgMusic');
             if (music) {
@@ -3913,30 +3913,30 @@
                     console.error('Error playing audio:', e);
                 }
             }
-            
+
             // 移除遮罩
             document.getElementById('passwordModal').style.display = 'none';
-            
+
             // 显示内容
             document.getElementById('mainContent').style.display = 'block';
-            
+
             // 标记为已认证
             document.body.classList.add('authenticated');
             isAuthenticated = true;
-            
+
             // 清除密码尝试次数
             passwordAttempts = 0;
             localStorage.removeItem('passwordAttempts');
             localStorage.removeItem('lockEndTime');
-            
+
             // 开始时间更新
             startTimeUpdates();
-            
+
             // 移除这里的初始化调用，统一在onSuccessfulAuth()函数中调用
             // initializeLoveClicks();
-            
+
             localStorage.setItem('authenticated', 'true');
-            
+
             // 加载内容
             loadMemories();
         }
@@ -4021,32 +4021,32 @@
                         if (!encryptedData || !encryptedData.data || !Array.isArray(encryptedData.data)) {
                             throw new Error('Invalid encrypted data format');
                         }
-                        
+
                         // 从响应中获取加密数据块
                         const encryptedChunks = encryptedData.data;
-                        
+
                         // 使用PASSWORD_HASH作为密钥种子解密数据
                         decryptData(encryptedChunks, PASSWORD_HASH)
                             .then(data => {
                                 if (!data || !Array.isArray(data)) {
                                     throw new Error('Invalid decrypted data format');
                                 }
-                                
+
                                 memories = data.sort((a, b) => new Date(b.d) - new Date(a.d));
-                                
+
                                 calculateTotalWords(memories);
-                                
+
                                 initializeDateSelector(memories);
-                                
+
                                 renderMemories();
-                                
+
                                 checkHasMore();
 
                                 setTimeout(disableSaveImage, 500);
                             })
                             .catch(error => {
                                 retryCount++;
-                                
+
                                 if (retryCount < maxRetries) {
                                     setTimeout(tryLoadData, 1000 * retryCount);
                                 } else {
@@ -4058,7 +4058,7 @@
                     .catch(error => {
                         console.error('加载数据失败:', error);
                         retryCount++;
-                        
+
                         if (retryCount < maxRetries) {
                             setTimeout(tryLoadData, 1000 * retryCount);
                         } else {
@@ -4076,13 +4076,13 @@
             try {
                 // 解密各个数据块
                 const decryptedChunks = [];
-                
+
                 for (let i = 0; i < encryptedChunks.length; i++) {
                     try {
                         // 从Base64解码 - 使用更兼容的方法
                         const base64String = encryptedChunks[i];
                         let encryptedBuffer;
-                        
+
                         try {
                             // 方法1: 使用标准atob
                             const binary = atob(base64String);
@@ -4102,13 +4102,13 @@
                                     : nChr === 47 ? 63
                                     : 0;
                             };
-                            
+
                             const base64DecToArr = (sBase64, nBlocksSize) => {
                                 const sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
                                 const nInLen = sB64Enc.length;
                                 const nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
                                 const taBytes = new Uint8Array(nOutLen);
-                                
+
                                 let nMod3, nMod4, nUint24 = 0, nOutIdx = 0;
                                 for (let nInIdx = 0; nInIdx < nInLen; nInIdx++) {
                                     nMod4 = nInIdx & 3;
@@ -4122,19 +4122,19 @@
                                 }
                                 return taBytes;
                             };
-                            
+
                             encryptedBuffer = base64DecToArr(base64String, 1);
                         }
-                        
+
                         // 提取IV (前16字节)
                         const iv = encryptedBuffer.slice(0, 16);
-                        
+
                         // 提取认证标签 (接下来的16字节)
                         const authTag = encryptedBuffer.slice(16, 32);
-                        
-                        // 提取加密数据 
+
+                        // 提取加密数据
                         const encrypted = encryptedBuffer.slice(32);
-                        
+
                         // 从密码派生加密密钥
                         const encoder = new TextEncoder();
                         const keyMaterial = await crypto.subtle.importKey(
@@ -4144,9 +4144,9 @@
                             false,
                             ["deriveBits", "deriveKey"]
                         );
-                        
+
                         const salt = encoder.encode("polly-lover-salt");
-                        
+
                         const key = await crypto.subtle.deriveKey(
                             {
                                 name: "PBKDF2",
@@ -4159,7 +4159,7 @@
                             false,
                             ["decrypt"]
                         );
-                        
+
                         // 尝试多种方式解密，增强兼容性
                         let decrypted = null;
                         const decryptMethods = [
@@ -4182,7 +4182,7 @@
                                 const ciphertextWithTag = new Uint8Array(encrypted.length + authTag.length);
                                 ciphertextWithTag.set(encrypted, 0);
                                 ciphertextWithTag.set(authTag, encrypted.length);
-                                
+
                                 return await crypto.subtle.decrypt(
                                     {
                                         name: "AES-GCM",
@@ -4200,7 +4200,7 @@
                                 combined.set(iv, 0);
                                 combined.set(encrypted, iv.length);
                                 combined.set(authTag, iv.length + encrypted.length);
-                                
+
                                 return await crypto.subtle.decrypt(
                                     {
                                         name: "AES-GCM",
@@ -4221,7 +4221,7 @@
                                     // 先放加密数据，再放标签（与方法2相反顺序）
                                     combinedData.set(authTag, 0);
                                     combinedData.set(encrypted, authTag.length);
-                                    
+
                                     return await crypto.subtle.decrypt(
                                         {
                                             name: "AES-GCM",
@@ -4235,7 +4235,7 @@
                                 throw new Error("不是移动设备，跳过方法4");
                             }
                         ];
-                        
+
                         // 依次尝试所有解密方法，直到成功
                         for (const method of decryptMethods) {
                             try {
@@ -4246,12 +4246,12 @@
                                 // 继续尝试下一种方法
                             }
                         }
-                        
+
                         // 如果所有方法都失败
                         if (!decrypted) {
                             throw new Error("所有解密方法都失败");
                         }
-                        
+
                         // 转换为字符串
                         const decryptedText = new TextDecoder().decode(decrypted);
                         decryptedChunks.push(decryptedText);
@@ -4261,10 +4261,10 @@
                         throw error;
                     }
                 }
-                
+
                 // 合并所有解密后的块
                 const decryptedData = decryptedChunks.join('');
-                
+
                 try {
                     // 尝试解析JSON
                     const parsedData = JSON.parse(decryptedData);
@@ -4281,7 +4281,7 @@
 
         // 重试加载函数
         function retryLoad() {
-            document.getElementById('timeline').innerHTML = 
+            document.getElementById('timeline').innerHTML =
                 '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:16px;">正在重新加载数据...</p>';
             loadMemories();
         }
@@ -4289,18 +4289,18 @@
         function calculateTotalWords(data) {
             totalWordsCount = 0;
             totalImagesCount = 0;
-            
+
             data.forEach(memory => {
                 if (memory.t) {
                     const titleText = memory.t.replace(/<[^>]*>/g, '');
                     totalWordsCount += titleText.length;
                 }
-                
+
                 if (memory.c) {
                     const contentText = memory.c.replace(/<[^>]*>/g, '');
                     totalWordsCount += contentText.length;
                 }
-                
+
                 if (memory.i && Array.isArray(memory.i)) {
                     totalImagesCount += memory.i.length;
                 }
@@ -4348,7 +4348,7 @@
                     memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
 
                     const formattedDate = formatDate(memory.d);
-                    
+
                     currentMemory = memory;
 
                     let imagesHTML = '';
@@ -4374,7 +4374,7 @@
                 });
 
                 currentPage++;
-                
+
                 hasMore = endIndex < filteredData.length;
                 if (!hasMore) {
                     document.getElementById('loadMore').style.display = 'none';
@@ -4398,7 +4398,7 @@
                     memoryDiv.className = `memory ${(startIndex + index) % 2 === 0 ? 'left' : 'right'}`;
 
                     const formattedDate = formatDate(memory.d);
-                    
+
                     currentMemory = memory;
 
                     let imagesHTML = '';
@@ -4447,7 +4447,7 @@
                 memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
 
                 const formattedDate = formatDate(memory.d);
-                
+
                 currentMemory = memory;
 
                 let imagesHTML = '';
@@ -4471,7 +4471,7 @@
 
                 timeline.appendChild(memoryDiv);
             });
-            
+
             currentPage = 1;
         }
 
@@ -4479,50 +4479,50 @@
             if (/^\d{4}$/.test(dateString)) {
                 return `${dateString}年`;
             }
-            
+
             if (/^\d{4}-\d{2}$/.test(dateString)) {
                 const [year, month] = dateString.split('-');
                 return `${year}年${month}月`;
             }
-            
+
             const date = new Date(dateString);
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const day = date.getDate().toString().padStart(2, '0');
-            
+
             const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
             const weekDay = weekDays[date.getDay()];
-            
+
             return `${year}年${month}月${day}日 ${weekDay}`;
         }
-        
+
         function getImagePath(imgPath) {
             if (imgPath.startsWith('/polly/images/')) {
                 return imgPath;
             }
-            
+
             if (imgPath.match(/^\d{4}\/\d{2}\/.*\.(jpg|jpeg|png|gif)$/i)) {
                 return `/polly/images/${imgPath}`;
             }
-            
+
             const match = imgPath.match(/^(\d{4})-(\d{2})-(\d{2})-(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (match) {
                 const [_, year, month, day, num, ext] = match;
                 return `/polly/images/${year}/${month}/${year}-${month}-${day}-${num}.${ext}`;
             }
-            
+
             const specialMatch = imgPath.match(/^(\d{4})-(\d{2})-([A-Za-z0-9_-]+)-(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (specialMatch) {
                 const [_, year, month, tag, num, ext] = specialMatch;
                 return `/polly/images/${year}/${month}/${year}-${month}-${tag}-${num}.${ext}`;
             }
-            
+
             const genericMatch = imgPath.match(/^(\d{4})-(\d{2})-(.+)\.(jpg|jpeg|png|gif)$/i);
             if (genericMatch) {
                 const [_, year, month, filename, ext] = genericMatch;
                 return `/polly/images/${year}/${month}/${imgPath}`;
             }
-            
+
             const numMatch = imgPath.match(/^(\d+)\.(jpg|jpeg|png|gif)$/i);
             if (numMatch && currentMemory && currentMemory.d) {
                 const [_, num, ext] = numMatch;
@@ -4532,7 +4532,7 @@
                     return `/polly/images/${year}/${month}/${year}-${month}-${day}-${num}.${ext}`;
                 }
             }
-            
+
             return imgPath;
         }
 
@@ -4545,15 +4545,15 @@
 
             modalContent.style.opacity = '1';
             modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-            
+
             if (isMobileDevice()) {
                 zoomTip.textContent = '请用双指缩放查看图片';
             } else {
                 zoomTip.textContent = '请使用滚轮缩放查看图片';
             }
-            
+
             adjustCounterWidth(imageCounter);
-            
+
             currentGallery = [];
             currentImageIndex = 0;
 
@@ -4595,40 +4595,40 @@
                 modalImage.src = imageSrc;
                 updateImageCounter();
                 updateNavigationButtons();
-                
+
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
-                
+
                 modalContent.style.transition = 'none';
                 modal.style.transition = 'none';
-                
+
                 if (isMobileDevice()) {
                     modalContent.classList.add('touch-device');
                 } else {
                     modalContent.classList.remove('touch-device');
                 }
-                
+
                 setupImageZoom();
-                
+
                 disableSaveImage();
-                
+
                 zoomTip.style.opacity = '1';
                 setTimeout(() => {
                     zoomTip.style.opacity = '0';
                 }, 2500);
             };
-            
+
             img.src = imageSrc;
         }
 
         function closeModal() {
             const modalImage = document.getElementById('modalImage');
-            
+
             if (modalImage) {
                 modalImage.classList.remove('zoomed');
                 modalImage.style.transform = 'scale(1)';
             }
-            
+
             document.getElementById('imageModal').style.display = 'none';
             document.body.style.overflow = 'auto';
 
@@ -4643,7 +4643,7 @@
             const nextButton = document.getElementById('nextImageBtn');
             prevButton.disabled = true;
             nextButton.disabled = true;
-            
+
             currentImageIndex += direction;
 
             if (currentImageIndex < 0) {
@@ -4652,16 +4652,16 @@
                 currentImageIndex = currentGallery.length - 1;
             } else {
                 const modalImage = document.getElementById('modalImage');
-                
+
                 modalImage.classList.remove('zoomed');
                 modalImage.style.transform = 'scale(1)';
-                
+
                 modalImage.src = currentGallery[currentImageIndex];
             }
 
             updateNavigationButtons();
             updateImageCounter();
-            
+
             prevButton.disabled = currentImageIndex === 0;
             nextButton.disabled = currentImageIndex === currentGallery.length - 1;
         }
@@ -4717,30 +4717,30 @@
                 if (!img.dataset.protected) {
                     img.dataset.protected = "true";
                     img.style.pointerEvents = 'auto';
-                    
+
                     if (img.id !== 'modalImage') {
                         const parent = img.parentNode;
                         const wrapper = document.createElement('div');
                         wrapper.className = 'secure-image';
                         wrapper.style.position = 'relative';
                         wrapper.style.display = 'inline-block';
-                        
+
                         parent.replaceChild(wrapper, img);
                         wrapper.appendChild(img);
                     }
                 }
-                
+
                 img.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     return false;
                 });
-                
+
                 img.addEventListener('dragstart', e => {
                     e.preventDefault();
                     return false;
                 });
             });
-            
+
             const modalImage = document.getElementById('modalImage');
             if (modalImage && !modalImage.dataset.watermarked) {
                 if (modalImage.complete) {
@@ -4764,11 +4764,11 @@
 
         function enhancedScreenshotDetection() {
             const fullscreenEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
-            
+
             fullscreenEvents.forEach(event => {
                 document.addEventListener(event, checkForScreenCapture);
             });
-            
+
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
                 try {
                     const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
@@ -4792,7 +4792,7 @@
         function monitorClipboard() {
             if (navigator.clipboard && navigator.clipboard.readText) {
                 navigator.clipboard.addEventListener = navigator.clipboard.addEventListener || function() {};
-                
+
                 try {
                     navigator.clipboard.addEventListener('clipboardchange', function(e) {
                         navigator.clipboard.readText().then(function(text) {
@@ -4817,12 +4817,12 @@
             try {
                 if (!img.dataset.watermarked) {
                     img.dataset.watermarked = "true";
-                    
+
                     // 只添加基本的数据属性作为标记，不创建额外DOM元素
                     const sessionId = generateSessionId();
                     img.dataset.sessionId = sessionId;
                     img.dataset.timestamp = new Date().toISOString();
-                    
+
                     // 使用CSS属性添加基本保护
                     img.style.position = 'relative';
                 }
@@ -4876,7 +4876,7 @@
         function createPetals() {
             // 验证用户已通过认证，未认证时不创建花瓣
             if (!document.body.classList.contains('authenticated')) return;
-            
+
             // 获取花瓣容器元素
             const container = document.getElementById('rose-petals-container');
             // 根据屏幕宽度动态计算花瓣数量，确保视觉效果均衡
@@ -4884,44 +4884,44 @@
             // 获取视口宽高
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-            
+
             // 定义爱心的颜色变化滤镜 - 提供多种颜色变化效果
             const heartColors = [
                 // 粉色系列
                 'hue-rotate(0deg) saturate(1.2) brightness(1.0)',     // 正常粉红色
                 'hue-rotate(0deg) saturate(1.4) brightness(1.1)',     // 亮粉红色
                 'hue-rotate(0deg) saturate(1.0) brightness(0.95)',    // 暗粉红色
-                
+
                 // 红色系列
                 'hue-rotate(-15deg) saturate(1.4) brightness(1.0)',   // 偏红色
                 'hue-rotate(-20deg) saturate(1.6) brightness(0.9)',   // 深红色
                 'hue-rotate(-10deg) saturate(1.2) brightness(1.1)',   // 亮红色
-                
+
                 // 紫红色系列
                 'hue-rotate(340deg) saturate(1.3) brightness(1.0)',   // 紫红色
                 'hue-rotate(335deg) saturate(1.5) brightness(0.9)',   // 深紫红色
                 'hue-rotate(345deg) saturate(1.1) brightness(1.1)',   // 亮紫红色
-                
+
                 // 紫色系列
                 'hue-rotate(325deg) saturate(1.2) brightness(1.0)',   // 紫色
                 'hue-rotate(320deg) saturate(1.4) brightness(0.95)',  // 深紫色
-                
+
                 // 淡色系列
                 'hue-rotate(15deg) saturate(0.9) brightness(1.1)',    // 淡粉色
                 'hue-rotate(20deg) saturate(0.8) brightness(1.2)',    // 更淡的粉色
-                
+
                 // 暖色系列
                 'hue-rotate(-5deg) saturate(1.3) brightness(1.05)',   // 暖粉色
                 'hue-rotate(5deg) saturate(1.1) brightness(1.1)',     // 珊瑚粉色
-                
+
                 // 冷色系列
                 'hue-rotate(355deg) saturate(1.2) brightness(1.0)',   // 冷粉色
                 'hue-rotate(330deg) saturate(1.0) brightness(1.05)',  // 浅紫粉色
             ];
-            
+
             // 调用函数创建均匀分布的网格位置，避免花瓣位置聚集
             const grid = createDistributionGrid(viewportWidth, petalCount);
-            
+
             // 循环创建指定数量的花瓣
             for (let i = 0; i < petalCount; i++) {
                 // 使用setTimeout错开每个花瓣的创建时间
@@ -4930,7 +4930,7 @@
                     const petal = document.createElement('div');
                     // 设置CSS类名
                     petal.className = 'petal';
-                    
+
                     // 使用概率分布随机设置花瓣尺寸
                     // 80%概率生成小花瓣(15-25px)，20%概率生成大花瓣(25-35px)，确保视觉丰富性
                     let size;
@@ -4942,66 +4942,66 @@
                     // 设置花瓣宽高
                     petal.style.width = `${size}px`;
                     petal.style.height = `${size}px`;
-                    
+
                     // 从预先计算的分布网格中获取水平位置
                     const horizontalPosition = grid[i];
-                    
+
                     // 添加小的随机偏移，使位置更自然，避免规则感
                     const gridCellWidth = viewportWidth / petalCount;
                     const jitter = (Math.random() - 0.5) * gridCellWidth * 0.5;
                     const finalHorizontalPos = horizontalPosition + jitter;
-                    
+
                     // 设置水平位置
                     petal.style.left = `${finalHorizontalPos}px`;
-                    
+
                     // 随机设置初始顶部位置在视口上方(-5%到-15%处)，保证花瓣从屏幕外进入
                     petal.style.top = `${-5 - Math.random() * 10}%`;
-                    
+
                     // 随机设置初始透明度，范围0.7-0.9
                     petal.style.opacity = (0.7 + Math.random() * 0.2).toString();
-                    
+
                     // 随机选择基础颜色滤镜
                     const baseColorIndex = Math.floor(Math.random() * heartColors.length);
                     let baseFilter = heartColors[baseColorIndex];
-                    
+
                     // 25%概率对颜色进行微调，增加颜色多样性
                     if (Math.random() < 0.25) {
                         // 在原有色相、饱和度和亮度基础上添加随机偏移
                         const hueJitter = Math.floor(Math.random() * 10) - 5;  // -5到+5度色相偏移
                         const satJitter = (Math.random() * 0.2) - 0.1;         // -0.1到+0.1饱和度偏移
                         const brightJitter = (Math.random() * 0.2) - 0.1;      // -0.1到+0.1亮度偏移
-                        
+
                         // 使用正则表达式提取当前滤镜参数值
                         const hueMatch = baseFilter.match(/hue-rotate\((\-?\d+)deg\)/);
                         const satMatch = baseFilter.match(/saturate\((\d+\.\d+)\)/);
                         const brightMatch = baseFilter.match(/brightness\((\d+\.\d+)\)/);
-                        
+
                         // 如果成功提取到参数值，则应用微调
                         if (hueMatch && satMatch && brightMatch) {
                             const currentHue = parseInt(hueMatch[1]);
                             const currentSat = parseFloat(satMatch[1]);
                             const currentBright = parseFloat(brightMatch[1]);
-                            
+
                             // 计算新的滤镜参数值
                             const newHue = currentHue + hueJitter;
                             // 限制饱和度和亮度在合理范围内
                             const newSat = Math.max(0.7, Math.min(1.7, currentSat + satJitter));
                             const newBright = Math.max(0.8, Math.min(1.3, currentBright + brightJitter));
-                            
+
                             // 组装新的CSS滤镜字符串
                             baseFilter = `hue-rotate(${newHue}deg) saturate(${newSat.toFixed(2)}) brightness(${newBright.toFixed(2)})`;
                         }
                     }
-                    
+
                     // 应用最终的颜色滤镜
                     petal.style.filter = baseFilter;
-                    
+
                     // 随机设置花瓣缩放比例
                     const scale = 0.8 + Math.random() * 0.4;
-                    
+
                     // 将花瓣添加到容器中
                     container.appendChild(petal);
-                    
+
                     // 根据花瓣大小设置不同的下落速度和持续时间
                     // 小花瓣下落更慢(35-50秒)，大花瓣下落稍快(30-40秒)
                     const baseDuration = size < 25 ? 35 : 30; // 基础下落时间
@@ -5009,7 +5009,7 @@
                     const fallDuration = Math.floor(Math.random() * variableDuration) + baseDuration;
                     // 设置花瓣摆动周期(8-12秒)
                     const swayDuration = Math.floor(Math.random() * 4) + 8;
-                    
+
                     // 创建垂直下降动画
                     function createFallAnimation() {
                         // 使用Web Animations API创建关键帧动画
@@ -5018,10 +5018,10 @@
                             { top: petal.style.top, opacity: 0, offset: 0 },
                             { top: petal.style.top, opacity: 0.5, offset: 0.05 },
                             { top: petal.style.top, opacity: 0.8, offset: 0.1 },
-                            
+
                             // 短暂悬浮阶段，保持位置不变
                             { top: petal.style.top, opacity: 0.8, offset: 0.2 },
-                            
+
                             // 缓慢下落阶段，位置逐渐向下移动
                             { top: '5%', opacity: 0.8, offset: 0.3 },
                             { top: '15%', opacity: 0.8, offset: 0.4 },
@@ -5039,7 +5039,7 @@
                             fill: 'forwards'
                         });
                     }
-                    
+
                     // 创建水平摇摆和旋转动画，模拟自然飘动效果
                     function createSwayAnimation() {
                         // 设置摇摆幅度、旋转角度和心跳效果参数
@@ -5056,7 +5056,7 @@
                             // 回到初始状态
                             { transform: `translateY(0px) translateX(0px) rotate(0deg) scale(${scale})` }
                         ];
-                        
+
                         // 创建初始浮动动画
                         const initialFloatAnimation = petal.animate(floatAnimation, {
                             duration: 3000 + Math.random() * 2000, // 3-5秒的初始浮动
@@ -5064,7 +5064,7 @@
                             easing: 'ease-in-out', // 平滑过渡
                             fill: 'forwards' // 保持最终状态
                         });
-                        
+
                         // 初始浮动结束后开始持续的摇摆动画
                         initialFloatAnimation.onfinish = () => {
                             // 创建无限循环的水平摇摆动画
@@ -5080,38 +5080,38 @@
                                 easing: 'ease-in-out' // 平滑过渡
                             });
                         };
-                        
+
                         // 返回初始动画对象
                         return initialFloatAnimation;
                     }
-                    
+
                     // 创建并应用动画
                     const fallAnimation = createFallAnimation();
                     const swayAnimation = createSwayAnimation();
-                    
+
                     // 设置动画延迟，避免所有花瓣同时开始动画
                     const initialDelay = Math.random() * 5; // 0-5秒的初始延迟
                     // 下落动画比摇摆动画延迟3-6秒，确保先有悬浮效果
                     const fallDelay = initialDelay + 3 + Math.random() * 3;
-                    
+
                     // 应用下落动画延迟
                     fallAnimation.currentTime = -fallDelay * 1000;
-                    
+
                     // 下落结束后移除元素，减少DOM节点数量提高性能
                     fallAnimation.onfinish = () => {
                         if (petal && petal.parentNode) {
                             petal.remove();
                         }
                     };
-                    
+
                 }, i * 300 + Math.random() * 700); // 每个花瓣添加300-1000ms的创建延迟
             }
         }
-        
+
         // 创建均匀分布的网格位置 - 确保花瓣在水平方向均匀分布
         function createDistributionGrid(width, count) {
             const positions = [];
-            
+
             // 将屏幕宽度划分为等宽的区域，在每个区域内随机选择位置点
             for (let i = 0; i < count; i++) {
                 // 计算每个区域的宽度
@@ -5123,11 +5123,11 @@
                 // 计算最终位置并添加到数组，留15%作为边距避免太靠近边缘
                 positions.push(basePos + segmentWidth * 0.15 + randomOffset);
             }
-            
+
             // 随机打乱位置顺序，进一步增加随机性但保持整体分布均匀
             return shuffleArray(positions);
         }
-        
+
         // 洗牌算法 - 随机打乱数组元素顺序
         function shuffleArray(array) {
             // 从数组末尾开始，逐个元素进行随机交换
@@ -5139,15 +5139,15 @@
             }
             return array;
         }
-        
+
         // 启动并维持花瓣动画 - 页面加载后调用此函数开始动画
         function startPetalAnimation() {
             // 初始创建一批花瓣
             createPetals();
-            
+
             // 每8秒定时创建一批新花瓣，保持画面始终有花瓣飘动
             setInterval(createPetals, 8000);
-            
+
             // 监听窗口大小变化，调整花瓣数量和位置
             window.addEventListener('resize', function() {
                 // 清理当前所有花瓣元素
@@ -5168,39 +5168,39 @@
             const particles = document.createElement('div');
             // 设置容器类名，用于CSS样式关联
             particles.className = 'particles';
-            
+
             // 创建30个粒子元素
             for (let i = 0; i < 30; i++) {
                 // 创建单个粒子DOM元素
                 const particle = document.createElement('div');
                 // 设置粒子类名，应用相应的CSS样式
                 particle.className = 'particle';
-                
+
                 // 为每个粒子设置随机大小(10-30px)，增加视觉多样性
                 const size = Math.random() * 20 + 10;
                 particle.style.width = `${size}px`;
                 particle.style.height = `${size}px`;
-                
+
                 // 随机设置粒子在容器中的位置，覆盖整个区域
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
                 // 使用百分比定位，确保适应不同屏幕尺寸
                 particle.style.left = `${posX}%`;
                 particle.style.top = `${posY}%`;
-                
+
                 // 设置随机透明度(0.1-0.4)，创造层次感
                 particle.style.opacity = Math.random() * 0.3 + 0.1;
-                
+
                 // 为每个粒子设置不同的动画延迟和持续时间，避免同步移动
                 // 延迟范围0-10秒
                 particle.style.animationDelay = `${Math.random() * 10}s`;
                 // 持续时间15-35秒，确保缓慢柔和的移动
                 particle.style.animationDuration = `${Math.random() * 20 + 15}s`;
-                
+
                 // 将粒子添加到容器中
                 particles.appendChild(particle);
             }
-            
+
             // 将粒子容器添加到密码模态框中
             passwordModal.appendChild(particles);
         }
@@ -5213,16 +5213,16 @@
             const authMask = document.getElementById('authMask');
             const passwordContent = document.querySelector('.password-content');
             const particles = document.querySelector('.particles');
-            
+
             // 为密码框添加成功动画效果，表示验证通过
             passwordContent.classList.add('success');
-            
+
             // 应用CSS动画使登录框向上滑动消失
             passwordContent.style.animation = 'fadeAndSlideUp 0.7s ease reverse';
-            
+
             // 调用函数创建爱心飘动特效，增强成功的视觉反馈
             createHeartEffect();
-            
+
             // 创建爱你哟消息元素
             const loveMessage = document.createElement('div');
             loveMessage.textContent = "爱你哟！宝儿";
@@ -5240,38 +5240,38 @@
             loveMessage.style.fontFamily = 'Arial, "Microsoft YaHei", sans-serif';
             loveMessage.style.zIndex = '10';
             passwordModal.appendChild(loveMessage);
-            
+
             // 延迟1.5秒后添加淡出效果
             setTimeout(() => {
                 passwordContent.style.transition = 'opacity 1.5s ease-out';
                 passwordContent.style.opacity = '0';
                 loveMessage.style.opacity = '1';
             }, 1500);
-            
+
             // 延迟3秒后完成页面切换
             setTimeout(function() {
                 // 设置认证状态
                 isAuthenticated = true;
-                
+
                 // 隐藏登录相关元素
                 passwordModal.style.display = 'none';
                 authMask.style.display = 'none';
-                
+
                 // 添加身份验证标记类
                 document.body.classList.add('authenticated');
-                
+
                 // 显示主内容区域
                 mainContent.style.display = 'block';
-                
+
                 // 启动花瓣背景动画
                 startPetalAnimation();
-                
+
                 // 加载数据并初始化显示
                 loadMemories();
-                
+
                 // 启动时间更新
                 startTimeUpdates();
-                
+
                 // 尝试自动播放背景音乐
                 const music = document.getElementById('bgMusic');
                 const musicControl = document.getElementById('musicControl');
@@ -5281,18 +5281,18 @@
                 }).catch(() => {
                     // 静默处理播放失败
                 });
-                
+
                 // 设置身份验证Cookie
                 document.cookie = "authenticated=true; max-age=604800; path=/; samesite=strict";
-                
+
                 // 延迟0.5秒后禁用图片保存功能
                 setTimeout(disableSaveImage, 500);
-                
+
                 // 调用onSuccessfulAuth处理其他初始化
                 onSuccessfulAuth();
             }, 3500);
         }
-        
+
         // 创建心形粒子效果 - 密码验证成功时的爱心飘动特效
         function createHeartEffect() {
             // 获取密码验证模态框元素
@@ -5311,24 +5311,24 @@
             hearts.style.pointerEvents = 'none';
             // 设置较高的z-index确保爱心显示在其他元素上方
             hearts.style.zIndex = '5';
-            
+
             // 定义多种爱心表情符号，提供视觉多样性
             const heartColors = [
                 '❤️', // 红心
                 '💖', // 粉色闪烁爱心
-                '💗', // 增长粉心 
+                '💗', // 增长粉心
                 '💓', // 跳动粉心
                 '💕', // 双粉心
                 '💝', // 礼物心
                 '💘', // 箭头心
                 '💞', // 旋转双心
             ];
-            
+
             // 根据设备类型调整爱心数量，移动端减少数量提高性能
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             // 移动端30个爱心，PC端80个爱心
             const heartCount = isMobile ? 30 : 80;
-            
+
             // 循环创建指定数量的爱心元素
             for (let i = 0; i < heartCount; i++) {
                 // 使用setTimeout错开创建时间，实现爱心逐个出现的效果
@@ -5353,17 +5353,17 @@
                     heart.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
                     // 将爱心添加到容器中
                     hearts.appendChild(heart);
-                    
+
                     // 为避免DOM元素过多导致性能问题，设置定时器在动画结束后移除爱心元素
                     setTimeout(() => {
                         heart.remove();
                     }, 15000); // 15秒后移除，确保动画完成
                 }, i * (isMobile ? 150 : 80)); // 移动端间隔150毫秒，PC端80毫秒
             }
-            
+
             // 将爱心容器添加到密码模态框中
             passwordModal.appendChild(hearts);
-            
+
             // 创建并添加CSS动画样式
             const style = document.createElement('style');
             // 定义爱心飘动、震动和成功动画的关键帧
@@ -5394,15 +5394,15 @@
                         opacity: 0;
                     }
                 }
-                
+
                 .shake {
                     animation: shake 0.5s ease;
                 }
-                
+
                 .success {
                     animation: success 0.5s ease;
                 }
-                
+
                 @keyframes success {
                     0% {
                         transform: scale(1);
@@ -5425,10 +5425,10 @@
         // 重写检查密码并验证的函数，集成心形动画效果
         function checkAndVerifyPassword() {
             if (isLocked) return;
-            
+
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
-            
+
             // 检查密码是否为空
             if (!password.trim()) {
                 errorMessage.textContent = "请输入…";
@@ -5438,7 +5438,7 @@
                 errorMessage.style.animation = 'shake 0.5s ease';
                 return;
             }
-            
+
             if (enhancedHash(password) === PASSWORD_HASH) {
                 // 使用美化后的成功验证效果
                 successfulAuthentication();
@@ -5452,12 +5452,12 @@
                     errorMessage.textContent = errorMessages[passwordAttempts - 1];
                     errorMessage.style.display = 'block';
                     document.getElementById('passwordInput').value = '';
-                    
+
                     // 重置动画
                     errorMessage.style.animation = 'none';
                     void errorMessage.offsetWidth;
                     errorMessage.style.animation = 'shake 0.5s ease';
-                    
+
                     // 震动密码输入框
                     const passwordContent = document.querySelector('.password-content');
                     passwordContent.classList.remove('shake');
@@ -5470,40 +5470,40 @@
         // 初始化日期选择器
         function initializeDateSelector(data) {
             if (!data || data.length === 0) return;
-            
+
             const yearSelect = document.getElementById('yearSelect');
             const monthSelect = document.getElementById('monthSelect');
             const daySelect = document.getElementById('daySelect');
             const jumpButton = document.getElementById('jumpToDateBtn');
-            
+
             // 收集所有出现的年份和月份
             const dates = {};
             data.forEach(memory => {
                 if (!memory.d) return;
-                
+
                 // 处理完整日期格式，如 "2025-04-05"
                 const match = memory.d.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
                 if (match) {
                     const year = match[1];
                     const month = match[2] || null;
                     const day = match[3] || null;
-                    
+
                     if (!dates[year]) {
                         dates[year] = {};
                     }
-                    
+
                     if (month) {
                         if (!dates[year][month]) {
                             dates[year][month] = [];
                         }
-                        
+
                         if (day && !dates[year][month].includes(day)) {
                             dates[year][month].push(day);
                         }
                     }
                 }
             });
-            
+
             // 填充年份选择器
             const years = Object.keys(dates).sort((a, b) => b - a); // 降序排列
             yearSelect.innerHTML = '<option value="">全部</option>';
@@ -5513,30 +5513,30 @@
                 option.textContent = `${year}年`;
                 yearSelect.appendChild(option);
             });
-            
+
             // 监听年份变化，更新月份选择器
             yearSelect.addEventListener('change', function() {
                 updateMonthOptions();
             });
-            
+
             // 监听月份变化，更新日期选择器
             monthSelect.addEventListener('change', function() {
                 updateDayOptions();
             });
-            
+
             // 跳转按钮点击事件
             jumpButton.addEventListener('click', function() {
                 jumpToSelectedDate();
             });
-            
+
             // 初始化月份和日期选择器
             updateMonthOptions();
-            
+
             // 更新月份选项
             function updateMonthOptions() {
                 const selectedYear = yearSelect.value;
                 monthSelect.innerHTML = '<option value="">全部</option>';
-                
+
                 if (selectedYear && dates[selectedYear]) {
                     const months = Object.keys(dates[selectedYear]).sort((a, b) => b - a); // 降序排列
                     months.forEach(month => {
@@ -5546,21 +5546,21 @@
                         monthSelect.appendChild(option);
                     });
                 }
-                
+
                 // 更新日期选项
                 updateDayOptions();
             }
-            
+
             // 更新日期选项
             function updateDayOptions() {
                 const selectedYear = yearSelect.value;
                 const selectedMonth = monthSelect.value;
                 daySelect.innerHTML = '<option value="">全部</option>';
-                
-                if (selectedYear && selectedMonth && 
-                    dates[selectedYear] && 
+
+                if (selectedYear && selectedMonth &&
+                    dates[selectedYear] &&
                     dates[selectedYear][selectedMonth]) {
-                    
+
                     const days = dates[selectedYear][selectedMonth].sort((a, b) => b - a); // 降序排列
                     days.forEach(day => {
                         const option = document.createElement('option');
@@ -5570,23 +5570,23 @@
                     });
                 }
             }
-            
+
             // 跳转到选中日期
             function jumpToSelectedDate() {
                 const selectedYear = yearSelect.value;
                 const selectedMonth = monthSelect.value;
                 const selectedDay = daySelect.value;
-                
+
                 // 重置页面和数据
                 const timeline = document.getElementById('timeline');
                 timeline.innerHTML = '';
-                
+
                 // 如果没有选择任何筛选条件（全部设为"全部"），则恢复默认状态
                 if (!selectedYear) {
                     // 清除筛选模式和筛选数据
                     window.isFilteredMode = false;
                     window.filteredMemoriesData = null;
-                    
+
                     // 恢复默认状态，重新渲染所有数据
                     renderMemories();
                     document.getElementById('loadMore').style.display = 'block';
@@ -5594,10 +5594,10 @@
                     checkHasMore();
                     return;
                 }
-                
+
                 // 根据选择条件筛选数据
                 let filteredMemories = [];
-                
+
                 if (selectedDay) {
                     // 按具体日期筛选
                     const fullDate = `${selectedYear}-${selectedMonth}-${selectedDay}`;
@@ -5610,7 +5610,7 @@
                     // 只按年份筛选
                     filteredMemories = memories.filter(memory => memory.d.startsWith(selectedYear));
                 }
-                
+
                 // 处理没有找到匹配记录的情况
                 if (filteredMemories.length === 0) {
                     timeline.innerHTML = '<p style="text-align:center;color:var(--accent-color);padding:20px;font-size:var(--text-size-pc);">没有找到符合条件的记录</p>';
@@ -5620,23 +5620,23 @@
                     window.filteredMemoriesData = null;
                     return;
                 }
-                
+
                 // 全局变量保存筛选后的数据
                 window.filteredMemoriesData = filteredMemories;
-                
+
                 // 只渲染第一页数据
                 const firstPageData = filteredMemories.slice(0, itemsPerPage);
-                
+
                 // 渲染筛选后的第一页内容
                 firstPageData.forEach((memory, index) => {
                     const memoryDiv = document.createElement('div');
                     memoryDiv.className = `memory ${index % 2 === 0 ? 'left' : 'right'}`;
-                    
+
                     const formattedDate = formatDate(memory.d);
-                    
+
                     // 设置当前处理的记忆对象
                     currentMemory = memory;
-                    
+
                     let imagesHTML = '';
                     if (memory.i && memory.i.length > 0) {
                         imagesHTML = '<div class="gallery">';
@@ -5646,7 +5646,7 @@
                         });
                         imagesHTML += '</div>';
                     }
-                    
+
                     memoryDiv.innerHTML = `
                         <div class="content" onclick="highlightTimelineNode(this)">
                             <div class="date">${formattedDate}</div>
@@ -5655,17 +5655,17 @@
                             ${imagesHTML}
                         </div>
                     `;
-                    
+
                     timeline.appendChild(memoryDiv);
                 });
-                
+
                 // 重置当前页索引
                 currentPage = 1;
-                
+
                 // 设置是否显示"加载更多"按钮
                 if (filteredMemories.length > itemsPerPage) {
                     document.getElementById('loadMore').style.display = 'block';
-                    
+
                     // 修改加载更多点击函数，使用特殊标记表示当前是筛选模式
                     window.isFilteredMode = true;
                     hasMore = true;
@@ -5674,10 +5674,10 @@
                     window.isFilteredMode = false;
                     hasMore = false;
                 }
-                
+
                 // 应用禁止保存图片
                 setTimeout(disableSaveImage, 500);
-                
+
                 // 如果有内容，滚动到顶部
                 if (filteredMemories.length > 0) {
                     window.scrollTo(0, 0);
@@ -5694,7 +5694,7 @@
             let startY = 0;
             let translateX = 0;
             let translateY = 0;
-            
+
             // 速度追踪变量
             let lastX = 0;
             let lastY = 0;
@@ -5702,15 +5702,15 @@
             let speedY = 0;
             let lastMoveTime = 0;
             let inertiaAnimationId = null;
-            
+
             // 移除点击缩放，只保留双击事件
             let lastClickTime = 0;
-            
+
             modalImage.addEventListener('click', function(event) {
                 event.stopPropagation();
                 const currentTime = new Date().getTime();
                 const timeDiff = currentTime - lastClickTime;
-                
+
                 // 双击事件 (300ms内的两次点击)
                 if (timeDiff < 300 && timeDiff > 0) {
                     if (this.classList.contains('zoomed')) {
@@ -5723,17 +5723,17 @@
                             const rect = this.getBoundingClientRect();
                             const xRatio = (event.clientX - rect.left) / rect.width;
                             const yRatio = (event.clientY - rect.top) / rect.height;
-                            
+
                             scale = 2.5;
                             // 计算平移量，使双击点成为中心
                             translateX = (0.5 - xRatio) * 100;
                             translateY = (0.5 - yRatio) * 100;
-                            
+
                             this.classList.add('zoomed');
                             applyTransform();
                         }
                     }
-                    
+
                     // 重置点击时间
                     lastClickTime = 0;
                 } else {
@@ -5741,7 +5741,7 @@
                     lastClickTime = currentTime;
                 }
             });
-            
+
             function resetZoom() {
                 cancelInertiaAnimation();
                 scale = 1;
@@ -5750,12 +5750,12 @@
                 modalImage.classList.remove('zoomed');
                 applyTransform();
             }
-            
+
             // 应用变换的统一函数
             function applyTransform() {
                 modalImage.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
             }
-            
+
             // 限制拖动范围的函数
             function limitTranslation() {
                 // 根据缩放级别调整最大拖动范围
@@ -5763,7 +5763,7 @@
                 translateX = Math.min(maxTranslate, Math.max(-maxTranslate, translateX));
                 translateY = Math.min(maxTranslate, Math.max(-maxTranslate, translateY));
             }
-            
+
             // 取消惯性动画
             function cancelInertiaAnimation() {
                 if (inertiaAnimationId !== null) {
@@ -5771,7 +5771,7 @@
                     inertiaAnimationId = null;
                 }
             }
-            
+
             // 双指缩放支持
             let initialPinchDistance = 0;
             let initialScale = 1;
@@ -5779,48 +5779,48 @@
             let pinchMidY = 0;
             let initialTranslateX = 0;
             let initialTranslateY = 0;
-            
+
             modalImage.addEventListener('touchstart', function(e) {
                 cancelInertiaAnimation();
-                
+
                 if (e.touches.length === 2) {
                     e.preventDefault();
                     // 记录初始值
                     initialScale = scale;
                     initialTranslateX = translateX;
                     initialTranslateY = translateY;
-                    
+
                     // 计算中心点
                     pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
                     pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                    
+
                     // 转换为相对于图片的比例
                     const rect = this.getBoundingClientRect();
                     pinchMidX = (pinchMidX - rect.left) / rect.width;
                     pinchMidY = (pinchMidY - rect.top) / rect.height;
-                    
+
                     initialPinchDistance = getPinchDistance(e.touches[0], e.touches[1]);
                     this.classList.add('zoomed');
                 }
             }, { passive: false });
-            
+
             modalImage.addEventListener('touchmove', function(e) {
                 if (e.touches.length === 2 && initialPinchDistance > 0) {
                     e.preventDefault();
                     const currentDistance = getPinchDistance(e.touches[0], e.touches[1]);
-                    
+
                     // 计算新的缩放级别
                     const scaleFactor = currentDistance / initialPinchDistance;
                     scale = Math.max(1, Math.min(4, initialScale * scaleFactor));
-                    
+
                     // 调整平移量，保持中心点
                     if (scale > 1) {
                         const scaleRatio = scale / initialScale;
-                        
+
                         // 根据缩放中心点调整平移
                         translateX = initialTranslateX + ((0.5 - pinchMidX) * 200 * (scaleRatio - 1));
                         translateY = initialTranslateY + ((0.5 - pinchMidY) * 200 * (scaleRatio - 1));
-                        
+
                         limitTranslation();
                         applyTransform();
                     } else {
@@ -5828,40 +5828,40 @@
                     }
                 }
             }, { passive: false });
-            
+
             modalImage.addEventListener('touchend', function(e) {
                 if (e.touches.length < 2) {
                     initialPinchDistance = 0;
                 }
-                
+
                 if (scale <= 1.1) {
                     resetZoom();
                 }
             });
-            
+
             function getPinchDistance(touch1, touch2) {
                 return Math.sqrt(
-                    Math.pow(touch1.clientX - touch2.clientX, 2) + 
+                    Math.pow(touch1.clientX - touch2.clientX, 2) +
                     Math.pow(touch1.clientY - touch2.clientY, 2)
                 );
             }
-            
+
             // 鼠标滚轮缩放 (PC端主要缩放方式)
             modalImage.addEventListener('wheel', function(e) {
                 e.preventDefault();
                 cancelInertiaAnimation();
-                
+
                 const rect = this.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
-                
+
                 // 计算鼠标位置相对于图片的比例
                 const xRatio = mouseX / rect.width;
                 const yRatio = mouseY / rect.height;
-                
+
                 // 旧缩放值
                 const oldScale = scale;
-                
+
                 if (e.deltaY < 0) {
                     // 放大
                     scale = Math.min(4, scale * 1.1);
@@ -5874,19 +5874,19 @@
                         return;
                     }
                 }
-                
+
                 // 根据鼠标位置调整平移值，使缩放围绕鼠标位置
                 if (oldScale !== 1) {
                     // 调整平移量，使缩放以鼠标位置为中心
                     translateX = translateX + ((0.5 - xRatio) * 200 * (scale / oldScale - 1));
                     translateY = translateY + ((0.5 - yRatio) * 200 * (scale / oldScale - 1));
-                    
+
                     limitTranslation();
                 }
-                
+
                 applyTransform();
             });
-            
+
             // 拖动支持 - PC
             modalImage.addEventListener('mousedown', function(e) {
                 if (this.classList.contains('zoomed')) {
@@ -5900,34 +5900,34 @@
                     speedX = 0;
                     speedY = 0;
                     e.preventDefault();
-                    
+
                     // 使用更高效的方式处理拖动
                     this.style.transition = 'transform 0s';
                 }
             });
-            
+
             document.addEventListener('mousemove', function(e) {
                 if (isDragging && modalImage.classList.contains('zoomed')) {
                     const currentTime = Date.now();
                     const timeElapsed = currentTime - lastMoveTime;
-                    
+
                     // 计算移动的距离
                     const dx = e.clientX - startX;
                     const dy = e.clientY - startY;
-                    
+
                     // 根据缩放级别调整移动速度
                     translateX += dx / scale;
                     translateY += dy / scale;
-                    
+
                     limitTranslation();
                     applyTransform();
-                    
+
                     // 计算移动速度 (像素/毫秒)
                     if (timeElapsed > 0) {
                         speedX = (e.clientX - lastX) / timeElapsed;
                         speedY = (e.clientY - lastY) / timeElapsed;
                     }
-                    
+
                     lastX = e.clientX;
                     lastY = e.clientY;
                     lastMoveTime = currentTime;
@@ -5935,53 +5935,53 @@
                     startY = e.clientY;
                 }
             });
-            
+
             document.addEventListener('mouseup', function() {
                 if (isDragging) {
                     modalImage.style.transition = 'transform 0.3s ease';
-                    
+
                     // 计算惯性移动
                     if (Math.abs(speedX) > 0.1 || Math.abs(speedY) > 0.1) {
                         startInertiaAnimation();
                     }
-                    
+
                     isDragging = false;
                 }
             });
-            
+
             // 处理惯性动画
             function startInertiaAnimation() {
                 const friction = 0.95; // 摩擦系数
                 let currentSpeedX = speedX * 15; // 初始速度放大，效果更明显
                 let currentSpeedY = speedY * 15;
-                
+
                 function animateInertia() {
                     if (Math.abs(currentSpeedX) < 0.05 && Math.abs(currentSpeedY) < 0.05) {
                         cancelInertiaAnimation();
                         return;
                     }
-                    
+
                     // 减速
                     currentSpeedX *= friction;
                     currentSpeedY *= friction;
-                    
+
                     // 移动
                     translateX += currentSpeedX / scale;
                     translateY += currentSpeedY / scale;
-                    
+
                     limitTranslation();
                     applyTransform();
-                    
+
                     inertiaAnimationId = requestAnimationFrame(animateInertia);
                 }
-                
+
                 cancelInertiaAnimation();
                 inertiaAnimationId = requestAnimationFrame(animateInertia);
             }
-            
+
             // 处理手指拖动 - 移动端
             let touchStartTime = 0;
-            
+
             modalImage.addEventListener('touchstart', function(e) {
                 if (this.classList.contains('zoomed') && e.touches.length === 1) {
                     cancelInertiaAnimation();
@@ -5994,52 +5994,52 @@
                     touchStartTime = lastMoveTime;
                     speedX = 0;
                     speedY = 0;
-                    
+
                     // 使用更高效的方式处理拖动
                     this.style.transition = 'transform 0s';
                 }
             }, { passive: true });
-            
+
             modalImage.addEventListener('touchmove', function(e) {
                 if (isDragging && this.classList.contains('zoomed') && e.touches.length === 1) {
                     const currentTime = Date.now();
                     const timeElapsed = currentTime - lastMoveTime;
-                    
+
                     // 使用更精确的定位
                     const touchX = e.touches[0].clientX;
                     const touchY = e.touches[0].clientY;
-                    
+
                     // 计算移动距离并根据缩放因子调整移动速度
                     translateX += (touchX - lastX) / scale;
                     translateY += (touchY - lastY) / scale;
-                    
+
                     limitTranslation();
                     applyTransform();
-                    
+
                     // 计算速度
                     if (timeElapsed > 0) {
                         speedX = (touchX - lastX) / timeElapsed;
                         speedY = (touchY - lastY) / timeElapsed;
                     }
-                    
+
                     lastX = touchX;
                     lastY = touchY;
                     lastMoveTime = currentTime;
                 }
             }, { passive: true });
-            
+
             modalImage.addEventListener('touchend', function(e) {
                 if (isDragging) {
                     const touchEndTime = Date.now();
                     const touchDuration = touchEndTime - touchStartTime;
-                    
+
                     this.style.transition = 'transform 0.3s ease';
-                    
+
                     // 如果移动速度足够快，添加惯性效果
                     if (touchDuration < 300 && (Math.abs(speedX) > 0.1 || Math.abs(speedY) > 0.1)) {
                         startInertiaAnimation();
                     }
-                    
+
                     isDragging = false;
                 }
             });
@@ -6052,37 +6052,37 @@
             allMemoryNodes.forEach(node => {
                 node.classList.remove('highlight');
             });
-            
+
             const timeline = document.querySelector('.timeline');
             timeline.classList.remove('highlight');
-            
+
             // 找到当前点击内容的父节点（memory元素）
             const memoryNode = contentElement.closest('.memory');
             if (memoryNode) {
                 // 添加高亮效果
                 memoryNode.classList.add('highlight');
                 timeline.classList.add('highlight');
-                
+
                 // 确保内容卡片也获得高亮
                 const content = memoryNode.querySelector('.content');
                 if (content) {
                     // 使用更加柔和的高亮效果
                     content.style.boxShadow = '0 5px 15px rgba(255, 92, 141, 0.15)';
                     content.style.transform = 'translateY(-2px)';
-                    
+
                     // 平滑恢复
                     setTimeout(() => {
                         content.style.boxShadow = '';
                         content.style.transform = '';
                     }, 2000);
                 }
-                
+
                 // 2秒后移除高亮效果
                 setTimeout(() => {
                     memoryNode.classList.remove('highlight');
                     timeline.classList.remove('highlight');
                 }, 2000);
-                
+
                 // 如果有配置的设备震动，添加更柔和的震动
                 if (window.navigator && window.navigator.vibrate) {
                     window.navigator.vibrate(15);
@@ -6095,13 +6095,13 @@
             const dateSelector = document.getElementById('dateSelector');
             const timeDisplay = this;
             const isShown = dateSelector.classList.contains('show');
-            
+
             if (isShown) {
                 // 收起动画
                 dateSelector.classList.remove('show');
                 dateSelector.classList.add('hide');
                 timeDisplay.classList.remove('active');
-                
+
                 // 动画结束后隐藏元素
                 dateSelector.addEventListener('animationend', function handler() {
                     dateSelector.style.display = 'none';
@@ -6122,16 +6122,16 @@
         function initializeLoveClicks() {
             const babyGirl = document.getElementById('babyGirl');
             const babyBoy = document.getElementById('babyBoy');
-            
+
             if (babyGirl) {
                 babyGirl.addEventListener('click', function() {
                     // 检查锁定状态，防止短时间内重复触发
                     if (babyGirlClickLock) return;
-                    
+
                     // 设置锁定，0.2秒后解锁，允许更频繁点击
                     babyGirlClickLock = true;
                     setTimeout(() => { babyGirlClickLock = false; }, 200);
-                    
+
                     // 每次点击只发送一条弹幕
                     // 随机选择一条弹幕文字
                     const randomIndex = Math.floor(Math.random() * girlLovePhrases.length);
@@ -6139,16 +6139,16 @@
                     createDanmaku(text, true);
                 });
             }
-            
+
             if (babyBoy) {
                 babyBoy.addEventListener('click', function() {
                     // 检查锁定状态，防止短时间内重复触发
                     if (babyBoyClickLock) return;
-                    
+
                     // 设置锁定，0.2秒后解锁，允许更频繁点击
                     babyBoyClickLock = true;
                     setTimeout(() => { babyBoyClickLock = false; }, 200);
-                    
+
                     // 每次点击只发送一条弹幕
                     // 随机选择一条弹幕文字
                     const randomIndex = Math.floor(Math.random() * boyLovePhrases.length);
@@ -6157,12 +6157,12 @@
                 });
             }
         }
-        
+
         // 显示爱的消息
         function showLoveMessage(target) {
             const loveMessage = document.getElementById('loveMessage');
             let message = '';
-            
+
             if (target === 'babyGirl') {
                 // 移除计数显示，只显示固定文本
                 message = '宝儿我爱你';
@@ -6170,11 +6170,11 @@
                 // 移除计数显示，只显示固定文本
                 message = '宝子我爱你';
             }
-            
+
             loveMessage.textContent = message;
             loveMessage.style.display = 'block';
             loveMessage.style.opacity = '1';
-            
+
             // 1.5秒后隐藏消息
             setTimeout(function() {
                 loveMessage.style.animation = 'fadeOut 0.5s forwards';
@@ -6233,10 +6233,10 @@
             const danmaku = document.createElement('div');
             danmaku.className = 'danmaku';
             danmaku.textContent = text;
-            
+
             // 检测是否为移动设备
             const isMobile = window.innerWidth <= 768;
-            
+
             // 根据设备类型设置不同的字体大小范围
             let fontSize;
             if (isMobile) {
@@ -6247,37 +6247,37 @@
                 fontSize = Math.floor(Math.random() * 12) + 18;
             }
             danmaku.style.fontSize = `${fontSize}px`;
-            
+
             // 随机垂直位置 (5%-95%)
             const top = Math.floor(Math.random() * 90) + 5;
             danmaku.style.top = `${top}%`;
-            
+
             // 根据设备调整动画速度
             const durationBase = isMobile ? 10 : 15; // 移动端基础速度更快
             const durationRange = isMobile ? 8 : 15; // 移动端变化范围更小
             const duration = Math.floor(Math.random() * durationRange) + durationBase;
             danmaku.style.animationDuration = `${duration}s`;
-            
+
             // 随机透明度 (0.85-1.0)，增强可见度
             const baseOpacity = 0.85 + Math.random() * 0.15;
-            
+
             // 随机动画延迟 (0-1s)
             const delay = Math.random();
             danmaku.style.animationDelay = `${delay}s`;
-            
+
             // 随机选择动画变体 - 添加第三种变体
             const animationVariants = ['', 'Variant1', 'Variant2', 'Variant3'];
             const animationVariant = animationVariants[Math.floor(Math.random() * animationVariants.length)];
             if (animationVariant) {
                 danmaku.style.animationName = `danmakuMove${animationVariant}`;
             }
-            
+
             // 根据不同角色设置不同的颜色和特效
             if (isGirl) {
                 // 女孩粉色系，增加更多色彩变化
                 const pinkHue1 = Math.floor(Math.random() * 25) + 330; // 330-355
                 const pinkHue2 = Math.floor(Math.random() * 20) + 350; // 350-370
-                
+
                 // 移动设备使用更浅的背景色和细一点的阴影
                 if (isMobile) {
                     danmaku.style.background = `linear-gradient(135deg, hsla(${pinkHue1}, 100%, 80%, ${baseOpacity}), hsla(${pinkHue2}, 100%, 70%, ${baseOpacity}))`;
@@ -6294,7 +6294,7 @@
                     }
                 }
                 danmaku.style.color = 'white';
-                
+
                 // 移动端降低特效概率，PC端增强特效
                 if (!isMobile && Math.random() < 0.25) {
                     danmaku.style.animation = `${danmaku.style.animation}, sparkle 2s infinite alternate`;
@@ -6305,7 +6305,7 @@
                 // 男孩蓝色系，增加更多色彩变化
                 const blueHue1 = Math.floor(Math.random() * 25) + 200; // 200-225
                 const blueHue2 = Math.floor(Math.random() * 20) + 220; // 220-240
-                
+
                 // 移动设备使用更浅的背景色和细一点的阴影
                 if (isMobile) {
                     danmaku.style.background = `linear-gradient(135deg, hsla(${blueHue1}, 100%, 80%, ${baseOpacity}), hsla(${blueHue2}, 100%, 70%, ${baseOpacity}))`;
@@ -6322,7 +6322,7 @@
                     }
                 }
                 danmaku.style.color = 'white';
-                
+
                 // 移动端降低特效概率，PC端增强特效
                 if (!isMobile && Math.random() < 0.25) {
                     danmaku.style.animation = `${danmaku.style.animation}, pulse 2s infinite alternate`;
@@ -6330,19 +6330,19 @@
                     danmaku.style.textShadow = `0 0 1px #fff, 0 0 2px #fff, 0 0 3px #4287f5, 0 0 4px #4287f5`;
                 }
             }
-            
+
             // 移动端降低表情符号添加概率，PC端增加
             const emojiProbability = isMobile ? 0.05 : 0.2;
             if (Math.random() < emojiProbability) {
-                const emojiList = isGirl ? 
-                    ['💖', '💕', '💗', '💓', '💞', '❤️', '😘', '🥰', '✨', '🌸'] : 
+                const emojiList = isGirl ?
+                    ['💖', '💕', '💗', '💓', '💞', '❤️', '😘', '🥰', '✨', '🌸'] :
                     ['💙', '💯', '✨', '🔥', '👑', '⭐', '🌟', '😎', '🚀', '💪'];
                 const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
                 danmaku.textContent = `${danmaku.textContent} ${emoji}`;
             }
-            
+
             document.body.appendChild(danmaku);
-            
+
             // 动画结束后移除元素
             danmaku.addEventListener('animationend', function() {
                 if (danmaku.parentNode) {
@@ -6360,23 +6360,23 @@
                     // 创建波纹元素
                     const ripple = document.createElement('div');
                     ripple.className = 'ripple';
-                    
+
                     // 计算点击位置相对于卡片的坐标
                     const rect = content.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
-                    
+
                     // 设置波纹直径，取卡片宽高的较大值的2.5倍
                     const size = Math.max(rect.width, rect.height) * 2.5;
-                    
+
                     // 设置波纹样式
                     ripple.style.width = ripple.style.height = `${size}px`;
                     ripple.style.left = `${x - size / 2}px`;
                     ripple.style.top = `${y - size / 2}px`;
-                    
+
                     // 添加到卡片中
                     content.appendChild(ripple);
-                    
+
                     // 动画结束后移除波纹元素
                     setTimeout(() => {
                         if (ripple.parentNode) {
