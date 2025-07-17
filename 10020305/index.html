@@ -3147,7 +3147,7 @@
         <header>
             <h1><span id="babyGirl" class="love-name">宝儿</span>和<span id="babyBoy" class="love-name">宝子</span>的时光轴</h1>
             <div class="time-display">
-                <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div>
+                <!-- <div class="current-time" id="currentTime">幸运 加载中... 我们还在</div> -->
                 <div class="time-counter" id="timeCounter">自我们相识的瞬间<br>已经在计算中...</div>
             </div>
             <div class="date-indicator" id="timeDisplay">
@@ -3719,12 +3719,12 @@
             const daysStr = days.toString().padStart(4, '\u00A0');
 
             requestAnimationFrame(() => {
-                const currentTimeElement = document.getElementById('currentTime');
+                // const currentTimeElement = document.getElementById('currentTime');
                 const timeCounterElement = document.getElementById('timeCounter');
 
-                if(currentTimeElement) {
-                    currentTimeElement.textContent = "幸运 " + formattedDate + ' 我们还在';
-                }
+                // if(currentTimeElement) {
+                    // currentTimeElement.textContent = "幸运 " + formattedDate + ' 我们还在';
+                // }
 
                 if(timeCounterElement) {
                     timeCounterElement.innerHTML = `自我们相识的${memoryCount}个瞬间(共${totalWordsCount}字 ${totalImagesCount}张照片)<br>已经${years}年${remainingDays}天(共${daysStr}天)${countHours.toString().padStart(2, '0')}小时${countMinutes.toString().padStart(2, '0')}分${countSeconds.toString().padStart(2, '0')}秒`;
