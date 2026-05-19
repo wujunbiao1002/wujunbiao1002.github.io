@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>估值君 —— 一个帮你实时追踪基金估值的小工具</title>
+      <link href="/posts/20260519/"/>
+      <url>/posts/20260519/</url>
+      
+        <content type="html"><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>作为一名基金投资者，你是否也有过这样的困扰：交易日盘中想看看自己持有的基金大概涨了多少，却只能反复刷新各种 App，而且大多数行情软件只展示基金的<strong>上一日净值</strong>，盘中的实时估值要东找西找。</p><p>为了解决这个痛点，我利用业余时间开发了 <strong>估值君</strong> —— 一个专注于基金<strong>盘中实时估值</strong>追踪的 Web 工具。输入基金代码即可添加，盘中自动刷新估算净值，让你对自己的持仓盈亏一目了然。</p><blockquote><p><strong>访问地址</strong>：<a href="https://junly.top/fund/">https://junly.top/fund/</a> 或 <a href="https://fund.junly.top/fund/">https://fund.junly.top/fund/</a></p></blockquote><p><img src="/assets/images/posts/fund/%E9%A6%96%E9%A1%B5%E6%80%BB%E8%A7%88.png" alt="估值君登录页面"></p><h1 id="功能介绍"><a href="#功能介绍" class="headerlink" title="功能介绍"></a>功能介绍</h1><h2 id="实时估值追踪"><a href="#实时估值追踪" class="headerlink" title="实时估值追踪"></a>实时估值追踪</h2><p>估值君的核心功能就是<strong>盘中实时估值</strong>。在交易日的 9:30-15:00 期间，系统会自动刷新每只基金的估算净值，并记录为时间序列数据，生成盘中走势折线图。收市后，你可以在估值走势图上清晰地看到当天估值的变化轨迹。</p><p>添加基金也非常简单，只需要输入基金代码（如 <code>000001</code>），系统会自动拉取基金的基本信息、历史净值走势以及<strong>前十大重仓股</strong>。</p><h2 id="持仓管理与盈亏计算"><a href="#持仓管理与盈亏计算" class="headerlink" title="持仓管理与盈亏计算"></a>持仓管理与盈亏计算</h2><p>除了看估值，你还需要记录自己的实际持仓。估值君支持录入买入&#x2F;卖出交易记录，包括份额、手续费、交易日期等信息。系统会根据你的实际持仓成本和当前估值，自动计算：</p><ul><li><strong>持有收益</strong>（实际盈亏金额）</li><li><strong>持有收益率</strong>（盈亏百分比）</li><li>分组汇总的账户级别盈亏</li></ul><p>对于在 15:00 之后提交的交易，系统会自动识别为<strong>待确认交易</strong>，避免将 T+1 的操作误算入当日持仓。</p><h2 id="基金分组管理"><a href="#基金分组管理" class="headerlink" title="基金分组管理"></a>基金分组管理</h2><p>如果你同时关注多个方向的基金（比如”稳健理财”和”高波动成长”），分组功能就很实用了。你可以：</p><ul><li>创建多个基金分组</li><li>在分组之间拖拽移动基金</li><li>每个分组独立显示汇总盈亏</li><li>为基金打上自定义颜色标签</li></ul><p><img src="/assets/images/posts/fund/%E6%9A%97%E8%89%B2%E6%A8%A1%E5%BC%8F.png" alt="暗色主题支持"></p><h2 id="收益日历"><a href="#收益日历" class="headerlink" title="收益日历"></a>收益日历</h2><p>收益日历以月历的形式，直观展示每一天的持仓盈亏。绿色代表盈利，红色代表亏损，一眼就能看出这个月”哪些天赚钱、哪些天亏钱”。在手机端还支持左右滑动切换月份。</p><h2 id="定投计划"><a href="#定投计划" class="headerlink" title="定投计划"></a>定投计划</h2><p>如果你是定投党，估值君也内置了定投计划配置功能。支持按日、按周、按双周、按月等不同周期设置，也可以精确到每周的哪几天或每月的几号。帮你规划和跟踪自己的定投节奏。</p><h2 id="扫码导入"><a href="#扫码导入" class="headerlink" title="扫码导入"></a>扫码导入</h2><p>有时候你在其他 App 上看到一组基金代码想快速添加，手动输入太麻烦。估值君内置了 OCR 扫描功能，直接截图或者拍照，系统会自动识别图片中的基金代码，一键批量导入。</p><h2 id="云端同步"><a href="#云端同步" class="headerlink" title="云端同步"></a>云端同步</h2><p>注册账号后，你的基金配置会自动同步到云端。更棒的是，估值君使用了 <strong>SSE（Server-Sent Events）</strong> 实现实时同步 —— 在手机上添加一只基金，电脑端的页面几乎瞬间就能看到更新，无需手动刷新。</p><p>用户密码在传输前会通过 <strong>RSA 非对称加密</strong>处理，保障安全性。</p><h1 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h1><p>简单介绍一下项目用到的主要技术：</p><p><strong>前端</strong>：</p><ul><li><strong>Next.js 16</strong>（App Router）+ <strong>React 18</strong></li><li><strong>Tailwind CSS v4</strong> + <strong>shadcn&#x2F;ui</strong> 组件库，毛玻璃风格 UI</li><li><strong>Zustand</strong> 状态管理 + <strong>TanStack React Query</strong> 服务端缓存</li><li><strong>Chart.js</strong> 图表（净值走势、盘中估值折线图）</li><li><strong>Framer Motion</strong> 动画 + <strong>@dnd-kit</strong> 拖拽排序</li><li><strong>Tesseract.js</strong> OCR 文字识别</li><li><strong>Fuse.js</strong> 模糊搜索</li></ul><p><strong>后端</strong>：</p><ul><li><strong>FastAPI</strong>（Python）+ <strong>PostgreSQL</strong></li><li><strong>JWT</strong> 认证（RSA 密钥对，Access + Refresh Token）</li><li><strong>SSE</strong> 实时推送</li></ul><p><strong>部署</strong>：</p><ul><li>Docker 容器化部署</li><li>支持 <strong>PWA</strong> 安装到手机桌面，体验接近原生 App</li></ul><h1 id="移动端体验"><a href="#移动端体验" class="headerlink" title="移动端体验"></a>移动端体验</h1><p><img src="/assets/images/posts/fund/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E9%A6%96%E9%A1%B5.png" alt="移动端界面"></p><p>估值君采用了<strong>移动端优先</strong>的设计理念。在手机浏览器中打开后，底部有完整的导航栏，基金列表以卡片形式展示，操作体验与原生 App 几乎无异。</p><p>你也可以通过浏览器的”添加到主屏幕”功能，将估值君安装为 PWA 应用。安装后会生成独立图标，启动时不再显示浏览器地址栏，体验更加沉浸。</p><h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>估值君目前是一个个人项目，功能还在持续迭代中。如果你也有基金投资的习惯，不妨试试看。也欢迎通过应用内的反馈功能给我提建议。</p><p><strong>访问地址</strong>：</p><ul><li><a href="https://junly.top/fund/">https://junly.top/fund/</a></li><li><a href="https://fund.junly.top/fund/">https://fund.junly.top/fund/</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 项目 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Next.js </tag>
+            
+            <tag> FastAPI </tag>
+            
+            <tag> PWA </tag>
+            
+            <tag> 基金 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Junly文件转换工具</title>
       <link href="/posts/soft-file-converter/"/>
       <url>/posts/soft-file-converter/</url>
@@ -13,7 +44,7 @@
       
       <categories>
           
-          <category> 软件 </category>
+          <category> 项目 </category>
           
       </categories>
       
