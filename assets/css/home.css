@@ -1,0 +1,1353 @@
+:root {
+  --junly-ink: #f7fbff;
+  --junly-muted: rgba(232, 241, 255, .72);
+  --junly-line: rgba(176, 214, 255, .24);
+  --junly-panel: rgba(8, 15, 36, .42);
+  --junly-panel-strong: rgba(10, 20, 48, .72);
+  --junly-accent: #f7c873;
+  --junly-cyan: #8cecff;
+  --junly-blue: #6aa8ff;
+  --junly-violet: #8d7bff;
+  --junly-rose: #ff8fc7;
+  --junly-green: #a7ffd2;
+}
+
+#page-header.full_page {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(128, 236, 255, .22), transparent 18%),
+    radial-gradient(circle at 42% 48%, rgba(84, 128, 255, .18), transparent 24%),
+    radial-gradient(circle at 60% 48%, rgba(247, 200, 115, .12), transparent 22%),
+    radial-gradient(circle at 18% 18%, rgba(122, 90, 255, .18), transparent 30%),
+    radial-gradient(circle at 84% 18%, rgba(255, 105, 185, .12), transparent 28%),
+    linear-gradient(135deg, #02040b 0%, #071023 38%, #0c1431 62%, #050b16 100%);
+  background-position: 50% 50%, 42% 48%, 60% 48%, 0% 0%, 100% 0%, center;
+  background-size: 118% 118%, 130% 130%, 130% 130%, 135% 135%, 120% 120%, 100% 100%;
+  isolation: isolate;
+  animation: junly-cosmic-bg 20s ease-in-out infinite alternate;
+}
+
+#page-header.full_page::before,
+#page-header.full_page::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+}
+
+#page-header.full_page::before {
+  z-index: -2;
+  background:
+    radial-gradient(circle at 11% 17%, rgba(255, 255, 255, .62) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 74% 26%, rgba(140, 236, 255, .72) 0 1px, transparent 2px),
+    radial-gradient(circle at 35% 67%, rgba(255, 255, 255, .38) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 86% 74%, rgba(247, 200, 115, .52) 0 1px, transparent 2px);
+  background-size: 180px 180px, 260px 260px, 220px 220px, 310px 310px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .96), rgba(0, 0, 0, .48));
+  opacity: .88;
+  animation: junly-star-drift 36s linear infinite;
+}
+
+#page-header.full_page::after {
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at center, transparent 0 22%, rgba(2, 5, 15, .16) 58%, rgba(2, 5, 15, .74) 100%),
+    radial-gradient(ellipse at center, rgba(140, 236, 255, .06), transparent 36%),
+    linear-gradient(to bottom, rgba(1, 4, 13, .06), rgba(1, 4, 13, .66));
+}
+
+#page-header.full_page .home-tech-stage,
+#page-header.full_page .home-tech-stage span {
+  position: absolute;
+  pointer-events: none;
+}
+
+#page-header.full_page .home-tech-stage {
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  filter: saturate(1.08);
+}
+
+#page-header.full_page .home-tech-stage::before,
+#page-header.full_page .home-tech-stage::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+#page-header.full_page .home-tech-stage::before {
+  display: none;
+}
+
+#page-header.full_page .home-tech-stage::after {
+  display: none;
+}
+
+#page-header.full_page .home-solar-system {
+  position: absolute;
+  top: 47%;
+  left: 18%;
+  z-index: 1;
+  width: min(650px, 62vw);
+  height: min(360px, 36vw);
+  pointer-events: none;
+  opacity: .72;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  transform-origin: center;
+}
+
+#page-header.full_page .home-sun {
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: clamp(32px, 3.8vw, 54px);
+  height: clamp(32px, 3.8vw, 54px);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, #fff7c8 0 10%, transparent 24%),
+    radial-gradient(circle at 50% 50%, #ffd166 0 34%, #ff8a3d 56%, #e35a2c 72%, rgba(227, 90, 44, 0) 73%);
+  box-shadow:
+    0 0 20px 6px rgba(255, 184, 82, .38),
+    0 0 52px 16px rgba(255, 104, 64, .18),
+    0 0 82px 24px rgba(255, 197, 94, .08);
+  transform: translate(-50%, -50%);
+  animation: junly-sun-pulse 5.6s ease-in-out infinite;
+}
+
+#page-header.full_page .home-sun::before,
+#page-header.full_page .home-sun::after,
+#page-header.full_page .home-planet::before,
+#page-header.full_page .home-planet::after {
+  position: absolute;
+  content: "";
+}
+
+#page-header.full_page .home-sun::before {
+  inset: -12%;
+  border-radius: inherit;
+  background: conic-gradient(from 20deg, rgba(255, 226, 146, .22), transparent 24%, rgba(255, 108, 64, .2) 42%, transparent 64%, rgba(255, 226, 146, .18));
+  filter: blur(6px);
+  animation: junly-planet-spin 16s linear infinite;
+}
+
+#page-header.full_page .home-orbit {
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: var(--orbit-size);
+  height: var(--orbit-size);
+  border: 1px solid rgba(176, 214, 255, .1);
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scaleY(var(--orbit-flat, .56));
+  transform-origin: center;
+}
+
+#page-header.full_page .home-orbit::before {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(140, 236, 255, .08), transparent);
+  opacity: .24;
+  content: "";
+}
+
+#page-header.full_page .home-planet-runner {
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: center;
+  animation: junly-planet-orbit var(--orbit-period, 120s) linear infinite;
+}
+
+#page-header.full_page .home-planet {
+  top: 50%;
+  left: 100%;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(255, 255, 255, .22);
+  transform: translate(-50%, -50%) scaleY(var(--planet-upright, 1.78));
+  overflow: visible;
+}
+
+#page-header.full_page .home-planet::before {
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  background-size: 180% 100%;
+  box-shadow: inset -6px -4px 10px rgba(0, 0, 0, .28), inset 3px 3px 8px rgba(255, 255, 255, .2);
+  animation: junly-planet-spin var(--planet-spin, 8s) linear infinite;
+}
+
+#page-header.full_page .home-planet::after {
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .46), transparent 32%);
+}
+
+#page-header.full_page .home-orbit-mercury {
+  --orbit-size: 17%;
+  --orbit-period: 29s;
+}
+
+#page-header.full_page .home-orbit-venus {
+  --orbit-size: 25%;
+  --orbit-period: 74s;
+}
+
+#page-header.full_page .home-orbit-earth {
+  --orbit-size: 34%;
+  --orbit-period: 120s;
+}
+
+#page-header.full_page .home-orbit-mars {
+  --orbit-size: 43%;
+  --orbit-period: 226s;
+}
+
+#page-header.full_page .home-orbit-jupiter {
+  --orbit-size: 58%;
+  --orbit-period: 520s;
+  opacity: .78;
+}
+
+#page-header.full_page .home-orbit-saturn {
+  --orbit-size: 72%;
+  --orbit-period: 840s;
+  opacity: .66;
+}
+
+#page-header.full_page .home-orbit-uranus {
+  --orbit-size: 85%;
+  --orbit-period: 1280s;
+  opacity: .54;
+}
+
+#page-header.full_page .home-orbit-neptune {
+  --orbit-size: 98%;
+  --orbit-period: 1640s;
+  opacity: .46;
+}
+
+#page-header.full_page .home-planet-mercury {
+  width: 5px;
+  height: 5px;
+  background: linear-gradient(90deg, #b8afa2, #756f68, #d0c6b9);
+  --planet-spin: 34s;
+}
+
+#page-header.full_page .home-planet-venus {
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(90deg, #e9c27b, #b98244, #f3dfaa, #ad7443);
+  box-shadow: 0 0 14px rgba(255, 197, 112, .28);
+  --planet-spin: 90s;
+}
+
+#page-header.full_page .home-planet-venus::before {
+  animation-name: junly-planet-spin-reverse;
+}
+
+#page-header.full_page .home-planet-earth {
+  width: 9px;
+  height: 9px;
+  background: linear-gradient(90deg, #2c8fcb, #1e5da8, #5dbb78, #d8f5ff, #1d4f8f);
+  box-shadow: 0 0 16px rgba(93, 190, 255, .32);
+  --planet-spin: 10s;
+}
+
+#page-header.full_page .home-planet-mars {
+  width: 7px;
+  height: 7px;
+  background: linear-gradient(90deg, #c46d49, #8d3e2f, #e5a06d, #793628);
+  box-shadow: 0 0 13px rgba(229, 122, 83, .24);
+  --planet-spin: 10.3s;
+}
+
+#page-header.full_page .home-planet-jupiter {
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(90deg, #e5c59a, #9f7249 16%, #f1d8b5 31%, #b47b4d 48%, #ead2aa 66%, #8f6646 82%, #f5e3c4);
+  box-shadow: 0 0 22px rgba(236, 190, 136, .3);
+  --planet-spin: 4.2s;
+}
+
+#page-header.full_page .home-planet-saturn {
+  width: 15px;
+  height: 15px;
+  background: linear-gradient(90deg, #dec38b, #a98452, #f1ddb0, #967147);
+  box-shadow: 0 0 20px rgba(226, 196, 138, .28);
+  --planet-spin: 4.5s;
+}
+
+#page-header.full_page .home-planet-saturn::after {
+  top: 50%;
+  left: 50%;
+  width: 29px;
+  height: 8px;
+  border: 1px solid rgba(235, 215, 166, .72);
+  border-left-color: rgba(235, 215, 166, .24);
+  border-right-color: rgba(235, 215, 166, .24);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 10px rgba(235, 215, 166, .18);
+  transform: translate(-50%, -50%) rotate(-17deg);
+}
+
+#page-header.full_page .home-planet-uranus {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(90deg, #a7f0f4, #5db7ca, #c7fbff, #6bbdd0);
+  box-shadow: 0 0 17px rgba(140, 236, 255, .24);
+  --planet-spin: 7.2s;
+}
+
+#page-header.full_page .home-planet-uranus::before {
+  animation-name: junly-planet-spin-reverse;
+}
+
+#page-header.full_page .home-planet-neptune {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(90deg, #5a8dff, #2347a5, #7ba5ff, #213d91);
+  box-shadow: 0 0 18px rgba(98, 142, 255, .26);
+  --planet-spin: 6.7s;
+}
+
+#page-header.full_page .home-tech-orb {
+  border-radius: 999px;
+  opacity: .78;
+  mix-blend-mode: screen;
+}
+
+#page-header.full_page .home-tech-orb-one {
+  top: 16%;
+  left: 16%;
+  width: 7px;
+  height: 7px;
+  background: #dff9ff;
+  box-shadow: 0 0 18px 7px rgba(140, 236, 255, .42), 0 0 42px rgba(140, 236, 255, .28);
+  animation: junly-star-pulse 3.8s ease-in-out infinite, junly-float-one 9s ease-in-out infinite;
+}
+
+#page-header.full_page .home-tech-orb-two {
+  right: 18%;
+  bottom: 24%;
+  width: 9px;
+  height: 9px;
+  background: #ffe1a1;
+  box-shadow: 0 0 20px 8px rgba(247, 200, 115, .42), 0 0 46px rgba(247, 200, 115, .28);
+  animation: junly-star-pulse 4.6s ease-in-out infinite .8s, junly-float-two 11s ease-in-out infinite;
+}
+
+#page-header.full_page .home-tech-orbit {
+  display: none;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(156, 214, 255, .18);
+  border-radius: 999px;
+  box-shadow: inset 0 0 34px rgba(140, 236, 255, .04), 0 0 44px rgba(140, 236, 255, .05);
+  transform: translate(-50%, -50%) rotate(-15deg);
+}
+
+#page-header.full_page .home-tech-orbit::before {
+  position: absolute;
+  top: 14%;
+  left: 17%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--junly-cyan);
+  box-shadow: 0 0 16px 5px rgba(140, 236, 255, .38);
+  content: "";
+}
+
+#page-header.full_page .home-tech-orbit-one {
+  width: min(72vw, 920px);
+  height: min(44vw, 540px);
+  animation: junly-orbit-tilt 18s ease-in-out infinite;
+}
+
+#page-header.full_page .home-tech-orbit-two {
+  width: min(54vw, 690px);
+  height: min(32vw, 400px);
+  border-color: rgba(247, 200, 115, .16);
+  transform: translate(-50%, -50%) rotate(18deg);
+  animation: junly-orbit-tilt-alt 22s ease-in-out infinite;
+}
+
+#page-header.full_page .home-tech-beam {
+  display: none;
+  width: 38vw;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(140, 236, 255, .48), rgba(255, 255, 255, .42), transparent);
+  opacity: .34;
+  transform-origin: center;
+}
+
+#page-header.full_page .home-tech-beam-one {
+  top: 32%;
+  left: -10%;
+  transform: rotate(-15deg);
+  animation: junly-beam-sweep 9s ease-in-out infinite;
+}
+
+#page-header.full_page .home-tech-beam-two {
+  right: -10%;
+  bottom: 24%;
+  background: linear-gradient(90deg, transparent, rgba(247, 200, 115, .34), rgba(255, 255, 255, .28), transparent);
+  transform: rotate(-20deg);
+  animation: junly-beam-sweep 11s ease-in-out infinite reverse;
+}
+
+#page-header.full_page .home-tech-meteor {
+  top: -12%;
+  right: -16%;
+  width: clamp(120px, 16vw, 260px);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .78), rgba(140, 236, 255, .42), transparent 76%);
+  box-shadow: 0 0 10px rgba(140, 236, 255, .26);
+  opacity: 0;
+  transform: rotate(-35deg);
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+
+#page-header.full_page .home-tech-meteor::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 12px 4px rgba(140, 236, 255, .34), 0 0 24px rgba(255, 255, 255, .18);
+  content: "";
+  transform: translateY(-50%);
+}
+
+#page-header.full_page .home-tech-meteor-one {
+  animation: junly-meteor-fall 14s linear infinite 2s;
+}
+
+#page-header.full_page .home-tech-meteor-two {
+  top: -20%;
+  right: 8%;
+  width: clamp(90px, 12vw, 190px);
+  opacity: 0;
+  animation: junly-meteor-fall 19s linear infinite 8s;
+}
+
+#page-header.full_page .home-tech-meteor-three {
+  top: 6%;
+  right: -24%;
+  width: clamp(70px, 10vw, 160px);
+  background: linear-gradient(90deg, rgba(255, 232, 168, .9), rgba(247, 200, 115, .5), transparent 76%);
+  box-shadow: 0 0 10px rgba(247, 200, 115, .22);
+  animation: junly-meteor-fall 24s linear infinite 13s;
+}
+
+#page-header.full_page #nav {
+  top: 22px !important;
+  right: 28px !important;
+  left: 28px !important;
+  z-index: 3;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+#page-header.full_page #nav #blog-info {
+  display: flex;
+  align-items: center;
+}
+
+#page-header.full_page #nav #blog-info .nav-site-title {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 999px;
+  background: rgba(8, 32, 50, .34);
+  box-shadow: 0 18px 55px rgba(4, 16, 28, .16);
+  backdrop-filter: blur(16px);
+}
+
+#page-header.full_page #nav #blog-info .nav-site-title::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0 34%, rgba(255, 255, 255, .22) 44%, transparent 54%);
+  content: "";
+  transform: translateX(-120%);
+  animation: junly-panel-sheen 5.6s ease-in-out infinite;
+}
+
+#page-header.full_page #nav #menus::before {
+  display: none;
+}
+
+#page-header.full_page #nav #blog-info .site-name {
+  color: var(--junly-ink);
+  font-size: .92em;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+#page-header.full_page #nav #menus {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 999px;
+  background: rgba(8, 32, 50, .38);
+  box-shadow: 0 18px 55px rgba(4, 16, 28, .18);
+  backdrop-filter: blur(16px);
+}
+
+#page-header.full_page #nav #search-button,
+#page-header.full_page #nav .menus_item {
+  padding-left: 0;
+}
+
+#page-header.full_page #nav .site-page {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .88);
+  text-shadow: none;
+  transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
+}
+
+#page-header.full_page #nav .site-page::after {
+  display: none;
+}
+
+#page-header.full_page #nav .site-page:hover {
+  border-color: rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .13);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+#page-header.full_page #nav .menus_item_child {
+  overflow: visible;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 14px;
+  background: rgba(9, 31, 45, .88);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(18px);
+}
+
+#page-header.full_page #nav .menus_item_child::before {
+  position: absolute;
+  top: -16px;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  background: transparent;
+  content: "";
+}
+
+#page-header.full_page #nav .menus_item_child li:hover {
+  background: rgba(255, 255, 255, .12);
+}
+
+#page-header.full_page #nav .menus_item_child a {
+  color: #fff !important;
+}
+
+#page-header.full_page #site-info {
+  top: 51%;
+  left: 50%;
+  z-index: 2;
+  width: min(1040px, calc(100% - 40px));
+  padding: 0;
+  text-align: center;
+  transform: translate(-50%, -46%);
+  animation: junly-hero-enter 1.05s cubic-bezier(.2, .85, .25, 1) both;
+}
+
+#page-header.full_page #site-info::before {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  border: 1px solid rgba(176, 214, 255, .28);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .12), rgba(140, 236, 255, .05));
+  color: rgba(232, 241, 255, .82);
+  content: "ORBITAL LOG / AI DEV JOURNAL";
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 24px rgba(2, 8, 20, .18), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+
+#page-header.full_page #site-info::after {
+  display: block;
+  width: min(520px, 72vw);
+  height: 1px;
+  margin: 24px auto 0;
+  background: linear-gradient(90deg, transparent, rgba(140, 236, 255, .34), rgba(141, 123, 255, .24), rgba(247, 200, 115, .28), transparent);
+  box-shadow: none;
+  content: "";
+  animation: junly-line-pulse 3.2s ease-in-out infinite;
+}
+
+#page-header.full_page #site-title {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  padding: .04em 0 .1em;
+  background: linear-gradient(94deg, #fff 0%, #dff8ff 28%, var(--junly-cyan) 48%, #e2ddff 64%, #ffe6a8 82%, #fff 100%);
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(54px, 6.8vw, 96px);
+  font-weight: 900;
+  letter-spacing: -.055em;
+  line-height: 1.08;
+  text-shadow: 0 10px 24px rgba(0, 0, 0, .32);
+  animation: junly-title-shimmer 8s ease-in-out infinite;
+}
+
+#page-header.full_page #site-subtitle {
+  margin: 18px auto 0;
+  max-width: 760px;
+  color: rgba(232, 241, 255, .78);
+  font-size: clamp(17px, 1.75vw, 25px);
+  letter-spacing: .04em;
+  text-shadow: none;
+  animation: junly-subtitle-breathe 3.6s ease-in-out infinite;
+}
+
+#page-header.full_page .home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 38px;
+  overflow: visible;
+}
+
+#page-header.full_page .home-hero-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 20px;
+  border: 1px solid var(--junly-line);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .13), rgba(140, 236, 255, .035)),
+    var(--junly-panel);
+  color: #fff;
+  box-shadow: 0 16px 44px rgba(1, 6, 18, .3), inset 0 1px 0 rgba(255, 255, 255, .16);
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: .01em;
+  line-height: 1;
+  backdrop-filter: blur(18px);
+  transition: transform .26s ease, background .26s ease, border-color .26s ease, box-shadow .26s ease;
+}
+
+#page-header.full_page .home-hero-action > * {
+  position: relative;
+  z-index: 1;
+}
+
+#page-header.full_page .home-hero-action:hover {
+  border-color: rgba(140, 236, 255, .45);
+  background:
+    linear-gradient(135deg, rgba(140, 236, 255, .18), rgba(141, 123, 255, .09)),
+    var(--junly-panel-strong);
+  color: #fff;
+  box-shadow: 0 22px 54px rgba(1, 6, 18, .42), 0 0 34px rgba(140, 236, 255, .16), inset 0 1px 0 rgba(255, 255, 255, .2);
+  transform: translateY(-4px);
+}
+
+#page-header.full_page .home-hero-action::before {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  z-index: 0;
+  width: 5px;
+  height: 5px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(140, 236, 255, .9);
+  box-shadow: 0 0 14px 5px rgba(140, 236, 255, .3);
+  content: "";
+  opacity: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+#page-header.full_page .home-hero-action::after {
+  animation: none;
+}
+
+#page-header.full_page .home-hero-action:hover::after {
+  animation: junly-tooltip-scan 1.8s linear infinite;
+}
+
+#page-header.full_page .home-hero-action:hover::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.35);
+}
+
+#page-header.full_page .home-hero-action[data-desc]::after {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  z-index: 3;
+  width: max-content;
+  max-width: min(320px, 78vw);
+  padding: 10px 12px;
+  border: 1px solid rgba(176, 214, 255, .24);
+  border-radius: 16px;
+  background:
+    linear-gradient(90deg, rgba(140, 236, 255, .18), transparent 42%) 0 0 / 140% 100%,
+    rgba(6, 12, 30, .88);
+  box-shadow: 0 20px 48px rgba(1, 6, 18, .42);
+  color: rgba(255, 255, 255, .92);
+  content: attr(data-desc);
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  transform: translate(-50%, 6px);
+  transition: opacity .18s ease, transform .18s ease;
+  white-space: normal;
+  backdrop-filter: blur(16px);
+}
+
+#page-header.full_page .home-hero-action[data-desc] span::after {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  z-index: 4;
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid rgba(255, 255, 255, .2);
+  border-bottom: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(6, 24, 38, .82);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px) rotate(45deg);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+#page-header.full_page .home-hero-action:hover::after,
+#page-header.full_page .home-hero-action:focus-visible::after,
+#page-header.full_page .home-hero-action:hover span::after,
+#page-header.full_page .home-hero-action:focus-visible span::after {
+  opacity: 1;
+  transform: translate(-50%, 0) rotate(0);
+}
+
+#page-header.full_page .home-hero-action:hover span::after,
+#page-header.full_page .home-hero-action:focus-visible span::after {
+  transform: translate(-50%, 0) rotate(45deg);
+}
+
+#page-header.full_page .home-hero-action i {
+  color: var(--junly-accent);
+}
+
+#page-header.full_page #scroll-down {
+  bottom: 24px;
+}
+
+#page-header.full_page #scroll-down .scroll-down-effects {
+  color: rgba(255, 255, 255, .58);
+  text-shadow: none;
+  animation: junly-scroll-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes junly-cosmic-bg {
+  0% {
+    background-position: 50% 50%, 42% 48%, 60% 48%, 0% 0%, 100% 0%, center;
+  }
+  50% {
+    background-position: 52% 48%, 44% 47%, 58% 49%, 10% 8%, 90% 10%, center;
+  }
+  100% {
+    background-position: 48% 52%, 40% 51%, 62% 46%, 20% 16%, 78% 4%, center;
+  }
+}
+
+@keyframes junly-star-drift {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 180px 90px, -260px 130px, 220px -110px, -310px -155px;
+  }
+}
+
+@keyframes junly-galaxy-rotate {
+  0% {
+    transform: translate(-50%, -50%) rotate(-12deg) scaleY(.54);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(348deg) scaleY(.54);
+  }
+}
+
+@keyframes junly-solar-glow {
+  0%,
+  100% {
+    opacity: .46;
+    transform: translate(-50%, -50%) scale(.96);
+  }
+  50% {
+    opacity: .66;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes junly-sun-pulse {
+  0%,
+  100% {
+    filter: saturate(1);
+    transform: translate(-50%, -50%) scale(.98);
+  }
+  50% {
+    filter: saturate(1.18);
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes junly-planet-orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes junly-planet-spin {
+  from {
+    background-position: 0% center;
+  }
+  to {
+    background-position: 180% center;
+  }
+}
+
+@keyframes junly-planet-spin-reverse {
+  from {
+    background-position: 180% center;
+  }
+  to {
+    background-position: 0% center;
+  }
+}
+
+@keyframes junly-nebula-breathe {
+  0%,
+  100% {
+    opacity: .36;
+    transform: translate(-50%, -50%) rotate(-8deg) scale(.97);
+  }
+  50% {
+    opacity: .5;
+    transform: translate(-50%, -50%) rotate(-5deg) scale(1.02);
+  }
+}
+
+@keyframes junly-milky-way-drift {
+  0% {
+    opacity: .2;
+    transform: translate(-51%, -50%) rotate(-9deg) scale(.98);
+  }
+  50% {
+    opacity: .3;
+  }
+  100% {
+    opacity: .24;
+    transform: translate(-49%, -49%) rotate(-6deg) scale(1.01);
+  }
+}
+
+@keyframes junly-comet-line {
+  0% {
+    opacity: 0;
+    transform: translate3d(-18vw, 0, 0) rotate(-14deg) scaleX(.72);
+  }
+  18%,
+  42% {
+    opacity: .42;
+  }
+  56% {
+    opacity: 0;
+    transform: translate3d(48vw, 10vh, 0) rotate(-14deg) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(48vw, 10vh, 0) rotate(-14deg) scaleX(1);
+  }
+}
+
+@keyframes junly-meteor-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-35deg) scaleX(.7);
+  }
+  10% {
+    opacity: .62;
+  }
+  34% {
+    opacity: .54;
+    transform: translate3d(-44vw, 33vh, 0) rotate(-35deg) scaleX(.96);
+  }
+  48%,
+  100% {
+    opacity: 0;
+    transform: translate3d(-76vw, 56vh, 0) rotate(-35deg) scaleX(.86);
+  }
+}
+
+@keyframes junly-star-pulse {
+  0% {
+    opacity: .42;
+    filter: saturate(1);
+  }
+  50% {
+    opacity: .95;
+    filter: saturate(1.35);
+  }
+  100% {
+    opacity: .42;
+    filter: saturate(1);
+  }
+}
+
+@keyframes junly-hero-enter {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate(-50%, -46%) scale(1);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, -46%) scale(1);
+  }
+}
+
+@keyframes junly-title-shimmer {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+@keyframes junly-subtitle-breathe {
+  0%,
+  100% {
+    opacity: .74;
+  }
+  50% {
+    opacity: .95;
+  }
+}
+
+@keyframes junly-line-pulse {
+  0%,
+  100% {
+    opacity: .42;
+    transform: scaleX(.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes junly-float-one {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(34px, -22px, 0);
+  }
+}
+
+@keyframes junly-float-two {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-30px, 24px, 0);
+  }
+}
+
+@keyframes junly-orbit-tilt {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-14deg) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(-8deg) scale(1.04);
+  }
+}
+
+@keyframes junly-orbit-tilt-alt {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(18deg) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(12deg) scale(.96);
+  }
+}
+
+@keyframes junly-beam-sweep {
+  0%,
+  100% {
+    opacity: .16;
+    translate: -6vw 0;
+  }
+  50% {
+    opacity: .62;
+    translate: 12vw 0;
+  }
+}
+
+@keyframes junly-panel-sheen {
+  0%,
+  72% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@keyframes junly-tooltip-scan {
+  0% {
+    background-position: -80% 0, 0 0;
+  }
+  100% {
+    background-position: 160% 0, 0 0;
+  }
+}
+
+@keyframes junly-scroll-pulse {
+  0%,
+  100% {
+    opacity: .45;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: .9;
+    transform: translateY(6px);
+  }
+}
+
+body #page-header.full_page #nav.show a,
+body #page-header.full_page #nav.show span.site-page,
+body #page-header.full_page #nav.show .site-name,
+body #page-header.full_page.nav-fixed #nav a,
+body #page-header.full_page.nav-fixed #nav span.site-page,
+body #page-header.full_page.nav-fixed #nav .site-name,
+body #page-header.full_page.fixed #nav a,
+body #page-header.full_page.fixed #nav span.site-page,
+body #page-header.full_page.fixed #nav .site-name {
+  color: rgba(255, 255, 255, .9) !important;
+  text-shadow: none !important;
+}
+
+body #page-header.full_page #nav.show .site-page:hover,
+body #page-header.full_page.nav-fixed #nav .site-page:hover,
+body #page-header.full_page.fixed #nav .site-page:hover {
+  border-color: rgba(255, 255, 255, .32);
+  background: rgba(255, 255, 255, .14);
+  color: #fff !important;
+}
+
+body #page-header.full_page #nav.show .menus_item_child a,
+body #page-header.full_page.nav-fixed #nav .menus_item_child a,
+body #page-header.full_page.fixed #nav .menus_item_child a {
+  color: #fff !important;
+}
+
+body #page-header.full_page.nav-fixed #nav,
+body #page-header.full_page.fixed #nav {
+  top: -60px !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: 100%;
+  height: 60px;
+  padding: 0 36px;
+  border: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 5px 6px -5px rgba(133, 133, 133, .6);
+  backdrop-filter: blur(10px);
+}
+
+body #page-header.full_page.fixed #nav {
+  top: 0 !important;
+}
+
+body #page-header.full_page.nav-fixed #nav #blog-info .nav-site-title,
+body #page-header.full_page.fixed #nav #blog-info .nav-site-title,
+body #page-header.full_page.nav-fixed #nav #menus,
+body #page-header.full_page.fixed #nav #menus {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+body #page-header.full_page.nav-fixed #nav #blog-info .nav-site-title::before,
+body #page-header.full_page.fixed #nav #blog-info .nav-site-title::before,
+body #page-header.full_page.nav-fixed #nav #menus::before,
+body #page-header.full_page.fixed #nav #menus::before {
+  display: none;
+}
+
+body #page-header.full_page.nav-fixed #nav #menus,
+body #page-header.full_page.fixed #nav #menus {
+  display: block;
+  gap: 0;
+}
+
+body #page-header.full_page.nav-fixed #nav .menus_item,
+body #page-header.full_page.fixed #nav .menus_item {
+  padding-left: 14px;
+}
+
+body #page-header.full_page.nav-fixed #nav .site-page,
+body #page-header.full_page.fixed #nav .site-page {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--font-color) !important;
+  transform: none;
+}
+
+body #page-header.full_page.nav-fixed #nav a,
+body #page-header.full_page.nav-fixed #nav span.site-page,
+body #page-header.full_page.nav-fixed #nav #toggle-menu,
+body #page-header.full_page.fixed #nav a,
+body #page-header.full_page.fixed #nav span.site-page,
+body #page-header.full_page.fixed #nav #toggle-menu {
+  color: var(--font-color) !important;
+  text-shadow: none !important;
+}
+
+body #page-header.full_page.nav-fixed #nav .site-page:hover,
+body #page-header.full_page.fixed #nav .site-page:hover {
+  border: 0;
+  background: transparent;
+  color: #49b1f5 !important;
+  transform: none;
+}
+
+body #page-header.full_page.nav-fixed #nav #blog-info .site-name,
+body #page-header.full_page.fixed #nav #blog-info .site-name {
+  color: var(--font-color) !important;
+  text-shadow: none !important;
+}
+
+body[data-theme='dark'] #page-header.full_page.nav-fixed #nav,
+body[data-theme='dark'] #page-header.full_page.fixed #nav {
+  background: rgba(18, 18, 18, .76);
+}
+
+body[data-theme='dark'] #page-header.full_page.nav-fixed #nav a,
+body[data-theme='dark'] #page-header.full_page.nav-fixed #nav span.site-page,
+body[data-theme='dark'] #page-header.full_page.nav-fixed #nav .site-name,
+body[data-theme='dark'] #page-header.full_page.fixed #nav a,
+body[data-theme='dark'] #page-header.full_page.fixed #nav span.site-page,
+body[data-theme='dark'] #page-header.full_page.fixed #nav .site-name {
+  color: rgba(255, 255, 255, .9) !important;
+}
+
+@media screen and (max-width: 768px) {
+  #page-header.full_page #nav {
+    top: 12px !important;
+    right: 14px !important;
+    left: 14px !important;
+  }
+
+  #page-header.full_page #nav #blog-info .site-name {
+    font-size: .86em;
+  }
+
+  #page-header.full_page #nav #blog-info .nav-site-title,
+  #page-header.full_page #nav #menus {
+    min-height: 42px;
+  }
+
+  #page-header.full_page #nav #menus {
+    gap: 4px;
+  }
+
+  #page-header.full_page #nav .site-page {
+    min-height: 34px;
+    padding: 0 10px;
+  }
+
+  #page-header.full_page #site-info {
+    width: min(92vw, 560px);
+    transform: translate(-50%, -42%);
+  }
+
+  #page-header.full_page .home-tech-stage::before {
+    top: 35%;
+    left: 18%;
+    width: 58vw;
+    height: 58vw;
+  }
+
+  #page-header.full_page .home-tech-stage::after {
+    top: 35%;
+    left: 18%;
+    width: 92vw;
+    height: 52vw;
+    opacity: .24;
+  }
+
+  #page-header.full_page .home-solar-system {
+    top: 35%;
+    left: 18%;
+    width: 84vw;
+    height: 48vw;
+    opacity: .5;
+  }
+
+  #page-header.full_page .home-tech-orbit-one {
+    width: 96vw;
+    height: 58vw;
+  }
+
+  #page-header.full_page .home-tech-orbit-two {
+    width: 76vw;
+    height: 48vw;
+  }
+
+  #page-header.full_page #site-info::before {
+    margin-bottom: 14px;
+    font-size: 12px;
+  }
+
+  #page-header.full_page #site-subtitle {
+    max-width: 92vw;
+  }
+
+  #page-header.full_page .home-hero-actions {
+    gap: 10px;
+    margin-top: 26px;
+  }
+
+  #page-header.full_page .home-hero-action {
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  body #page-header.full_page.nav-fixed #nav,
+  body #page-header.full_page.fixed #nav {
+    right: 0 !important;
+    left: 0 !important;
+    padding: 0 16px;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  #page-header.full_page #nav .menus_items {
+    display: none;
+  }
+
+  #page-header.full_page #toggle-menu {
+    display: inline-block;
+  }
+
+  #page-header.full_page .home-hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  #page-header.full_page .home-hero-action {
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  #page-header.full_page .home-hero-action:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  #page-header.full_page .home-solar-system {
+    top: 32%;
+    left: 15%;
+    width: 92vw;
+    height: 54vw;
+    opacity: .42;
+  }
+
+  #page-header.full_page .home-orbit-jupiter,
+  #page-header.full_page .home-orbit-saturn,
+  #page-header.full_page .home-orbit-uranus,
+  #page-header.full_page .home-orbit-neptune {
+    opacity: .56;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-header.full_page,
+  #page-header.full_page::before,
+  #page-header.full_page .home-tech-stage::before,
+  #page-header.full_page .home-tech-stage::after,
+  #page-header.full_page #site-info,
+  #page-header.full_page #site-info::after,
+  #page-header.full_page #site-title,
+  #page-header.full_page #site-subtitle,
+  #page-header.full_page #scroll-down .scroll-down-effects,
+  #page-header.full_page .home-tech-stage span,
+  #page-header.full_page .home-planet::before,
+  #page-header.full_page #nav #blog-info .nav-site-title::before,
+  #page-header.full_page #nav #menus::before {
+    animation: none !important;
+  }
+}
