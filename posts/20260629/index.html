@@ -1,0 +1,827 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Web接口业务数据加密传输方案：算法选型与落地实践 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文介绍 Web 敏感接口中业务数据加密传输的常见算法、优缺点、选型思路，以及 AES-GCM + RSA-OAEP + timestamp + nonce 的完整落地方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Web接口业务数据加密传输方案：算法选型与落地实践">
+<meta property="og:url" content="https://junly.top/posts/20260629/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="本文介绍 Web 敏感接口中业务数据加密传输的常见算法、优缺点、选型思路，以及 AES-GCM + RSA-OAEP + timestamp + nonce 的完整落地方案。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2026-06-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-29T09:36:21.247Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Web安全">
+<meta property="article:tag" content="接口加密">
+<meta property="article:tag" content="AES">
+<meta property="article:tag" content="RSA">
+<meta property="article:tag" content="HMAC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Web接口业务数据加密传输方案：算法选型与落地实践",
+  "url": "https://junly.top/posts/20260629/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2026-06-28T16:00:00.000Z",
+  "dateModified": "2026-06-29T09:36:21.247Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20260629/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Web接口业务数据加密传输方案：算法选型与落地实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><script src="https://unpkg.com/mermaid@10.6.0/dist/mermaid.min.js"></script><script src="https://npm.elemecdn.com/echarts@4.9.0/dist/echarts.min.js"></script><link rel="stylesheet" href="/assets/css/movies.css?1"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">67</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">158</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/fund/"><i class="fa-fw fas fa-wallet"></i><span> 基金</span></a></div><div class="menus_item"><a class="site-page" href="/loveverse/"><i class="fa-fw fas fa-heart"></i><span> 恋宇</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Web接口业务数据加密传输方案：算法选型与落地实践</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/fund/"><i class="fa-fw fas fa-wallet"></i><span> 基金</span></a></div><div class="menus_item"><a class="site-page" href="/loveverse/"><i class="fa-fw fas fa-heart"></i><span> 恋宇</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Web接口业务数据加密传输方案：算法选型与落地实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-29T09:36:21.247Z" title="更新于 2026-06-29 17:36:21">2026-06-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%89%E5%85%A8/">安全</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在 Web 项目中，接口安全最基础的一层一定是 HTTPS。HTTPS 已经通过 TLS 解决了传输过程中的窃听、篡改和中间人攻击问题。对于大多数普通业务接口来说，HTTPS 加登录态认证已经足够。</p>
+<p>但在一些敏感场景中，比如实名认证、银行卡绑定、支付确认、修改手机号、修改密码、隐私资料提交等，仅依赖 HTTPS 有时还不够。原因不是 HTTPS 不安全，而是业务系统里还可能存在日志落盘、代理转发、网关调试、内部链路暴露、前后端错误处理等额外风险。</p>
+<p>这时可以在 HTTPS 之外，再对敏感业务数据做一层应用层加密。本文就从算法对比开始，介绍一套比较通用的接口业务数据加密传输方案。</p>
+<h1 id="常见加密算法对比"><a href="#常见加密算法对比" class="headerlink" title="常见加密算法对比"></a>常见加密算法对比</h1><p>在设计接口加密方案之前，先要理解几类常见算法的特点。很多安全方案不是靠某一个算法完成的，而是多种算法各自负责一部分能力。</p>
+<h2 id="对称加密算法"><a href="#对称加密算法" class="headerlink" title="对称加密算法"></a>对称加密算法</h2><p>对称加密的特点是：加密和解密使用同一把密钥。</p>
+<p>常见算法有 AES、ChaCha20、SM4、DES、3DES 等。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>特点</th>
+<th>缺点</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AES</td>
+<td>标准成熟、性能好、应用最广</td>
+<td>需要安全传递密钥；模式选错会有风险</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>AES-GCM</td>
+<td>加密同时提供完整性校验，适合接口数据加密</td>
+<td>IV 不能在同一密钥下重复使用</td>
+<td>强烈推荐</td>
+</tr>
+<tr>
+<td>ChaCha20-Poly1305</td>
+<td>移动端性能好，对硬件 AES 加速依赖低</td>
+<td>国内传统后端栈支持度可能不如 AES</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>SM4</td>
+<td>国产商用密码算法，适合国密合规场景</td>
+<td>非国密场景生态不如 AES 普遍</td>
+<td>合规场景推荐</td>
+</tr>
+<tr>
+<td>DES</td>
+<td>历史算法，密钥太短</td>
+<td>已不安全</td>
+<td>不推荐</td>
+</tr>
+<tr>
+<td>3DES</td>
+<td>比 DES 稍强，但慢且老旧</td>
+<td>已逐步淘汰</td>
+<td>不推荐</td>
+</tr>
+</tbody></table>
+<p>业务数据加密通常选择：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AES-256-GCM</span><br></pre></td></tr></table></figure>
+
+<p>AES 负责加密正文，GCM 模式还能校验密文是否被篡改，比传统的 AES-CBC 更适合新项目。</p>
+<h2 id="非对称加密算法"><a href="#非对称加密算法" class="headerlink" title="非对称加密算法"></a>非对称加密算法</h2><p>非对称加密使用一对密钥：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">公钥：可以公开，用于加密或验签</span><br><span class="line">私钥：必须保密，用于解密或签名</span><br></pre></td></tr></table></figure>
+
+<p>常见算法有 RSA、ECC、SM2 等。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>特点</th>
+<th>缺点</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RSA-OAEP</td>
+<td>成熟、兼容性好，适合加密临时 AES 密钥</td>
+<td>速度慢，不适合加密大数据</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>RSA PKCS#1 v1.5</td>
+<td>老系统常见</td>
+<td>安全性不如 OAEP，不建议新项目使用</td>
+<td>谨慎使用</td>
+</tr>
+<tr>
+<td>ECC &#x2F; ECDH</td>
+<td>密钥短、性能好，适合密钥协商</td>
+<td>实现和兼容性比 RSA 更复杂</td>
+<td>推荐给有经验团队</td>
+</tr>
+<tr>
+<td>SM2</td>
+<td>国密非对称算法</td>
+<td>非国密生态兼容性有限</td>
+<td>合规场景推荐</td>
+</tr>
+</tbody></table>
+<p>非对称加密不适合直接加密整个请求体，因为它慢，而且可加密的数据长度有限。更常见的方式是混合加密：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AES 加密业务数据</span><br><span class="line">RSA-OAEP 加密 AES 密钥</span><br></pre></td></tr></table></figure>
+
+<p>这样既有 AES 的性能，也有 RSA 解决密钥传递问题的能力。</p>
+<h2 id="哈希摘要算法"><a href="#哈希摘要算法" class="headerlink" title="哈希摘要算法"></a>哈希摘要算法</h2><p>哈希不是加密，因为哈希结果不能解密回原文。它的作用是生成数据指纹。</p>
+<p>常见算法有 SHA-256、SHA-512、SM3、MD5、SHA1。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>特点</th>
+<th>缺点</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SHA-256</td>
+<td>通用、安全、支持广泛</td>
+<td>只能做摘要，不能直接防伪造</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>SHA-512</td>
+<td>摘要更长，适合部分服务端场景</td>
+<td>输出更长，未必必要</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>SM3</td>
+<td>国产摘要算法</td>
+<td>非国密场景使用较少</td>
+<td>合规场景推荐</td>
+</tr>
+<tr>
+<td>MD5</td>
+<td>速度快，历史项目常见</td>
+<td>已不安全，容易碰撞</td>
+<td>不推荐</td>
+</tr>
+<tr>
+<td>SHA1</td>
+<td>历史算法</td>
+<td>已不安全</td>
+<td>不推荐</td>
+</tr>
+</tbody></table>
+<p>注意：用户密码不要直接用 SHA-256、MD5 这类普通哈希保存。密码存储应使用 Argon2id、bcrypt 或 PBKDF2。</p>
+<h2 id="消息认证与签名算法"><a href="#消息认证与签名算法" class="headerlink" title="消息认证与签名算法"></a>消息认证与签名算法</h2><p>签名类算法主要用于防篡改和验身份。</p>
+<p>常见方案有 HMAC-SHA256、RSA-SHA256、ECDSA、SM2 签名。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>特点</th>
+<th>缺点</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HMAC-SHA256</td>
+<td>简单、快、实现稳定</td>
+<td>双方必须共享同一个密钥</td>
+<td>内部接口、业务接口</td>
+</tr>
+<tr>
+<td>RSA-SHA256</td>
+<td>私钥签名、公钥验签，适合开放平台</td>
+<td>性能比 HMAC 低</td>
+<td>第三方接口、支付回调</td>
+</tr>
+<tr>
+<td>ECDSA</td>
+<td>签名短、性能好</td>
+<td>实现细节要求高</td>
+<td>现代证书与开放接口</td>
+</tr>
+<tr>
+<td>SM2 签名</td>
+<td>国密签名算法</td>
+<td>非国密生态支持有限</td>
+<td>国密合规项目</td>
+</tr>
+</tbody></table>
+<p>如果接口数据已经使用 AES-GCM 加密，GCM 本身就带认证能力，可以发现密文是否被篡改。若系统还需要统一签名规范，可以额外增加 HMAC-SHA256。</p>
+<h1 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a>推荐方案</h1><p>对于普通 Web 项目的敏感接口，推荐方案如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HTTPS</span><br><span class="line">+ 登录 Token</span><br><span class="line">+ AES-256-GCM 加密业务数据</span><br><span class="line">+ RSA-OAEP 加密 AES 密钥</span><br><span class="line">+ timestamp + nonce 防重放</span><br><span class="line">+ 可选 HMAC-SHA256 签名</span><br></pre></td></tr></table></figure>
+
+<p>这套方案中，每个部分的职责很清晰：</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTPS</td>
+<td>保护传输通道</td>
+</tr>
+<tr>
+<td>Token</td>
+<td>识别当前用户身份</td>
+</tr>
+<tr>
+<td>AES-256-GCM</td>
+<td>加密请求体中的敏感业务数据</td>
+</tr>
+<tr>
+<td>RSA-OAEP</td>
+<td>安全传递本次请求使用的 AES 密钥</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>限制请求有效时间</td>
+</tr>
+<tr>
+<td>nonce</td>
+<td>防止同一请求被重复提交</td>
+</tr>
+<tr>
+<td>HMAC-SHA256</td>
+<td>可选，用于统一接口签名和防篡改</td>
+</tr>
+</tbody></table>
+<p>整体思路是：不要把所有事情都交给一个算法。AES 负责快，RSA 负责安全传密钥，timestamp 和 nonce 负责防重放，签名负责防篡改。</p>
+<p>下面这张图可以帮助理解各个组件之间的分工：</p>
+<pre class="mermaid">flowchart LR
+    A[浏览器客户端] -->|HTTPS 请求| B[服务端网关]
+    B --> C[业务服务]
+    C --> D[(Redis nonce 缓存)]
+    C --> E[(业务数据库)]
+
+    subgraph Client[客户端侧]
+        A1[生成 AES key]
+        A2[AES-GCM 加密业务数据]
+        A3[RSA-OAEP 加密 AES key]
+        A4[生成 timestamp 和 nonce]
+    end
+
+    subgraph Server[服务端侧]
+        S1[校验 Token]
+        S2[校验 timestamp]
+        S3[校验 nonce]
+        S4[RSA 私钥解密 AES key]
+        S5[AES-GCM 解密业务数据]
+    end
+
+    Client --> A
+    B --> Server</pre>
+
+<h1 id="请求结构设计"><a href="#请求结构设计" class="headerlink" title="请求结构设计"></a>请求结构设计</h1><p>原始业务数据可能是这样：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;realName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;张三&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;idCard&quot;</span><span class="punctuation">:</span> <span class="string">&quot;110101199001011234&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;phone&quot;</span><span class="punctuation">:</span> <span class="string">&quot;13800138000&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>加密后，接口真正提交的数据可以设计成：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;encryptedKey&quot;</span><span class="punctuation">:</span> <span class="string">&quot;RSA-OAEP加密后的AES密钥&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;iv&quot;</span><span class="punctuation">:</span> <span class="string">&quot;AES-GCM使用的初始化向量&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="string">&quot;AES-GCM加密后的业务数据&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;timestamp&quot;</span><span class="punctuation">:</span> <span class="number">1790611200000</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;nonce&quot;</span><span class="punctuation">:</span> <span class="string">&quot;一次性随机字符串&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="string">&quot;可选的HMAC-SHA256签名&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>encryptedKey</code>：前端生成 AES 密钥后，用服务端 RSA 公钥加密得到。</li>
+<li><code>iv</code>：AES-GCM 加密使用的 IV，推荐 12 字节随机数。</li>
+<li><code>data</code>：业务 JSON 序列化后加密得到的密文。</li>
+<li><code>timestamp</code>：当前请求时间戳，用来限制请求有效期。</li>
+<li><code>nonce</code>：随机字符串，用来防止重复请求。</li>
+<li><code>sign</code>：可选字段，如果系统已有签名规范，可以把关键字段一起签名。</li>
+</ul>
+<p>请求体的封装关系可以表示为：</p>
+<pre class="mermaid">flowchart TD
+    P[原始业务 JSON] --> A[AES-GCM 加密]
+    K[随机 AES key] --> A
+    IV[随机 IV] --> A
+    A --> DATA[加密后的 data]
+
+    K --> R[RSA-OAEP 公钥加密]
+    PUB[服务端 RSA 公钥] --> R
+    R --> EK[encryptedKey]
+
+    DATA --> REQ[接口请求体]
+    EK --> REQ
+    IV --> REQ
+    T[timestamp] --> REQ
+    N[nonce] --> REQ
+    SIGN[可选 sign] --> REQ</pre>
+
+<h1 id="前端加密流程"><a href="#前端加密流程" class="headerlink" title="前端加密流程"></a>前端加密流程</h1><p>前端处理流程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1. 准备原始业务 JSON</span><br><span class="line">2. 生成随机 AES 密钥</span><br><span class="line">3. 生成随机 IV</span><br><span class="line">4. 使用 AES-GCM 加密业务 JSON</span><br><span class="line">5. 使用服务端 RSA 公钥加密 AES 密钥</span><br><span class="line">6. 生成 timestamp 和 nonce</span><br><span class="line">7. 可选：计算 HMAC-SHA256 签名</span><br><span class="line">8. 提交加密后的请求体</span><br></pre></td></tr></table></figure>
+
+<p>完整交互时序如下：</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as 前端
+    participant S as 服务端
+    participant R as Redis
+
+    C->>C: 生成 AES key 和 IV
+    C->>C: AES-GCM 加密业务 JSON
+    C->>C: RSA-OAEP 加密 AES key
+    C->>C: 生成 timestamp 和 nonce
+    C->>S: 提交 encryptedKey、iv、data、timestamp、nonce、sign
+    S->>S: 校验 Token 和 timestamp
+    S->>R: 查询 nonce 是否已使用
+    R-->>S: 返回查询结果
+    S->>R: 写入 nonce，设置短 TTL
+    S->>S: RSA 私钥解密 AES key
+    S->>S: 校验签名并 AES-GCM 解密 data
+    S-->>C: 返回业务处理结果</pre>
+
+<p>伪代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> payload = &#123;</span><br><span class="line">  <span class="attr">realName</span>: <span class="string">&quot;张三&quot;</span>,</span><br><span class="line">  <span class="attr">idCard</span>: <span class="string">&quot;110101199001011234&quot;</span>,</span><br><span class="line">  <span class="attr">phone</span>: <span class="string">&quot;13800138000&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> aesKey = <span class="title function_">randomBytes</span>(<span class="number">32</span>) <span class="comment">// AES-256</span></span><br><span class="line"><span class="keyword">const</span> iv = <span class="title function_">randomBytes</span>(<span class="number">12</span>)     <span class="comment">// AES-GCM 推荐 12 字节 IV</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> data = <span class="title function_">aesGcmEncrypt</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(payload), aesKey, iv)</span><br><span class="line"><span class="keyword">const</span> encryptedKey = <span class="title function_">rsaOaepEncrypt</span>(aesKey, serverPublicKey)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> timestamp = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line"><span class="keyword">const</span> nonce = <span class="title function_">randomString</span>(<span class="number">32</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> signText = [</span><br><span class="line">  encryptedKey,</span><br><span class="line">  iv,</span><br><span class="line">  data,</span><br><span class="line">  timestamp,</span><br><span class="line">  nonce</span><br><span class="line">].<span class="title function_">join</span>(<span class="string">&quot;.&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sign = <span class="title function_">hmacSha256</span>(signText, aesKey)</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> <span class="title function_">fetch</span>(<span class="string">&quot;/api/sensitive/submit&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">method</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/json&quot;</span>,</span><br><span class="line">    <span class="string">&quot;Authorization&quot;</span>: <span class="string">`Bearer <span class="subst">$&#123;accessToken&#125;</span>`</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">    encryptedKey,</span><br><span class="line">    iv,</span><br><span class="line">    data,</span><br><span class="line">    timestamp,</span><br><span class="line">    nonce,</span><br><span class="line">    sign</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>实际开发时，浏览器端应使用 <code>window.crypto.subtle</code> 或成熟加密库，不要自己实现底层算法。</p>
+<h1 id="服务端解密流程"><a href="#服务端解密流程" class="headerlink" title="服务端解密流程"></a>服务端解密流程</h1><p>服务端收到请求后，不要马上解密业务数据，建议先做基础校验：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1. 校验登录态 Token</span><br><span class="line">2. 校验 timestamp 是否在有效窗口内</span><br><span class="line">3. 校验 nonce 是否已使用</span><br><span class="line">4. 使用 RSA 私钥解密 AES 密钥</span><br><span class="line">5. 可选：校验 HMAC-SHA256 签名</span><br><span class="line">6. 使用 AES-GCM 解密业务数据</span><br><span class="line">7. 执行业务逻辑</span><br></pre></td></tr></table></figure>
+
+<p>服务端校验顺序建议保持“先低成本拒绝，再做高成本解密”：</p>
+<pre class="mermaid">flowchart TD
+    A[收到敏感接口请求] --> B{Token 是否有效}
+    B -- 否 --> X1[拒绝请求]
+    B -- 是 --> C{timestamp 是否过期}
+    C -- 是 --> X2[拒绝请求]
+    C -- 否 --> D{nonce 是否已使用}
+    D -- 是 --> X3[拒绝请求]
+    D -- 否 --> E[记录 nonce 并设置 TTL]
+    E --> F[RSA 私钥解密 AES key]
+    F --> G{签名是否正确}
+    G -- 否 --> X4[拒绝请求]
+    G -- 是 --> H[AES-GCM 解密 data]
+    H --> I[执行业务逻辑]</pre>
+
+<p>伪代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">handleSensitiveRequest</span>(<span class="params">req</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123;</span><br><span class="line">    encryptedKey,</span><br><span class="line">    iv,</span><br><span class="line">    data,</span><br><span class="line">    timestamp,</span><br><span class="line">    nonce,</span><br><span class="line">    sign</span><br><span class="line">  &#125; = req.<span class="property">body</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> user = <span class="keyword">await</span> <span class="title function_">verifyAccessToken</span>(req.<span class="property">headers</span>.<span class="property">authorization</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title class_">Date</span>.<span class="title function_">now</span>() - timestamp) &gt; <span class="number">5</span> * <span class="number">60</span> * <span class="number">1000</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;请求已过期&quot;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> nonceKey = <span class="string">`nonce:<span class="subst">$&#123;user.id&#125;</span>:<span class="subst">$&#123;nonce&#125;</span>`</span></span><br><span class="line">  <span class="keyword">const</span> exists = <span class="keyword">await</span> redis.<span class="title function_">exists</span>(nonceKey)</span><br><span class="line">  <span class="keyword">if</span> (exists) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;重复请求&quot;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">await</span> redis.<span class="title function_">set</span>(nonceKey, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;EX&quot;</span>, <span class="number">300</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> aesKey = <span class="title function_">rsaOaepDecrypt</span>(encryptedKey, serverPrivateKey)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> signText = [</span><br><span class="line">    encryptedKey,</span><br><span class="line">    iv,</span><br><span class="line">    data,</span><br><span class="line">    timestamp,</span><br><span class="line">    nonce</span><br><span class="line">  ].<span class="title function_">join</span>(<span class="string">&quot;.&quot;</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> expectedSign = <span class="title function_">hmacSha256</span>(signText, aesKey)</span><br><span class="line">  <span class="keyword">if</span> (sign &amp;&amp; !<span class="title function_">timingSafeEqual</span>(sign, expectedSign)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;签名错误&quot;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> json = <span class="title function_">aesGcmDecrypt</span>(data, aesKey, iv)</span><br><span class="line">  <span class="keyword">const</span> payload = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(json)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">saveSensitiveInfo</span>(user.<span class="property">id</span>, payload)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个细节：比较签名时最好使用恒定时间比较函数，例如 Node.js 里的 <code>crypto.timingSafeEqual</code>，避免极端情况下的时序攻击。</p>
+<h1 id="IV-和-nonce-的区别"><a href="#IV-和-nonce-的区别" class="headerlink" title="IV 和 nonce 的区别"></a>IV 和 nonce 的区别</h1><p>IV 和 nonce 都是随机值，但它们不是同一个东西。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>用途</th>
+<th>谁使用</th>
+<th>是否需要存储</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IV</td>
+<td>给 AES-GCM 加密和解密使用</td>
+<td>加密算法</td>
+<td>不需要长期存储，但请求中要传给服务端</td>
+</tr>
+<tr>
+<td>nonce</td>
+<td>防止请求被重复提交</td>
+<td>业务服务</td>
+<td>需要短期存入 Redis 等缓存</td>
+</tr>
+</tbody></table>
+<p>简单理解：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IV：加密算法用的随机数</span><br><span class="line">nonce：业务防重放用的一次性随机串</span><br></pre></td></tr></table></figure>
+
+<p>不要为了省字段把二者混用。它们的职责、生命周期和校验逻辑都不同。</p>
+<h1 id="nonce-由谁生成"><a href="#nonce-由谁生成" class="headerlink" title="nonce 由谁生成"></a>nonce 由谁生成</h1><p>nonce 可以由前端生成，也可以由后端生成。</p>
+<h2 id="前端生成-nonce"><a href="#前端生成-nonce" class="headerlink" title="前端生成 nonce"></a>前端生成 nonce</h2><p>这是大多数普通敏感接口的做法：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">前端生成 nonce</span><br><span class="line">请求时带给后端</span><br><span class="line">后端检查 nonce 是否已使用</span><br><span class="line">未使用则写入 Redis，并设置短过期时间</span><br></pre></td></tr></table></figure>
+
+<p>优点是简单，不需要多一次请求。</p>
+<p>适合：</p>
+<ul>
+<li>修改个人资料</li>
+<li>保存敏感配置</li>
+<li>提交实名认证资料</li>
+<li>普通隐私数据提交</li>
+</ul>
+<p>前端生成 nonce 的防重放逻辑如下：</p>
+<pre class="mermaid">flowchart TD
+    A[前端生成 nonce] --> B[提交敏感请求]
+    B --> C[服务端读取 userId 和 nonce]
+    C --> D{Redis 中是否存在}
+    D -- 存在 --> E[判定为重复请求并拒绝]
+    D -- 不存在 --> F[写入 Redis，TTL 约 5 分钟]
+    F --> G[继续解密和处理业务]</pre>
+
+<h2 id="后端生成-nonce"><a href="#后端生成-nonce" class="headerlink" title="后端生成 nonce"></a>后端生成 nonce</h2><p>高风险操作可以改成后端下发一次性 nonce 或 challenge：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 前端请求后端获取 nonce</span><br><span class="line">2. 后端生成 nonce，绑定用户、接口、业务场景并写入 Redis</span><br><span class="line">3. 前端提交敏感操作时带回 nonce</span><br><span class="line">4. 后端验证 nonce 存在、未过期、未使用</span><br><span class="line">5. 验证通过后消费 nonce</span><br></pre></td></tr></table></figure>
+
+<p>优点是安全性更强。后端不仅能判断 nonce 有没有重复，还能判断它是不是由自己签发、是否属于当前用户、是否只能用于当前接口。</p>
+<p>适合：</p>
+<ul>
+<li>支付</li>
+<li>提现</li>
+<li>转账</li>
+<li>修改密码</li>
+<li>换绑手机号</li>
+<li>绑定银行卡</li>
+<li>签署合同</li>
+</ul>
+<p>后端生成 nonce 更像一次性业务凭证：</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as 前端
+    participant S as 服务端
+    participant R as Redis
+
+    C->>S: 请求操作凭证
+    S->>R: 保存 nonce、userId、action、expireAt
+    S-->>C: 返回 nonce 或 challenge
+    C->>S: 提交敏感操作和 nonce
+    S->>R: 校验 nonce 是否存在且未使用
+    R-->>S: 返回绑定信息
+    S->>S: 校验用户、接口、业务上下文
+    S->>R: 消费 nonce
+    S-->>C: 返回处理结果</pre>
+
+<h1 id="密钥管理"><a href="#密钥管理" class="headerlink" title="密钥管理"></a>密钥管理</h1><p>这类方案里，密钥管理比算法本身更容易出问题。</p>
+<p>前端可以持有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">服务端 RSA 公钥</span><br><span class="line">本次请求临时 AES 密钥</span><br></pre></td></tr></table></figure>
+
+<p>服务端必须保护：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RSA 私钥</span><br><span class="line">nonce 缓存</span><br><span class="line">用户登录态密钥</span><br></pre></td></tr></table></figure>
+
+<p>注意事项：</p>
+<ul>
+<li>RSA 私钥不能放在前端。</li>
+<li>AES 密钥应每次请求临时生成，不要长期复用。</li>
+<li>AES-GCM 的 IV 在同一个 AES 密钥下不能重复。</li>
+<li>服务端私钥应定期轮换，并支持多版本 keyId。</li>
+<li>不要把解密后的敏感明文写入普通日志。</li>
+<li>错误信息不要返回过多细节，例如不要告诉攻击者是签名错、密钥错还是 padding 错。</li>
+</ul>
+<p>如果系统要支持密钥轮换，可以在请求里增加：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;keyId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;rsa-key-2026-06&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>服务端根据 <code>keyId</code> 选择对应私钥解密。</p>
+<p>密钥边界可以用下面的图来理解：</p>
+<pre class="mermaid">flowchart LR
+    subgraph Browser[前端浏览器]
+        PUB[服务端 RSA 公钥]
+        TEMP[本次请求临时 AES key]
+        IV2[本次请求 IV]
+    end
+
+    subgraph Backend[服务端]
+        PRI[服务端 RSA 私钥]
+        NONCE[(nonce 缓存)]
+        TOKEN[Token 验证密钥或会话]
+    end
+
+    subgraph Database[持久化系统]
+        DB[(业务数据库)]
+        LOG[(日志系统)]
+    end
+
+    PUB -->|可公开分发| Browser
+    TEMP -->|仅随请求临时存在| Browser
+    PRI -->|绝不下发前端| Backend
+    Backend --> DB
+    Backend --> LOG</pre>
+
+<h1 id="什么时候不需要业务层加密"><a href="#什么时候不需要业务层加密" class="headerlink" title="什么时候不需要业务层加密"></a>什么时候不需要业务层加密</h1><p>并不是所有接口都应该做业务层加密。</p>
+<p>如果接口只是普通查询、非敏感配置、公开列表、普通文章内容，那么：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTPS + 登录认证</span><br></pre></td></tr></table></figure>
+
+<p>就已经足够。</p>
+<p>业务层加密会带来额外成本：</p>
+<ul>
+<li>前后端复杂度增加</li>
+<li>排查问题更困难</li>
+<li>网关和日志无法直接观察业务字段</li>
+<li>加密失败会带来新的错误场景</li>
+<li>密钥轮换和兼容性需要额外设计</li>
+</ul>
+<p>所以它更适合“少数敏感接口”，而不是全站所有接口。</p>
+<h1 id="常见错误做法"><a href="#常见错误做法" class="headerlink" title="常见错误做法"></a>常见错误做法</h1><p>下面这些做法应尽量避免：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">使用 AES-ECB</span><br><span class="line">固定 IV</span><br><span class="line">长期复用同一个 AES 密钥</span><br><span class="line">前端硬编码私钥</span><br><span class="line">用 RSA 直接加密整个请求体</span><br><span class="line">用 MD5 做签名</span><br><span class="line">只加密不做防重放</span><br><span class="line">把 nonce 存在本地但后端不校验</span><br><span class="line">解密后的敏感数据打印到日志</span><br><span class="line">自定义一套没有审计过的加密算法</span><br></pre></td></tr></table></figure>
+
+<p>安全方案最怕“看起来加密了”。真正可靠的方案，不只是密文看起来复杂，而是密钥、随机数、签名、防重放、日志、错误处理都要闭环。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Web 敏感接口的业务层加密可以采用一套清晰的分工方案：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">HTTPS：保护传输通道</span><br><span class="line">Token：识别用户身份</span><br><span class="line">AES-256-GCM：加密业务数据</span><br><span class="line">RSA-OAEP：加密本次请求的 AES 密钥</span><br><span class="line">timestamp：限制请求有效期</span><br><span class="line">nonce：防止请求重放</span><br><span class="line">HMAC-SHA256：可选，用于统一签名防篡改</span><br></pre></td></tr></table></figure>
+
+<p>一句话概括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AES 负责加密数据，RSA 负责安全传递 AES 密钥，timestamp + nonce 负责防重放，HMAC 负责补充签名校验。</span><br></pre></td></tr></table></figure>
+
+<p>最终方案可以收敛成下面这条链路：</p>
+<pre class="mermaid">flowchart LR
+    A[业务 JSON] --> B[AES-256-GCM]
+    B --> C[密文 data]
+    D[AES key] --> E[RSA-OAEP]
+    E --> F[encryptedKey]
+    C --> G[HTTPS 请求]
+    F --> G
+    H[timestamp + nonce] --> G
+    I[HMAC-SHA256 可选] --> G
+    G --> J[服务端校验]
+    J --> K[解密并执行业务]</pre>
+
+<p>对于普通接口，不要过度设计，HTTPS 就是第一道也是最重要的安全边界。对于实名认证、支付、提现、换绑手机号等高风险接口，再使用业务层加密，才能在安全性和系统复杂度之间取得比较好的平衡。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20260629/">https://junly.top/posts/20260629/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Web%E5%AE%89%E5%85%A8/">Web安全</a><a class="post-meta__tags" href="/tags/%E6%8E%A5%E5%8F%A3%E5%8A%A0%E5%AF%86/">接口加密</a><a class="post-meta__tags" href="/tags/AES/">AES</a><a class="post-meta__tags" href="/tags/RSA/">RSA</a><a class="post-meta__tags" href="/tags/HMAC/">HMAC</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/20260519/" title="估值君 —— 一个帮你实时追踪基金估值的小工具"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">估值君 —— 一个帮你实时追踪基金估值的小工具</div></div><div class="info-2"><div class="info-item-1">前言作为一名基金投资者，你是否也有过这样的困扰：交易日盘中想看看自己持有的基金大概涨了多少，却只能反复刷新各种 App，而且大多数行情软件只展示基金的上一日净值，盘中的实时估值要东找西找。 为了解决这个痛点，我利用业余时间开发了 估值君 —— 一个专注于基金盘中实时估值追踪的 Web 工具。输入基金代码即可添加，盘中自动刷新估算净值，让你对自己的持仓盈亏一目了然。  访问地址：https://junly.top/fund/ 或 https://fund.junly.top/fund/   功能介绍实时估值追踪估值君的核心功能就是盘中实时估值。在交易日的 9:30-15:00 期间，系统会自动刷新每只基金的估算净值，并记录为时间序列数据，生成盘中走势折线图。收市后，你可以在估值走势图上清晰地看到当天估值的变化轨迹。 添加基金也非常简单，只需要输入基金代码（如...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">67</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">158</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">常见加密算法对比</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">对称加密算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.2.</span> <span class="toc-text">非对称加密算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E6%91%98%E8%A6%81%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">哈希摘要算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%E4%B8%8E%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">消息认证与签名算法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">3.</span> <span class="toc-text">推荐方案</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.</span> <span class="toc-text">请求结构设计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E7%AB%AF%E5%8A%A0%E5%AF%86%E6%B5%81%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">前端加密流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E8%A7%A3%E5%AF%86%E6%B5%81%E7%A8%8B"><span class="toc-number">6.</span> <span class="toc-text">服务端解密流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IV-%E5%92%8C-nonce-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">7.</span> <span class="toc-text">IV 和 nonce 的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#nonce-%E7%94%B1%E8%B0%81%E7%94%9F%E6%88%90"><span class="toc-number">8.</span> <span class="toc-text">nonce 由谁生成</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%AB%AF%E7%94%9F%E6%88%90-nonce"><span class="toc-number">8.1.</span> <span class="toc-text">前端生成 nonce</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E7%AB%AF%E7%94%9F%E6%88%90-nonce"><span class="toc-number">8.2.</span> <span class="toc-text">后端生成 nonce</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%86%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-number">9.</span> <span class="toc-text">密钥管理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E4%B8%8D%E9%9C%80%E8%A6%81%E4%B8%9A%E5%8A%A1%E5%B1%82%E5%8A%A0%E5%AF%86"><span class="toc-number">10.</span> <span class="toc-text">什么时候不需要业务层加密</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%81%9A%E6%B3%95"><span class="toc-number">11.</span> <span class="toc-text">常见错误做法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260519/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/soft-file-converter/" title="Junly文件转换工具">Junly文件转换工具</a><time datetime="2025-04-01T02:00:00.000Z" title="发表于 2025-04-01 10:00:00">2025-04-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20241202/" title="探索AI技术领域的核心术语：从模型到部署再到应用">探索AI技术领域的核心术语：从模型到部署再到应用</a><time datetime="2024-12-01T16:00:00.000Z" title="发表于 2024-12-02 00:00:00">2024-12-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20240305/" title="Zabbix在企业中的实战：如何监控网站与数据库">Zabbix在企业中的实战：如何监控网站与数据库</a><time datetime="2024-03-04T16:00:00.000Z" title="发表于 2024-03-05 00:00:00">2024-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'ee6ea77586b76e2a95279b49f63634ab'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !false) {
+    if (false) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
