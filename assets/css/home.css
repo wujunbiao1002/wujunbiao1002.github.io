@@ -628,7 +628,7 @@
   font-weight: 900;
   letter-spacing: -.055em;
   line-height: 1.08;
-  text-shadow: 0 10px 24px rgba(0, 0, 0, .32);
+  text-shadow: none;
   animation: junly-title-shimmer 8s ease-in-out infinite;
 }
 
@@ -639,7 +639,6 @@
   font-size: clamp(17px, 1.75vw, 25px);
   letter-spacing: .04em;
   text-shadow: none;
-  animation: junly-subtitle-breathe 3.6s ease-in-out infinite;
 }
 
 #page-header.full_page .home-hero-actions {
@@ -679,6 +678,7 @@
 }
 
 #page-header.full_page .home-hero-action:hover {
+  z-index: 8;
   border-color: rgba(140, 236, 255, .45);
   background:
     linear-gradient(135deg, rgba(140, 236, 255, .18), rgba(141, 123, 255, .09)),
@@ -686,6 +686,10 @@
   color: #fff;
   box-shadow: 0 22px 54px rgba(1, 6, 18, .42), 0 0 34px rgba(140, 236, 255, .16), inset 0 1px 0 rgba(255, 255, 255, .2);
   transform: translateY(-4px);
+}
+
+#page-header.full_page .home-hero-action:focus-visible {
+  z-index: 8;
 }
 
 #page-header.full_page .home-hero-action::before {
