@@ -15,14 +15,13 @@
 #page-header.full_page {
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 50%, rgba(128, 236, 255, .22), transparent 18%),
     radial-gradient(circle at 42% 48%, rgba(84, 128, 255, .18), transparent 24%),
     radial-gradient(circle at 60% 48%, rgba(247, 200, 115, .12), transparent 22%),
     radial-gradient(circle at 18% 18%, rgba(122, 90, 255, .18), transparent 30%),
     radial-gradient(circle at 84% 18%, rgba(255, 105, 185, .12), transparent 28%),
     linear-gradient(135deg, #02040b 0%, #071023 38%, #0c1431 62%, #050b16 100%);
-  background-position: 50% 50%, 42% 48%, 60% 48%, 0% 0%, 100% 0%, center;
-  background-size: 118% 118%, 130% 130%, 130% 130%, 135% 135%, 120% 120%, 100% 100%;
+  background-position: 42% 48%, 60% 48%, 0% 0%, 100% 0%, center;
+  background-size: 130% 130%, 130% 130%, 135% 135%, 120% 120%, 100% 100%;
   isolation: isolate;
   animation: junly-cosmic-bg 20s ease-in-out infinite alternate;
 }
@@ -52,7 +51,6 @@
   z-index: -1;
   background:
     radial-gradient(ellipse at center, transparent 0 22%, rgba(2, 5, 15, .16) 58%, rgba(2, 5, 15, .74) 100%),
-    radial-gradient(ellipse at center, rgba(140, 236, 255, .06), transparent 36%),
     linear-gradient(to bottom, rgba(1, 4, 13, .06), rgba(1, 4, 13, .66));
 }
 
