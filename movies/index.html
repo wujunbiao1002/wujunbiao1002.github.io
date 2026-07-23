@@ -104,7 +104,7 @@
   </script><script>const GLOBAL_CONFIG = {
   root: '/',
   algolia: undefined,
-  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
   copy: {
@@ -144,28 +144,7 @@
   isHighlightShrink: false,
   isToc: false,
   pageType: 'page'
-}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><script src="https://unpkg.com/mermaid@10.6.0/dist/mermaid.min.js"></script><script src="https://npm.elemecdn.com/echarts@4.9.0/dist/echarts.min.js"></script><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
-  const $loadingBox = document.getElementById('loading-box')
-  const $body = document.body
-  const preloader = {
-    endLoading: () => {
-      $body.style.overflow = ''
-      $loadingBox.classList.add('loaded')
-    },
-    initLoading: () => {
-      $body.style.overflow = 'hidden'
-      $loadingBox.classList.remove('loaded')
-    }
-  }
-
-  preloader.initLoading()
-  window.addEventListener('load', preloader.endLoading)
-
-  if (false) {
-    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
-    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
-  }
-})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">162</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page type-movies" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><h1 class="title-seo">Junly博客</h1></header><main class="layout hide-aside" id="content-inner"><div id="page"><div id="article-container"><div class="author-content-item like-movie single share"><div class="card-content"><div class="author-content-item-tips">影音</div><div class="author-content-item-title">静下来慢慢<span class="inline-word">感受着，</span></div><div class="author-content-item-title">流淌的<span class="inline-word">故事。</span></div><div class="author-content-bottom"><div class="content-bottom"><div class="tips">跟 Junly 查看更多影音</div></div><div class="banner-button-group"><a class="banner-button" target="_blank" rel="noopener" href="https://www.douban.com/"><i class="fas fa-circle-chevron-right"></i><span class="banner-button-text">感受更多</span></a></div></div></div></div><div class="hexo-douban-item-tip"><p class="gradient-text">静下来，感受影音的魅力</p></div><style>.hexo-douban-item {
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">162</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page type-movies" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><h1 class="title-seo">Junly博客</h1></header><main class="layout hide-aside" id="content-inner"><div id="page"><div id="article-container"><div class="author-content-item like-movie single share"><div class="card-content"><div class="author-content-item-tips">影音</div><div class="author-content-item-title">静下来慢慢<span class="inline-word">感受着，</span></div><div class="author-content-item-title">流淌的<span class="inline-word">故事。</span></div><div class="author-content-bottom"><div class="content-bottom"><div class="tips">跟 Junly 查看更多影音</div></div><div class="banner-button-group"><a class="banner-button" target="_blank" rel="noopener" href="https://www.douban.com/"><i class="fas fa-circle-chevron-right"></i><span class="banner-button-text">感受更多</span></a></div></div></div></div><div class="hexo-douban-item-tip"><p class="gradient-text">静下来，感受影音的魅力</p></div><style>.hexo-douban-item {
     padding-bottom: 10px;
     position: relative;
     clear: both;
@@ -220,8 +199,20 @@
   }
 
   const codeToMermaid = () => {
-    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
-    if (codeMermaidEle.length === 0) return
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
 
     codeMermaidEle.forEach(ele => {
       const preEle = document.createElement('pre')
@@ -236,7 +227,7 @@
   }
 
   const loadMermaid = () => {
-    if (true) codeToMermaid()
+    codeToMermaid()
     const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
     if ($mermaid.length === 0) return
 

@@ -123,7 +123,7 @@
   </script><script>const GLOBAL_CONFIG = {
   root: '/',
   algolia: undefined,
-  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
   copy: {
@@ -163,28 +163,7 @@
   isHighlightShrink: false,
   isToc: true,
   pageType: 'post'
-}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><script src="https://unpkg.com/mermaid@10.6.0/dist/mermaid.min.js"></script><script src="https://npm.elemecdn.com/echarts@4.9.0/dist/echarts.min.js"></script><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
-  const $loadingBox = document.getElementById('loading-box')
-  const $body = document.body
-  const preloader = {
-    endLoading: () => {
-      $body.style.overflow = ''
-      $loadingBox.classList.add('loaded')
-    },
-    initLoading: () => {
-      $body.style.overflow = 'hidden'
-      $loadingBox.classList.remove('loaded')
-    }
-  }
-
-  preloader.initLoading()
-  window.addEventListener('load', preloader.endLoading)
-
-  if (false) {
-    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
-    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
-  }
-})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">162</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Kafka核心功能与技术特性：深入理解分布式消息队列</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kafka核心功能与技术特性：深入理解分布式消息队列</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-16T01:30:00.000Z" title="发表于 2020-08-16 09:30:00">2020-08-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-12T11:33:29.946Z" title="更新于 2025-04-12 19:33:29">2025-04-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>随着大数据时代的到来，企业面临着前所未有的数据处理挑战。从物联网设备产生的传感器数据，到用户在网站和应用上的行为数据，再到业务系统间的实时通信需求，传统的数据处理架构已经难以应对。Apache Kafka作为一个分布式流处理平台，凭借其高吞吐量、可扩展性和容错能力，已成为构建实时数据管道和流处理应用的首选技术。本文将深入探讨Kafka的核心功能与技术特性，帮助读者全面理解这一强大的分布式消息队列系统。</p>
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">162</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Kafka核心功能与技术特性：深入理解分布式消息队列</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kafka核心功能与技术特性：深入理解分布式消息队列</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-16T01:30:00.000Z" title="发表于 2020-08-16 09:30:00">2020-08-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-12T11:33:29.946Z" title="更新于 2025-04-12 19:33:29">2025-04-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>随着大数据时代的到来，企业面临着前所未有的数据处理挑战。从物联网设备产生的传感器数据，到用户在网站和应用上的行为数据，再到业务系统间的实时通信需求，传统的数据处理架构已经难以应对。Apache Kafka作为一个分布式流处理平台，凭借其高吞吐量、可扩展性和容错能力，已成为构建实时数据管道和流处理应用的首选技术。本文将深入探讨Kafka的核心功能与技术特性，帮助读者全面理解这一强大的分布式消息队列系统。</p>
 <h1 id="Kafka的技术架构"><a href="#Kafka的技术架构" class="headerlink" title="Kafka的技术架构"></a>Kafka的技术架构</h1><h2 id="整体架构设计"><a href="#整体架构设计" class="headerlink" title="整体架构设计"></a>整体架构设计</h2><p>Kafka的设计理念是简单而高效，核心架构可以用以下图表表示：</p>
 <pre class="mermaid">graph TD
     A[生产者] --> B[Broker集群]
@@ -460,8 +439,20 @@
   }
 
   const codeToMermaid = () => {
-    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
-    if (codeMermaidEle.length === 0) return
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
 
     codeMermaidEle.forEach(ele => {
       const preEle = document.createElement('pre')
@@ -476,7 +467,7 @@
   }
 
   const loadMermaid = () => {
-    if (true) codeToMermaid()
+    codeToMermaid()
     const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
     if ($mermaid.length === 0) return
 
@@ -582,8 +573,8 @@
     return
   }
 
-  if ('Gitalk' === 'Gitalk' || !false) {
-    if (false) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
     else loadGitalk()
   } else {
     window.loadOtherComment = loadGitalk
