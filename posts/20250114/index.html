@@ -1,0 +1,605 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文系统整理 Elasticsearch 面试中的高频知识点，覆盖倒排索引、索引写入、分片副本、Refresh、Translog、查询流程、相关性评分、聚合、深分页、Mapping、集群高可用、性能优化和常见排查思路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理">
+<meta property="og:url" content="https://junly.top/posts/20250114/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="本文系统整理 Elasticsearch 面试中的高频知识点，覆盖倒排索引、索引写入、分片副本、Refresh、Translog、查询流程、相关性评分、聚合、深分页、Mapping、集群高可用、性能优化和常见排查思路。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-01-14T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-05T03:17:13.757Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="分布式系统">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="面试">
+<meta property="article:tag" content="Elasticsearch">
+<meta property="article:tag" content="搜索引擎">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理",
+  "url": "https://junly.top/posts/20250114/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-01-14T02:00:00.000Z",
+  "dateModified": "2026-08-05T03:17:13.757Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250114/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-14T02:00:00.000Z" title="发表于 2025-01-14 10:00:00">2025-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-05T03:17:13.757Z" title="更新于 2026-08-05 11:17:13">2026-08-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Elasticsearch 面试题通常不会只问“它是不是搜索引擎”。更常见的问题是：倒排索引是什么，写入为什么不是立刻可见，分片和副本怎么工作，查询如何路由，深分页为什么慢，聚合为什么占内存，Mapping 设计错了怎么办，集群变黄或变红怎么排查。</p>
+<p>如果只把 Elasticsearch 理解成“可以全文搜索的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文档写入 Index -&gt; 路由到 Primary Shard -&gt; 写内存 Buffer 和 Translog -&gt; Refresh 生成 Segment -&gt; 查询时并发访问 Shard -&gt; 合并排序和聚合结果</span><br></pre></td></tr></table></figure>
+
+<p>本文按面试中最常见的模块梳理 Elasticsearch 要点，适合作为面试前的复习清单。</p>
+<h1 id="Elasticsearch-整体定位"><a href="#Elasticsearch-整体定位" class="headerlink" title="Elasticsearch 整体定位"></a>Elasticsearch 整体定位</h1><p>Elasticsearch 是基于 Lucene 的分布式搜索和分析引擎，擅长全文检索、结构化过滤、日志检索、指标分析、实时搜索和聚合分析。</p>
+<p>它不是传统关系型数据库，也不适合替代所有主库场景。Elasticsearch 更适合作为搜索、检索、分析和可观测数据查询层，常与 MySQL、PostgreSQL、MongoDB、Kafka、Logstash、Beats 等系统配合使用。</p>
+<p>面试中可以这样概括：</p>
+<blockquote>
+<p>Elasticsearch 的核心能力来自 Lucene 倒排索引和分布式分片架构。倒排索引用于高效检索文本和字段，分片用于水平扩展，副本用于提升可用性和查询吞吐。</p>
+</blockquote>
+<h1 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h1><p>Elasticsearch 常见概念如下：</p>
+<ul>
+<li>Index：索引，类似一类文档的逻辑集合。</li>
+<li>Document：文档，ES 存储和检索的基本单位，通常是 JSON。</li>
+<li>Field：字段，文档中的属性。</li>
+<li>Mapping：字段类型和索引方式定义。</li>
+<li>Shard：分片，一个 Index 会拆分成多个 Shard。</li>
+<li>Primary Shard：主分片，负责写入。</li>
+<li>Replica Shard：副本分片，用于容灾和分担读请求。</li>
+<li>Segment：Lucene 底层不可变索引段。</li>
+<li>Refresh：把内存中的新数据打开为可搜索 Segment 的过程。</li>
+<li>Translog：事务日志，用于异常恢复。</li>
+</ul>
+<pre class="mermaid">flowchart TD
+    A[Index] --> B[Primary Shard 0]
+    A --> C[Primary Shard 1]
+    B --> D[Replica Shard 0]
+    C --> E[Replica Shard 1]
+    B --> F[Segment]
+    C --> G[Segment]</pre>
+
+<h1 id="倒排索引"><a href="#倒排索引" class="headerlink" title="倒排索引"></a>倒排索引</h1><p>倒排索引是 Elasticsearch 全文检索的基础。它不是从文档找词，而是从词找到包含这个词的文档。</p>
+<p>例如有三篇文档：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">doc1: Java search engine</span><br><span class="line">doc2: Elasticsearch search</span><br><span class="line">doc3: Java interview</span><br></pre></td></tr></table></figure>
+
+<p>倒排索引可以理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java -&gt; doc1, doc3</span><br><span class="line">search -&gt; doc1, doc2</span><br><span class="line">engine -&gt; doc1</span><br><span class="line">interview -&gt; doc3</span><br></pre></td></tr></table></figure>
+
+<p>查询 <code>java search</code> 时，ES 可以快速找到相关文档，再根据评分规则排序。</p>
+<p>倒排索引通常包括：</p>
+<ul>
+<li>Term Dictionary：词典，记录所有词项。</li>
+<li>Posting List：倒排列表，记录词项出现在哪些文档中。</li>
+<li>Term Frequency：词频，影响相关性评分。</li>
+<li>Position：词项位置，用于短语查询。</li>
+<li>Offset：字符偏移，用于高亮。</li>
+</ul>
+<p>面试中要强调：倒排索引适合检索，不适合频繁原地更新。Lucene Segment 是不可变的，更新本质上是标记旧文档删除并写入新文档。</p>
+<h1 id="分词和-Analyzer"><a href="#分词和-Analyzer" class="headerlink" title="分词和 Analyzer"></a>分词和 Analyzer</h1><p>全文检索依赖分词。Analyzer 通常包括 Character Filter、Tokenizer 和 Token Filter。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">原始文本 -&gt; 字符过滤 -&gt; 分词 -&gt; 小写/停用词/同义词等过滤 -&gt; Token 列表</span><br></pre></td></tr></table></figure>
+
+<p>常见问题：</p>
+<ul>
+<li>中文不能简单按空格分词，需要中文分词器。</li>
+<li>查询分词和索引分词要匹配，否则可能查不到。</li>
+<li><code>text</code> 字段会分词，适合全文检索。</li>
+<li><code>keyword</code> 字段不分词，适合精确匹配、排序和聚合。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;text&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;fields&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;keyword&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个设计同时支持 <code>title</code> 全文检索和 <code>title.keyword</code> 精确聚合或排序。</p>
+<h1 id="写入流程"><a href="#写入流程" class="headerlink" title="写入流程"></a>写入流程</h1><p>Elasticsearch 写入流程的关键是 Primary Shard、Replica Shard、Buffer、Translog 和 Refresh。</p>
+<pre class="mermaid">sequenceDiagram
+    participant Client
+    participant Coord as Coordinating Node
+    participant Primary as Primary Shard
+    participant Replica as Replica Shard
+    participant Translog
+    participant Buffer as Index Buffer
+
+    Client->>Coord: Index Document
+    Coord->>Primary: 路由到主分片
+    Primary->>Translog: 写 Translog
+    Primary->>Buffer: 写内存 Buffer
+    Primary->>Replica: 同步到副本
+    Replica-->>Primary: 确认
+    Primary-->>Coord: 返回结果
+    Coord-->>Client: 写入成功</pre>
+
+<p>写入大致过程：</p>
+<ol>
+<li>客户端请求任意节点，该节点成为协调节点。</li>
+<li>协调节点根据文档 ID 或 routing 计算目标 Shard。</li>
+<li>请求先到 Primary Shard。</li>
+<li>Primary 写入内存 Buffer 和 Translog。</li>
+<li>Primary 把写入复制到 Replica。</li>
+<li>副本确认后返回客户端。</li>
+<li>后续 Refresh 后文档才可被搜索到。</li>
+</ol>
+<p>常见追问：为什么写入后马上搜索不到？</p>
+<p>因为 ES 是近实时搜索，写入后需要 Refresh 生成新的可搜索 Segment。默认 Refresh 间隔通常是 1 秒，所以不是严格实时可见。</p>
+<h1 id="Refresh、Flush-和-Merge"><a href="#Refresh、Flush-和-Merge" class="headerlink" title="Refresh、Flush 和 Merge"></a>Refresh、Flush 和 Merge</h1><p>Elasticsearch 中有几个容易混淆的概念：</p>
+<ul>
+<li>Refresh：让内存 Buffer 中的数据变成可搜索 Segment，代价相对较轻。</li>
+<li>Flush：提交 Lucene Commit，并清理 Translog，保证恢复成本可控。</li>
+<li>Merge：后台合并多个小 Segment，减少文件数量和删除标记。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Index Buffer -&gt; Refresh -&gt; Segment 可搜索</span><br><span class="line">Translog -&gt; Flush -&gt; 清理旧日志</span><br><span class="line">多个 Segment -&gt; Merge -&gt; 更少更大的 Segment</span><br></pre></td></tr></table></figure>
+
+<p>Refresh 太频繁会影响写入吞吐；Refresh 太慢会影响数据可见性。Merge 跟不上会导致 Segment 过多，查询开销变大。</p>
+<h1 id="查询流程"><a href="#查询流程" class="headerlink" title="查询流程"></a>查询流程</h1><p>Elasticsearch 查询是典型的分布式查询。一个查询通常分为 Query 阶段和 Fetch 阶段。</p>
+<pre class="mermaid">sequenceDiagram
+    participant Client
+    participant Coord as Coordinating Node
+    participant S1 as Shard 1
+    participant S2 as Shard 2
+    participant S3 as Shard 3
+
+    Client->>Coord: Search Request
+    Coord->>S1: Query
+    Coord->>S2: Query
+    Coord->>S3: Query
+    S1-->>Coord: Top N doc ids
+    S2-->>Coord: Top N doc ids
+    S3-->>Coord: Top N doc ids
+    Coord->>S1: Fetch docs
+    Coord->>S2: Fetch docs
+    Coord-->>Client: Merge and return</pre>
+
+<p>Query 阶段：</p>
+<ul>
+<li>协调节点把查询请求发到相关 Shard。</li>
+<li>每个 Shard 在本地执行查询和排序。</li>
+<li>每个 Shard 返回 Top N 的文档 ID 和排序值。</li>
+<li>协调节点合并全局 Top N。</li>
+</ul>
+<p>Fetch 阶段：</p>
+<ul>
+<li>协调节点根据最终命中的文档 ID 到对应 Shard 拉取 <code>_source</code>。</li>
+<li>合并后返回客户端。</li>
+</ul>
+<p>这也是深分页慢的原因之一：每个 Shard 都要返回较多候选结果，协调节点再做全局排序和丢弃。</p>
+<h1 id="Query-和-Filter"><a href="#Query-和-Filter" class="headerlink" title="Query 和 Filter"></a>Query 和 Filter</h1><p>ES 查询语句中要区分 Query Context 和 Filter Context。</p>
+<ul>
+<li>Query：关注匹配程度，会计算相关性评分 <code>_score</code>。</li>
+<li>Filter：只判断是否匹配，不计算评分，通常可以缓存。</li>
+</ul>
+<p>例如状态、类型、时间范围等条件更适合放到 filter 中：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Elasticsearch 面试&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;published&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;created_at&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-01-01&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>面试中可以回答：需要相关性排序的条件放 Query，只做精确限制的条件放 Filter。</p>
+<h1 id="相关性评分"><a href="#相关性评分" class="headerlink" title="相关性评分"></a>相关性评分</h1><p>Elasticsearch 默认相关性评分基于 BM25。面试不一定要推公式，但要知道影响因素：</p>
+<ul>
+<li>查询词是否命中。</li>
+<li>查询词在文档中出现的频率。</li>
+<li>查询词在整体语料中是否稀有。</li>
+<li>字段长度，短字段中命中通常更有代表性。</li>
+<li>boost 权重设置。</li>
+</ul>
+<p>常见优化方式：</p>
+<ul>
+<li>给标题、标签、核心字段设置更高 boost。</li>
+<li>用 <code>multi_match</code> 控制多个字段权重。</li>
+<li>用 <code>function_score</code> 加入时间、热度、业务权重。</li>
+<li>用 <code>minimum_should_match</code> 控制匹配质量。</li>
+</ul>
+<h1 id="Mapping-设计"><a href="#Mapping-设计" class="headerlink" title="Mapping 设计"></a>Mapping 设计</h1><p>Mapping 是 Elasticsearch 使用效果的基础。字段类型选错，后续查询、排序、聚合和存储都会受影响。</p>
+<p>常见原则：</p>
+<ul>
+<li>需要全文搜索的字段用 <code>text</code>。</li>
+<li>需要精确匹配、排序、聚合的字段用 <code>keyword</code>。</li>
+<li>数值字段用对应 numeric 类型，不要用字符串。</li>
+<li>时间字段用 <code>date</code>。</li>
+<li>对象结构明确时使用 <code>object</code>，需要独立嵌套匹配时使用 <code>nested</code>。</li>
+<li>不需要检索的字段可以关闭 <code>index</code>。</li>
+<li>控制动态字段，避免 Mapping 爆炸。</li>
+</ul>
+<p>Mapping 通常不能随意修改已有字段类型。字段类型设计错了，常见处理方式是新建索引、定义正确 Mapping、Reindex 数据，再切换别名。</p>
+<h1 id="分片和副本"><a href="#分片和副本" class="headerlink" title="分片和副本"></a>分片和副本</h1><p>分片决定水平扩展能力，副本决定高可用和读吞吐。</p>
+<p>Primary Shard 数量通常在索引创建时确定，后续调整成本较高。Replica 数量可以动态调整。</p>
+<p>设计分片时要考虑：</p>
+<ul>
+<li>数据总量。</li>
+<li>单 Shard 大小。</li>
+<li>查询并发。</li>
+<li>节点数量。</li>
+<li>写入吞吐。</li>
+<li>后续增长空间。</li>
+</ul>
+<p>分片不是越多越好。分片过多会增加集群元数据、文件句柄、内存和调度成本；分片过少会限制扩展能力。</p>
+<p>常见经验是让单个 Shard 保持在合理大小范围内，并结合实际集群压测调整，而不是机械套固定数字。</p>
+<h1 id="集群状态"><a href="#集群状态" class="headerlink" title="集群状态"></a>集群状态</h1><p>Elasticsearch 集群状态常见三种：</p>
+<ul>
+<li>Green：主分片和副本分片都正常分配。</li>
+<li>Yellow：主分片正常，部分副本未分配。</li>
+<li>Red：存在主分片未分配，部分数据不可用。</li>
+</ul>
+<p>常见原因：</p>
+<ul>
+<li>节点数量不足，副本无法分配。</li>
+<li>磁盘水位过高，Shard 无法迁移或分配。</li>
+<li>节点宕机。</li>
+<li>分片过多，集群负载过高。</li>
+<li>索引损坏或恢复失败。</li>
+</ul>
+<p>排查时可以先看集群健康、未分配分片原因、节点磁盘、节点状态和恢复进度。</p>
+<h1 id="脑裂问题"><a href="#脑裂问题" class="headerlink" title="脑裂问题"></a>脑裂问题</h1><p>早期 Elasticsearch 集群可能因为 Master 选举配置不合理出现脑裂：网络分区后多个节点都认为自己是 Master，导致元数据冲突。</p>
+<p>现代版本通过集群协调机制降低了这类风险，但面试中仍可能问到。回答重点是：</p>
+<ul>
+<li>Master 负责集群元数据管理，不直接承担所有数据读写。</li>
+<li>Master 选举需要多数派原则。</li>
+<li>Master eligible 节点建议至少 3 个。</li>
+<li>避免网络不稳定和错误的节点角色配置。</li>
+</ul>
+<h1 id="深分页问题"><a href="#深分页问题" class="headerlink" title="深分页问题"></a>深分页问题</h1><p>ES 的 <code>from + size</code> 深分页会越来越慢。</p>
+<p>原因是每个 Shard 都要取出 <code>from + size</code> 条候选结果，协调节点再做全局排序，最后丢弃前面的 <code>from</code> 条。页数越深，浪费越大。</p>
+<p>优化方式：</p>
+<ul>
+<li>普通浅分页可以使用 <code>from + size</code>。</li>
+<li>深分页或滚动导出使用 <code>scroll</code>。</li>
+<li>用户连续翻页使用 <code>search_after</code>。</li>
+<li>结合 Point In Time 保证分页过程中视图稳定。</li>
+<li>避免允许用户任意跳到极深页。</li>
+</ul>
+<h1 id="聚合分析"><a href="#聚合分析" class="headerlink" title="聚合分析"></a>聚合分析</h1><p>Elasticsearch 聚合适合做日志统计、指标分析、分组计数、时间直方图等。</p>
+<p>但聚合也容易消耗内存和 CPU，尤其是高基数字段聚合。</p>
+<p>常见优化方式：</p>
+<ul>
+<li>对聚合字段使用 <code>keyword</code> 或数值类型。</li>
+<li>避免对 <code>text</code> 字段直接聚合。</li>
+<li>控制 bucket 数量。</li>
+<li>使用时间范围过滤减少数据量。</li>
+<li>对高基数字段谨慎使用 terms aggregation。</li>
+<li>必要时做预聚合或离线统计。</li>
+</ul>
+<h1 id="写入优化"><a href="#写入优化" class="headerlink" title="写入优化"></a>写入优化</h1><p>批量写入 ES 时，重点关注吞吐、Refresh、Replica、Mapping 和 Bulk 大小。</p>
+<p>常见优化：</p>
+<ul>
+<li>使用 Bulk API，减少单条写入开销。</li>
+<li>合理控制 Bulk 大小，避免请求过大导致内存压力。</li>
+<li>大批量导入时临时调大 Refresh Interval。</li>
+<li>初始导入时可以临时把 Replica 调为 0，导入完成后恢复。</li>
+<li>使用固定 Mapping，避免动态字段过多。</li>
+<li>避免频繁更新同一文档。</li>
+<li>监控写入线程池、拒绝数、Refresh、Merge 和磁盘 IO。</li>
+</ul>
+<h1 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h1><p>查询优化重点是减少扫描范围、减少评分成本、减少返回数据量。</p>
+<p>常见方式：</p>
+<ul>
+<li>精确条件放 filter。</li>
+<li>时间范围、状态、租户等条件尽量前置过滤。</li>
+<li>只返回必要字段，减少 <code>_source</code> 体积。</li>
+<li>避免通配符前缀查询，例如 <code>*abc</code>。</li>
+<li>避免深分页。</li>
+<li>对排序字段使用合适类型。</li>
+<li>使用 Routing 缩小查询 Shard 范围。</li>
+<li>对慢查询使用 Profile API 分析执行成本。</li>
+</ul>
+<h1 id="常见排查思路"><a href="#常见排查思路" class="headerlink" title="常见排查思路"></a>常见排查思路</h1><p>如果面试官问“ES 查询突然变慢怎么排查”，可以按以下路径回答：</p>
+<ol>
+<li>看是单个索引慢，还是整个集群慢。</li>
+<li>看查询类型，是全文检索、过滤、排序、聚合还是深分页。</li>
+<li>看是否命中大量 Shard，是否存在跨大量索引查询。</li>
+<li>看慢查询日志和 Profile 结果。</li>
+<li>看 Segment 数量、Merge 是否堆积。</li>
+<li>看 JVM Heap、GC、CPU、磁盘 IO 和搜索线程池。</li>
+<li>看是否有大批量写入、Refresh 频繁、聚合高基数或磁盘水位过高。</li>
+<li>看 Mapping 是否合理，例如 text 字段被用于排序或聚合。</li>
+</ol>
+<p>如果是写入变慢，可以重点看 Bulk 大小、写线程池拒绝、Translog、Refresh、Merge、Replica 同步和磁盘 IO。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><h2 id="Elasticsearch-为什么搜索快？"><a href="#Elasticsearch-为什么搜索快？" class="headerlink" title="Elasticsearch 为什么搜索快？"></a>Elasticsearch 为什么搜索快？</h2><p>核心原因是倒排索引。ES 不需要逐条扫描文档，而是通过词项快速定位包含该词的文档，再结合评分、过滤和排序返回结果。</p>
+<h2 id="Elasticsearch-写入后为什么不能立刻查到？"><a href="#Elasticsearch-写入后为什么不能立刻查到？" class="headerlink" title="Elasticsearch 写入后为什么不能立刻查到？"></a>Elasticsearch 写入后为什么不能立刻查到？</h2><p>ES 是近实时搜索。文档写入后先进入内存 Buffer 和 Translog，只有 Refresh 生成可搜索 Segment 后，搜索请求才能查到新文档。</p>
+<h2 id="text-和-keyword-有什么区别？"><a href="#text-和-keyword-有什么区别？" class="headerlink" title="text 和 keyword 有什么区别？"></a>text 和 keyword 有什么区别？</h2><p><code>text</code> 会分词，适合全文检索；<code>keyword</code> 不分词，适合精确匹配、排序、聚合和去重。很多字符串字段会同时设计 text 和 keyword 子字段。</p>
+<h2 id="为什么深分页慢？"><a href="#为什么深分页慢？" class="headerlink" title="为什么深分页慢？"></a>为什么深分页慢？</h2><p>因为每个 Shard 都要返回 <code>from + size</code> 条候选结果，协调节点合并排序后再丢弃前面的数据。页数越深，Shard 和协调节点浪费越大。</p>
+<h2 id="分片越多越好吗？"><a href="#分片越多越好吗？" class="headerlink" title="分片越多越好吗？"></a>分片越多越好吗？</h2><p>不是。分片太少会限制扩展，分片太多会增加元数据、内存、文件句柄和调度成本，也会让查询 fan-out 更重。分片数量应结合数据量、单分片大小、节点数和查询写入压力设计。</p>
+<h2 id="ES-可以当主库吗？"><a href="#ES-可以当主库吗？" class="headerlink" title="ES 可以当主库吗？"></a>ES 可以当主库吗？</h2><p>通常不建议把 ES 当强一致业务主库。ES 更适合作为搜索和分析系统。业务主数据通常放在关系型数据库或其他主存储中，再同步到 ES 做检索。</p>
+<h2 id="ES-集群-Yellow-一定有问题吗？"><a href="#ES-集群-Yellow-一定有问题吗？" class="headerlink" title="ES 集群 Yellow 一定有问题吗？"></a>ES 集群 Yellow 一定有问题吗？</h2><p>Yellow 表示主分片正常，副本分片未完全分配，数据仍可读写，但容灾能力下降。单节点集群设置了副本时常见 Yellow，因为副本不能和主分片放在同一节点。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Elasticsearch 面试的主线可以围绕四个问题展开：</p>
+<ol>
+<li>为什么能搜得快：倒排索引、分词、BM25。</li>
+<li>数据怎么写进去：Primary Shard、Replica、Buffer、Translog、Refresh。</li>
+<li>查询怎么跑起来：协调节点、Query 阶段、Fetch 阶段、排序和聚合。</li>
+<li>线上怎么优化和排查：Mapping、分片、深分页、Merge、GC、磁盘和线程池。</li>
+</ol>
+<p>把这条链路讲清楚，再结合 Mapping 设计、深分页治理、分片规划和集群状态排查，Elasticsearch 相关问题就能从概念回答升级成工程化回答。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250114/">https://junly.top/posts/20250114/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a><a class="post-meta__tags" href="/tags/Elasticsearch/">Elasticsearch</a><a class="post-meta__tags" href="/tags/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E/">搜索引擎</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250111/" title="HBase面试要点：从LSM、Region到热点优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">HBase面试要点：从LSM、Region到热点优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言HBase 面试题看起来很分散：有人问它为什么适合海量明细数据，有人问 RowKey 怎么设计，有人问写入为什么快，也有人继续追问 MemStore、HFile、WAL、Region、Compaction、热点、预分区和二级索引。 如果只记住“HBase 是列式 NoSQL 数据库”，回答很容易停在概念层。更好的方式是把 HBase 理解成一条完整链路： 1客户端写入 RowKey -&gt; 定位 Region -&gt; 写 WAL -&gt; 写 MemStore -&gt; 刷盘生成 HFile -&gt; 后台 Compaction 合并文件 -&gt; HDFS 负责持久化和副本  本文按面试中最常见的模块梳理 HBase 要点，适合作为面试前的复习清单。 HBase 整体定位HBase 是构建在 HDFS 之上的分布式、面向列族的 NoSQL 数据库，适合存储海量、稀疏、按 RowKey 有序的数据。 它不是传统关系型数据库，不擅长复杂...</div></div></div></a><a class="pagination-related" href="/posts/20250116/" title="OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言OpenTSDB 面试通常围绕几个核心问题展开：它为什么依赖 HBase，时序数据怎么建模，Metric 和 Tag 有什么区别，UID 表有什么作用，写入链路如何走，查询为什么可能很慢，如何做聚合和降采样，Tag 设计不合理会带来什么问题。 如果只把 OpenTSDB 理解成“存监控指标的数据库”，回答很容易停留在应用层。更好的方式是把它理解成一条完整链路： 1采集指标 -&gt; 解析 metric/tags/timestamp/value -&gt; 转换 UID -&gt; 生成 HBase RowKey -&gt; 写入 HBase -&gt; 查询时按 RowKey 范围扫描 -&gt; 聚合、降采样、返回曲线  本文按面试中最常见的模块梳理 OpenTSDB 要点，适合作为面试前的复习清单。 OpenTSDB 整体定位OpenTSDB 是构建在 HBase 之上的分布式时间序列数据库，主要用于存储和查询大规模监控指标、设备指标、业务指标和 IoT 时序数据。 它的优势是借助 HBase 的水平扩展能力支撑海量时间序列写入和长期存储。它的查询方式以...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20210205/" title="Redis核心原理详解：从数据结构到分布式实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-02-05</div><div class="info-item-2">Redis核心原理详解：从数据结构到分布式实践</div></div><div class="info-2"><div class="info-item-1">前言Redis作为当今最流行的开源内存数据库，以其卓越的性能、丰富的数据类型和灵活的功能，在互联网架构中扮演着至关重要的角色。本文将深入探讨Redis的核心原理，帮助读者全面理解Redis的内部工作机制。 基本概念Redis（Remote Dictionary Server）是一个基于内存的高性能键值数据库，由意大利程序员Salvatore Sanfilippo（antirez）开发。它支持多种数据结构，如字符串、哈希表、列表、集合、有序集合等，并具备以下特点：  高性能：基于内存操作，读写性能极高 持久化：支持数据持久化到磁盘 丰富的数据类型：支持多种复杂的数据结构 原子操作：所有操作都是原子性的，支持事务 高可用：支持主从复制和集群模式  Redis的应用场景12345678910111213141516171819┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐│                   │     │                   │     │     ...</div></div></div></a><a class="pagination-related" href="/posts/20250119/" title="Kafka面试要点：从分区、副本到消费积压的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Kafka面试要点：从分区、副本到消费积压的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Kafka 面试题通常会从“为什么 Kafka 吞吐高”开始，继续追问 Topic 和 Partition 的关系、副本如何保证高可用、ISR 是什么、acks 怎么选、消费者组如何分摊消费、Offset 提交有什么风险、如何保证消息顺序、如何处理重复消费和消费积压。 如果只把 Kafka 理解成“一个消息队列”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1Producer 写入 Topic -&gt; 根据 Key 路由到 Partition -&gt; Leader Partition 追加日志 -&gt; Replica 拉取同步 -&gt; Consumer Group 按分区消费 -&gt; 提交 Offset  本文按面试中最常见的模块梳理 Kafka 要点，适合作为面试前的复习清单。 Kafka 整体定位Kafka 是一个分布式事件流平台，常用于消息队列、日志采集、异步解耦、削峰填谷、数据同步、流式计算和事件驱动架构。 它的核心能力来自三个设计：  追加写日志：消息以顺序追加方式写入磁盘。 分区机制：Topic 拆成多个...</div></div></div></a><a class="pagination-related" href="/posts/20250121/" title="RocketMQ面试要点：从NameServer、Broker到事务消息的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-21</div><div class="info-item-2">RocketMQ面试要点：从NameServer、Broker到事务消息的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言RocketMQ 面试通常会从“它和 Kafka、RabbitMQ 有什么区别”开始，继续追问 NameServer 的作用、Broker 如何存储消息、Topic 和 MessageQueue 的关系、顺序消息怎么保证、事务消息怎么实现、消费失败如何重试、死信队列有什么用、消费积压怎么排查。 如果只把 RocketMQ 理解成“阿里开源的消息队列”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1Producer 从 NameServer 获取路由 -&gt; 选择 MessageQueue -&gt; Broker 追加写 CommitLog -&gt; Consumer 拉取消息 -&gt; 消费成功后提交进度  本文按面试中最常见的模块梳理 RocketMQ 要点，适合作为面试前的复习清单。 RocketMQ 整体定位RocketMQ...</div></div></div></a><a class="pagination-related" href="/posts/20250102/" title="MySQL面试要点：从索引、事务到性能优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-02</div><div class="info-item-2">MySQL面试要点：从索引、事务到性能优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MySQL 面试题看起来很多，但真正绕不开的主线其实很清楚：一条 SQL 是怎么执行的，数据是怎么存的，索引为什么能加速查询，事务如何保证一致性，并发冲突如何处理，系统变慢时应该怎么定位。 如果只是背概念，很容易遇到追问就卡住；如果能把这些知识点串成一条链路，回答就会自然很多。本文按面试中最常见的模块梳理 MySQL 要点，适合作为面试前的复习清单。 MySQL 整体架构MySQL 可以粗略分为 Server 层和存储引擎层。 flowchart TD     A[客户端连接] --> B[连接器]     B --> C[解析器]     C --> D[优化器]     D --> E[执行器]     E --> F[存储引擎]     F --> G[(磁盘数据)]  Server 层负责连接管理、权限校验、SQL 解析、查询优化、执行调度等通用能力。 存储引擎层负责真正的数据读写。常见引擎包括 InnoDB、MyISAM、Memory 等。现在生产环境最常用的是 InnoDB，因为它支持事务、行级锁、外键、崩溃恢复和...</div></div></div></a><a class="pagination-related" href="/posts/20250104/" title="PostgreSQL面试要点：从MVCC、索引到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-04</div><div class="info-item-2">PostgreSQL面试要点：从MVCC、索引到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言PostgreSQL 面试题看起来很散：有的人会问 MVCC，有的人会问索引，有的人会问事务隔离、锁、WAL、执行计划，也有人会继续追问为什么表会膨胀、为什么索引没有命中、慢 SQL 应该怎么排查。 如果只背结论，很容易被追问卡住。更好的方式是把 PostgreSQL 理解成一条完整链路： 1SQL 进入数据库 -&gt; 解析与优化 -&gt; 访问表和索引 -&gt; 通过 MVCC 判断可见性 -&gt; 通过 WAL 保证崩溃恢复 -&gt; 通过 VACUUM 清理历史版本  本文按面试中最常见的模块整理 PostgreSQL 要点，适合作为面试前的复习清单。 PostgreSQL 整体架构PostgreSQL 采用多进程架构。客户端连接进来后，通常会由一个独立的后端进程负责处理该连接的 SQL 请求。 flowchart TD     A[客户端连接] --> B[Postmaster 主进程]     B --> C[Backend 后端进程]     C --> D[Parser 解析器]     D --> E[Planner 优化器]     E -->...</div></div></div></a><a class="pagination-related" href="/posts/20250109/" title="MongoDB面试要点：从文档模型、索引到副本集和分片的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-09</div><div class="info-item-2">MongoDB面试要点：从文档模型、索引到副本集和分片的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MongoDB 面试题通常不会只问“它是不是 NoSQL 数据库”。更常见的问题是：为什么用文档模型，文档怎么设计，索引怎么建，聚合怎么优化，副本集如何保证高可用，分片如何扩展容量，事务和关系型数据库有什么差异，慢查询应该怎么排查。 如果只把 MongoDB 理解成“可以存 JSON 的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路： 1应用写入文档 -&gt; BSON 编码存储 -&gt; WiredTiger 管理数据页和缓存 -&gt; 索引定位数据 -&gt; 副本集复制 oplog -&gt; 分片集群按 shard key 路由请求  本文按面试中最常见的模块梳理 MongoDB 要点，适合作为面试前的复习清单。 MongoDB 整体架构MongoDB 是一个面向文档的数据库，数据以集合和文档的形式组织。集合类似关系型数据库中的表，文档类似一行记录，但文档结构可以更灵活，字段可以嵌套对象和数组。 flowchart TD     A[客户端请求] --> B[mongod 实例]     B --> C[查询解析与执行]     C -->...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Elasticsearch-%E6%95%B4%E4%BD%93%E5%AE%9A%E4%BD%8D"><span class="toc-number">2.</span> <span class="toc-text">Elasticsearch 整体定位</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95"><span class="toc-number">4.</span> <span class="toc-text">倒排索引</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E8%AF%8D%E5%92%8C-Analyzer"><span class="toc-number">5.</span> <span class="toc-text">分词和 Analyzer</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%99%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">6.</span> <span class="toc-text">写入流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Refresh%E3%80%81Flush-%E5%92%8C-Merge"><span class="toc-number">7.</span> <span class="toc-text">Refresh、Flush 和 Merge</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E6%B5%81%E7%A8%8B"><span class="toc-number">8.</span> <span class="toc-text">查询流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Query-%E5%92%8C-Filter"><span class="toc-number">9.</span> <span class="toc-text">Query 和 Filter</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E6%80%A7%E8%AF%84%E5%88%86"><span class="toc-number">10.</span> <span class="toc-text">相关性评分</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Mapping-%E8%AE%BE%E8%AE%A1"><span class="toc-number">11.</span> <span class="toc-text">Mapping 设计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E7%89%87%E5%92%8C%E5%89%AF%E6%9C%AC"><span class="toc-number">12.</span> <span class="toc-text">分片和副本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9B%86%E7%BE%A4%E7%8A%B6%E6%80%81"><span class="toc-number">13.</span> <span class="toc-text">集群状态</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%84%91%E8%A3%82%E9%97%AE%E9%A2%98"><span class="toc-number">14.</span> <span class="toc-text">脑裂问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B7%B1%E5%88%86%E9%A1%B5%E9%97%AE%E9%A2%98"><span class="toc-number">15.</span> <span class="toc-text">深分页问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%9A%E5%90%88%E5%88%86%E6%9E%90"><span class="toc-number">16.</span> <span class="toc-text">聚合分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%99%E5%85%A5%E4%BC%98%E5%8C%96"><span class="toc-number">17.</span> <span class="toc-text">写入优化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="toc-number">18.</span> <span class="toc-text">查询优化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF"><span class="toc-number">19.</span> <span class="toc-text">常见排查思路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">20.</span> <span class="toc-text">高频面试题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Elasticsearch-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%90%9C%E7%B4%A2%E5%BF%AB%EF%BC%9F"><span class="toc-number">20.1.</span> <span class="toc-text">Elasticsearch 为什么搜索快？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Elasticsearch-%E5%86%99%E5%85%A5%E5%90%8E%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%AB%8B%E5%88%BB%E6%9F%A5%E5%88%B0%EF%BC%9F"><span class="toc-number">20.2.</span> <span class="toc-text">Elasticsearch 写入后为什么不能立刻查到？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#text-%E5%92%8C-keyword-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">20.3.</span> <span class="toc-text">text 和 keyword 有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B7%B1%E5%88%86%E9%A1%B5%E6%85%A2%EF%BC%9F"><span class="toc-number">20.4.</span> <span class="toc-text">为什么深分页慢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E7%89%87%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD%E5%90%97%EF%BC%9F"><span class="toc-number">20.5.</span> <span class="toc-text">分片越多越好吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ES-%E5%8F%AF%E4%BB%A5%E5%BD%93%E4%B8%BB%E5%BA%93%E5%90%97%EF%BC%9F"><span class="toc-number">20.6.</span> <span class="toc-text">ES 可以当主库吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ES-%E9%9B%86%E7%BE%A4-Yellow-%E4%B8%80%E5%AE%9A%E6%9C%89%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">20.7.</span> <span class="toc-text">ES 集群 Yellow 一定有问题吗？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">21.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/soft-file-converter/" title="Junly文件转换工具">Junly文件转换工具</a><time datetime="2025-04-01T02:00:00.000Z" title="发表于 2025-04-01 10:00:00">2025-04-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250222/" title="设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理">设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理</a><time datetime="2025-02-22T02:00:00.000Z" title="发表于 2025-02-22 10:00:00">2025-02-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '8906415e6df4c724492ec11980a61ca3'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

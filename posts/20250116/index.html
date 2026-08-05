@@ -1,0 +1,607 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文系统整理 OpenTSDB 面试中的高频知识点，覆盖时序数据模型、Metric、Tag、UID、HBase 存储、RowKey 设计、写入链路、查询聚合、降采样、热点问题、性能优化和常见排查思路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理">
+<meta property="og:url" content="https://junly.top/posts/20250116/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="本文系统整理 OpenTSDB 面试中的高频知识点，覆盖时序数据模型、Metric、Tag、UID、HBase 存储、RowKey 设计、写入链路、查询聚合、降采样、热点问题、性能优化和常见排查思路。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-01-16T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-05T03:22:36.955Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="HBase">
+<meta property="article:tag" content="OpenTSDB">
+<meta property="article:tag" content="时间序列数据库">
+<meta property="article:tag" content="面试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理",
+  "url": "https://junly.top/posts/20250116/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-01-16T02:00:00.000Z",
+  "dateModified": "2026-08-05T03:22:36.955Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250116/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OpenTSDB面试要点：从时序模型、HBase存储到查询优化的系统梳理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-16T02:00:00.000Z" title="发表于 2025-01-16 10:00:00">2025-01-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-05T03:22:36.955Z" title="更新于 2026-08-05 11:22:36">2026-08-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>OpenTSDB 面试通常围绕几个核心问题展开：它为什么依赖 HBase，时序数据怎么建模，Metric 和 Tag 有什么区别，UID 表有什么作用，写入链路如何走，查询为什么可能很慢，如何做聚合和降采样，Tag 设计不合理会带来什么问题。</p>
+<p>如果只把 OpenTSDB 理解成“存监控指标的数据库”，回答很容易停留在应用层。更好的方式是把它理解成一条完整链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">采集指标 -&gt; 解析 metric/tags/timestamp/value -&gt; 转换 UID -&gt; 生成 HBase RowKey -&gt; 写入 HBase -&gt; 查询时按 RowKey 范围扫描 -&gt; 聚合、降采样、返回曲线</span><br></pre></td></tr></table></figure>
+
+<p>本文按面试中最常见的模块梳理 OpenTSDB 要点，适合作为面试前的复习清单。</p>
+<h1 id="OpenTSDB-整体定位"><a href="#OpenTSDB-整体定位" class="headerlink" title="OpenTSDB 整体定位"></a>OpenTSDB 整体定位</h1><p>OpenTSDB 是构建在 HBase 之上的分布式时间序列数据库，主要用于存储和查询大规模监控指标、设备指标、业务指标和 IoT 时序数据。</p>
+<p>它的优势是借助 HBase 的水平扩展能力支撑海量时间序列写入和长期存储。它的查询方式以 metric、tags、时间范围和聚合函数为核心，不适合复杂关系查询、任意维度组合分析或事务型业务。</p>
+<p>面试中可以这样概括：</p>
+<blockquote>
+<p>OpenTSDB 本身负责时序数据模型、UID 映射、查询语义和聚合计算；HBase 负责底层分布式存储、RowKey 有序扫描和高可靠持久化。</p>
+</blockquote>
+<h1 id="核心数据模型"><a href="#核心数据模型" class="headerlink" title="核心数据模型"></a>核心数据模型</h1><p>OpenTSDB 的一条数据点通常由四部分组成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">metric + tags + timestamp + value</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sys.cpu.usage host=web01 region=shanghai 1737000000 82.5</span><br></pre></td></tr></table></figure>
+
+<p>含义如下：</p>
+<ul>
+<li>metric：指标名，例如 <code>sys.cpu.usage</code>。</li>
+<li>tagk：标签名，例如 <code>host</code>、<code>region</code>。</li>
+<li>tagv：标签值，例如 <code>web01</code>、<code>shanghai</code>。</li>
+<li>timestamp：时间戳。</li>
+<li>value：指标值。</li>
+</ul>
+<p>OpenTSDB 通过 metric 和 tags 标识一条时间序列。相同 metric、相同 tag 集合的一组按时间变化的数据点，就是一条时间序列。</p>
+<h1 id="Metric-和-Tag"><a href="#Metric-和-Tag" class="headerlink" title="Metric 和 Tag"></a>Metric 和 Tag</h1><p>Metric 表示“测量什么”，Tag 表示“从哪些维度描述这条数据”。</p>
+<p>例如 CPU 使用率：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">metric: sys.cpu.usage</span><br><span class="line">tags:</span><br><span class="line">  host=web01</span><br><span class="line">  cpu=0</span><br><span class="line">  env=prod</span><br></pre></td></tr></table></figure>
+
+<p>常见设计原则：</p>
+<ul>
+<li>metric 不要包含过多动态信息。</li>
+<li>tag 用于描述可过滤、可分组的维度。</li>
+<li>tag 的基数要可控。</li>
+<li>不要把随机 ID、请求 ID、订单号这类高基数字段直接作为 tag。</li>
+<li>查询经常过滤或分组的字段适合作为 tag。</li>
+</ul>
+<p>面试中要强调：Tag 设计决定查询效率和数据规模。如果 tag 基数失控，会导致时间序列数量爆炸，查询和存储都会变重。</p>
+<h1 id="UID-机制"><a href="#UID-机制" class="headerlink" title="UID 机制"></a>UID 机制</h1><p>OpenTSDB 不会直接把长字符串 metric、tagk、tagv 全量写入每条 HBase 数据中，而是将它们映射成固定长度 UID。</p>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sys.cpu.usage -&gt; 000001</span><br><span class="line">host -&gt; 000002</span><br><span class="line">web01 -&gt; 000003</span><br></pre></td></tr></table></figure>
+
+<p>UID 的作用：</p>
+<ul>
+<li>减少 HBase RowKey 和存储空间。</li>
+<li>提高比较和扫描效率。</li>
+<li>统一管理 metric、tagk、tagv 的字典映射。</li>
+</ul>
+<p>UID 相关表通常包括：</p>
+<ul>
+<li><code>tsdb-uid</code>：保存名称到 UID、UID 到名称的映射。</li>
+<li><code>tsdb</code>：保存实际时序数据。</li>
+</ul>
+<p>常见问题：</p>
+<ul>
+<li>UID 耗尽会导致新 metric 或 tag 无法写入。</li>
+<li>UID 表异常会影响写入和查询解析。</li>
+<li>自动创建 UID 可能导致脏数据持续膨胀。</li>
+<li>高基数 tag 会快速消耗 UID 空间。</li>
+</ul>
+<h1 id="HBase-存储结构"><a href="#HBase-存储结构" class="headerlink" title="HBase 存储结构"></a>HBase 存储结构</h1><p>OpenTSDB 的底层数据主要存储在 HBase 中。它利用 HBase RowKey 有序存储的能力，把同一时间序列在同一时间段的数据组织到相邻位置，便于范围扫描。</p>
+<p>RowKey 通常包含：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">metric UID + base timestamp + tagk UID + tagv UID ...</span><br></pre></td></tr></table></figure>
+
+<p>其中 base timestamp 通常按小时粒度对齐。同一个小时内的数据点会落在同一行或相近位置，具体时间偏移和值存储在列中。</p>
+<pre class="mermaid">flowchart TD
+    A[Metric + Tags + Timestamp + Value] --> B[UID 映射]
+    B --> C[生成 RowKey]
+    C --> D[写入 HBase tsdb 表]
+    D --> E[HFile / HDFS]</pre>
+
+<p>这种设计的好处是相同时间序列、相近时间范围的数据可以连续扫描；代价是查询维度和 RowKey 设计强绑定，Tag 过滤不当时可能扫描大量数据。</p>
+<h1 id="写入流程"><a href="#写入流程" class="headerlink" title="写入流程"></a>写入流程</h1><p>OpenTSDB 写入流程可以概括为：</p>
+<pre class="mermaid">sequenceDiagram
+    participant Agent
+    participant TSD as TSD
+    participant UID as UID Cache/Table
+    participant HBase
+
+    Agent->>TSD: put metric tags timestamp value
+    TSD->>TSD: 校验 metric/tags/value
+    TSD->>UID: 查询或创建 UID
+    UID-->>TSD: 返回 UID
+    TSD->>TSD: 生成 RowKey 和列
+    TSD->>HBase: 写入数据点
+    HBase-->>TSD: 返回结果</pre>
+
+<p>关键步骤：</p>
+<ol>
+<li>客户端或采集 Agent 上报数据点。</li>
+<li>TSD 校验 metric、tags、timestamp 和 value。</li>
+<li>将 metric、tagk、tagv 转换为 UID。</li>
+<li>根据 UID 和时间生成 HBase RowKey。</li>
+<li>写入 HBase。</li>
+</ol>
+<p>写入性能主要受以下因素影响：</p>
+<ul>
+<li>HBase 写入能力。</li>
+<li>RowKey 是否产生热点。</li>
+<li>UID 查询和创建是否频繁。</li>
+<li>批量写入大小。</li>
+<li>TSD 节点数量和队列压力。</li>
+<li>HBase RegionServer、WAL、MemStore、Flush 和 Compaction 状态。</li>
+</ul>
+<h1 id="查询流程"><a href="#查询流程" class="headerlink" title="查询流程"></a>查询流程</h1><p>OpenTSDB 查询通常包含 metric、时间范围、tag 过滤、聚合函数和降采样配置。</p>
+<p>查询流程可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">解析查询条件 -&gt; metric/tag 转 UID -&gt; 根据时间范围生成 RowKey 范围 -&gt; 扫描 HBase -&gt; 反序列化数据点 -&gt; 按 tag 分组 -&gt; 聚合/降采样 -&gt; 返回结果</span><br></pre></td></tr></table></figure>
+
+<pre class="mermaid">flowchart TD
+    A[Query] --> B[解析 metric / tags / time]
+    B --> C[UID 转换]
+    C --> D[计算 RowKey 范围]
+    D --> E[HBase Scan]
+    E --> F[数据点解码]
+    F --> G[聚合与降采样]
+    G --> H[返回时间序列]</pre>
+
+<p>查询慢的常见原因：</p>
+<ul>
+<li>时间范围太大。</li>
+<li>Tag 过滤条件太宽。</li>
+<li>高基数 tag 导致序列数量过多。</li>
+<li>HBase Scan 数据量太大。</li>
+<li>Region 热点或 HBase IO 压力大。</li>
+<li>聚合和降采样计算量大。</li>
+</ul>
+<h1 id="聚合和降采样"><a href="#聚合和降采样" class="headerlink" title="聚合和降采样"></a>聚合和降采样</h1><p>OpenTSDB 查询常见两个动作：聚合和降采样。</p>
+<p>聚合是把多条时间序列合成一条或少量几条。例如查询所有机器的 CPU 平均值：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">avg:sys.cpu.usage&#123;env=prod&#125;</span><br></pre></td></tr></table></figure>
+
+<p>降采样是把更细粒度的数据按时间窗口压缩。例如把 10 秒一个点的数据按 1 分钟求平均：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1m-avg</span><br></pre></td></tr></table></figure>
+
+<p>常见聚合函数包括：</p>
+<ul>
+<li>sum：求和。</li>
+<li>avg：平均值。</li>
+<li>min：最小值。</li>
+<li>max：最大值。</li>
+<li>count：计数。</li>
+</ul>
+<p>面试中要区分：</p>
+<ul>
+<li>聚合解决多条时间序列如何合并。</li>
+<li>降采样解决单条或多条时间序列在时间粒度上如何压缩。</li>
+</ul>
+<h1 id="时间序列基数"><a href="#时间序列基数" class="headerlink" title="时间序列基数"></a>时间序列基数</h1><p>时间序列基数是 OpenTSDB 设计中最重要的问题之一。</p>
+<p>一条唯一时间序列由 metric 和完整 tag 集合决定。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">metric=sys.cpu.usage</span><br><span class="line">host=web01</span><br><span class="line">cpu=0</span><br><span class="line">env=prod</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>host</code> 有 1000 个值，<code>cpu</code> 有 16 个值，<code>env</code> 有 3 个值，那么理论组合可能达到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1000 * 16 * 3 = 48000 条时间序列</span><br></pre></td></tr></table></figure>
+
+<p>如果再加入 <code>request_id</code> 这类几乎无限增长的 tag，序列数量会迅速爆炸。</p>
+<p>高基数带来的问题：</p>
+<ul>
+<li>UID 增长过快。</li>
+<li>存储空间膨胀。</li>
+<li>查询扫描和聚合成本变高。</li>
+<li>TSD 和 HBase 压力上升。</li>
+<li>元数据管理复杂。</li>
+</ul>
+<h1 id="RowKey-和热点"><a href="#RowKey-和热点" class="headerlink" title="RowKey 和热点"></a>RowKey 和热点</h1><p>OpenTSDB 底层依赖 HBase，因此也会面对 HBase 热点问题。</p>
+<p>如果大量写入集中到相近 metric 和相近时间段，可能集中打到少数 Region，导致 RegionServer 压力过高。</p>
+<p>常见热点来源：</p>
+<ul>
+<li>单个热门 metric 写入量极大。</li>
+<li>RowKey 前缀缺少打散能力。</li>
+<li>新建表预分区不足。</li>
+<li>某些 tag 组合写入特别集中。</li>
+<li>大量查询集中扫描少数时间段和 metric。</li>
+</ul>
+<p>优化方式：</p>
+<ul>
+<li>合理规划 metric，不要让所有数据挤到单个超大 metric。</li>
+<li>对 HBase 表做预分区。</li>
+<li>控制高吞吐指标的写入规模。</li>
+<li>扩展 TSD 和 HBase RegionServer。</li>
+<li>检查 Region 分布和 RegionServer 负载。</li>
+</ul>
+<h1 id="OpenTSDB-和-Prometheus-的区别"><a href="#OpenTSDB-和-Prometheus-的区别" class="headerlink" title="OpenTSDB 和 Prometheus 的区别"></a>OpenTSDB 和 Prometheus 的区别</h1><p>OpenTSDB 和 Prometheus 都用于时序数据，但定位和架构不同。</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>OpenTSDB</th>
+<th>Prometheus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>存储依赖</td>
+<td>依赖 HBase</td>
+<td>自带本地 TSDB</td>
+</tr>
+<tr>
+<td>扩展方式</td>
+<td>借助 HBase 水平扩展</td>
+<td>单机为主，远程存储扩展</td>
+</tr>
+<tr>
+<td>采集模式</td>
+<td>常见 push 或中间链路写入</td>
+<td>以 pull 为主</td>
+</tr>
+<tr>
+<td>长期存储</td>
+<td>适合海量长期存储</td>
+<td>通常配合远程存储</td>
+</tr>
+<tr>
+<td>查询语言</td>
+<td>OpenTSDB 查询 API</td>
+<td>PromQL</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>大规模历史指标存储</td>
+<td>云原生监控和告警</td>
+</tr>
+</tbody></table>
+<p>面试回答时不要简单说谁更好。更准确的说法是：OpenTSDB 更依赖 HBase 的长期海量存储能力，Prometheus 更强调云原生生态、服务发现、抓取和 PromQL 表达能力。</p>
+<h1 id="常见性能优化"><a href="#常见性能优化" class="headerlink" title="常见性能优化"></a>常见性能优化</h1><p>OpenTSDB 优化通常从数据模型、写入、查询和 HBase 四个方向看。</p>
+<p>数据模型：</p>
+<ul>
+<li>控制 metric 数量和 tag 基数。</li>
+<li>不把随机 ID、订单号、请求 ID 放入 tag。</li>
+<li>tag 维度围绕查询场景设计。</li>
+<li>避免过度细碎的 metric 设计。</li>
+</ul>
+<p>写入优化：</p>
+<ul>
+<li>批量写入，减少请求开销。</li>
+<li>减少新 UID 的频繁创建。</li>
+<li>使用多 TSD 节点分摊写入压力。</li>
+<li>监控写入队列、失败数和延迟。</li>
+<li>保证 HBase RegionServer 和 WAL 写入能力。</li>
+</ul>
+<p>查询优化：</p>
+<ul>
+<li>缩小时间范围。</li>
+<li>增加明确 tag 过滤。</li>
+<li>避免一次查询过多时间序列。</li>
+<li>合理使用聚合和降采样。</li>
+<li>对大屏和报表使用缓存或预计算。</li>
+</ul>
+<p>HBase 优化：</p>
+<ul>
+<li>关注 Region 分布是否均衡。</li>
+<li>监控 MemStore、Flush、Compaction 和 HFile 数量。</li>
+<li>避免高峰期重 Compaction。</li>
+<li>保障 HDFS 磁盘 IO 和网络。</li>
+</ul>
+<h1 id="常见排查思路"><a href="#常见排查思路" class="headerlink" title="常见排查思路"></a>常见排查思路</h1><p>如果面试官问“OpenTSDB 查询慢怎么排查”，可以按以下路径回答：</p>
+<ol>
+<li>看查询时间范围是否过大。</li>
+<li>看 tag 过滤是否过宽，是否扫出大量时间序列。</li>
+<li>看是否使用高基数 tag 做分组。</li>
+<li>看 TSD 节点 CPU、内存、队列和请求延迟。</li>
+<li>看 HBase Scan 延迟、RegionServer 负载和热点 Region。</li>
+<li>看 HBase Compaction、Flush、HFile 数量和 BlockCache 命中率。</li>
+<li>看是否有大批量写入、报表任务或大屏查询同时运行。</li>
+</ol>
+<p>如果写入变慢，可以重点看 UID 创建、TSD 写队列、HBase 写入延迟、Region 热点、WAL、MemStore Flush 和 Compaction 堆积。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><h2 id="OpenTSDB-为什么依赖-HBase？"><a href="#OpenTSDB-为什么依赖-HBase？" class="headerlink" title="OpenTSDB 为什么依赖 HBase？"></a>OpenTSDB 为什么依赖 HBase？</h2><p>因为 OpenTSDB 主要解决时序数据模型、查询语义和聚合计算，底层海量数据的可靠存储、水平扩展和有序扫描交给 HBase。HBase 的 RowKey 范围扫描能力适合按 metric、tags 和时间范围读取时序数据。</p>
+<h2 id="Metric-和-Tag-有什么区别？"><a href="#Metric-和-Tag-有什么区别？" class="headerlink" title="Metric 和 Tag 有什么区别？"></a>Metric 和 Tag 有什么区别？</h2><p>Metric 表示指标名称，描述测量对象；Tag 表示维度，描述这条指标属于哪个主机、机房、业务或环境。Metric 和完整 tag 集合共同决定一条时间序列。</p>
+<h2 id="UID-有什么作用？"><a href="#UID-有什么作用？" class="headerlink" title="UID 有什么作用？"></a>UID 有什么作用？</h2><p>UID 把 metric、tagk、tagv 这样的字符串映射成固定长度 ID，减少 RowKey 长度和存储空间，提高 HBase 存储与扫描效率。</p>
+<h2 id="Tag-基数过高有什么问题？"><a href="#Tag-基数过高有什么问题？" class="headerlink" title="Tag 基数过高有什么问题？"></a>Tag 基数过高有什么问题？</h2><p>会导致时间序列数量爆炸，UID 增长过快，存储空间膨胀，查询扫描和聚合成本升高，最终拖慢 TSD 和 HBase。</p>
+<h2 id="OpenTSDB-查询为什么慢？"><a href="#OpenTSDB-查询为什么慢？" class="headerlink" title="OpenTSDB 查询为什么慢？"></a>OpenTSDB 查询为什么慢？</h2><p>常见原因是时间范围太大、tag 过滤太宽、高基数分组、HBase 扫描数据量大、Region 热点、Compaction 压力或 TSD 聚合计算压力过高。</p>
+<h2 id="OpenTSDB-适合什么场景？"><a href="#OpenTSDB-适合什么场景？" class="headerlink" title="OpenTSDB 适合什么场景？"></a>OpenTSDB 适合什么场景？</h2><p>适合大规模监控指标、设备指标、业务指标、IoT 时序数据和需要长期保留的历史曲线数据。尤其适合已经有 HBase 基础设施、需要水平扩展和长期存储的场景。</p>
+<h2 id="OpenTSDB-不适合什么场景？"><a href="#OpenTSDB-不适合什么场景？" class="headerlink" title="OpenTSDB 不适合什么场景？"></a>OpenTSDB 不适合什么场景？</h2><p>不适合复杂关系查询、强事务业务、任意维度明细检索、小规模简单监控、超高基数字段直接入库和需要复杂多表关联分析的场景。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>OpenTSDB 面试的主线可以围绕四个问题展开：</p>
+<ol>
+<li>数据怎么建模：metric、tags、timestamp、value。</li>
+<li>数据怎么存储：UID、RowKey、HBase、Region。</li>
+<li>查询怎么执行：时间范围、tag 过滤、Scan、聚合、降采样。</li>
+<li>线上怎么优化：控制基数、缩小查询范围、预分区、排查 TSD 和 HBase 压力。</li>
+</ol>
+<p>把这条链路讲清楚，再结合高基数治理、HBase 热点、查询聚合和写入排查，OpenTSDB 相关问题就能从工具使用回答升级成系统设计回答。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250116/">https://junly.top/posts/20250116/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><a class="post-meta__tags" href="/tags/HBase/">HBase</a><a class="post-meta__tags" href="/tags/OpenTSDB/">OpenTSDB</a><a class="post-meta__tags" href="/tags/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97%E6%95%B0%E6%8D%AE%E5%BA%93/">时间序列数据库</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250114/" title="Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Elasticsearch 面试题通常不会只问“它是不是搜索引擎”。更常见的问题是：倒排索引是什么，写入为什么不是立刻可见，分片和副本怎么工作，查询如何路由，深分页为什么慢，聚合为什么占内存，Mapping 设计错了怎么办，集群变黄或变红怎么排查。 如果只把 Elasticsearch 理解成“可以全文搜索的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路： 1文档写入 Index -&gt; 路由到 Primary Shard -&gt; 写内存 Buffer 和 Translog -&gt; Refresh 生成 Segment -&gt; 查询时并发访问 Shard -&gt; 合并排序和聚合结果  本文按面试中最常见的模块梳理 Elasticsearch 要点，适合作为面试前的复习清单。 Elasticsearch 整体定位Elasticsearch 是基于 Lucene 的分布式搜索和分析引擎，擅长全文检索、结构化过滤、日志检索、指标分析、实时搜索和聚合分析。 它不是传统关系型数据库，也不适合替代所有主库场景。Elasticsearch...</div></div></div></a><a class="pagination-related" href="/posts/20250119/" title="Kafka面试要点：从分区、副本到消费积压的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kafka面试要点：从分区、副本到消费积压的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Kafka 面试题通常会从“为什么 Kafka 吞吐高”开始，继续追问 Topic 和 Partition 的关系、副本如何保证高可用、ISR 是什么、acks 怎么选、消费者组如何分摊消费、Offset 提交有什么风险、如何保证消息顺序、如何处理重复消费和消费积压。 如果只把 Kafka 理解成“一个消息队列”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1Producer 写入 Topic -&gt; 根据 Key 路由到 Partition -&gt; Leader Partition 追加日志 -&gt; Replica 拉取同步 -&gt; Consumer Group 按分区消费 -&gt; 提交 Offset  本文按面试中最常见的模块梳理 Kafka 要点，适合作为面试前的复习清单。 Kafka 整体定位Kafka 是一个分布式事件流平台，常用于消息队列、日志采集、异步解耦、削峰填谷、数据同步、流式计算和事件驱动架构。 它的核心能力来自三个设计：  追加写日志：消息以顺序追加方式写入磁盘。 分区机制：Topic 拆成多个...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20250111/" title="HBase面试要点：从LSM、Region到热点优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-11</div><div class="info-item-2">HBase面试要点：从LSM、Region到热点优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言HBase 面试题看起来很分散：有人问它为什么适合海量明细数据，有人问 RowKey 怎么设计，有人问写入为什么快，也有人继续追问 MemStore、HFile、WAL、Region、Compaction、热点、预分区和二级索引。 如果只记住“HBase 是列式 NoSQL 数据库”，回答很容易停在概念层。更好的方式是把 HBase 理解成一条完整链路： 1客户端写入 RowKey -&gt; 定位 Region -&gt; 写 WAL -&gt; 写 MemStore -&gt; 刷盘生成 HFile -&gt; 后台 Compaction 合并文件 -&gt; HDFS 负责持久化和副本  本文按面试中最常见的模块梳理 HBase 要点，适合作为面试前的复习清单。 HBase 整体定位HBase 是构建在 HDFS 之上的分布式、面向列族的 NoSQL 数据库，适合存储海量、稀疏、按 RowKey 有序的数据。 它不是传统关系型数据库，不擅长复杂...</div></div></div></a><a class="pagination-related" href="/posts/20250102/" title="MySQL面试要点：从索引、事务到性能优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-02</div><div class="info-item-2">MySQL面试要点：从索引、事务到性能优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MySQL 面试题看起来很多，但真正绕不开的主线其实很清楚：一条 SQL 是怎么执行的，数据是怎么存的，索引为什么能加速查询，事务如何保证一致性，并发冲突如何处理，系统变慢时应该怎么定位。 如果只是背概念，很容易遇到追问就卡住；如果能把这些知识点串成一条链路，回答就会自然很多。本文按面试中最常见的模块梳理 MySQL 要点，适合作为面试前的复习清单。 MySQL 整体架构MySQL 可以粗略分为 Server 层和存储引擎层。 flowchart TD     A[客户端连接] --> B[连接器]     B --> C[解析器]     C --> D[优化器]     D --> E[执行器]     E --> F[存储引擎]     F --> G[(磁盘数据)]  Server 层负责连接管理、权限校验、SQL 解析、查询优化、执行调度等通用能力。 存储引擎层负责真正的数据读写。常见引擎包括 InnoDB、MyISAM、Memory 等。现在生产环境最常用的是 InnoDB，因为它支持事务、行级锁、外键、崩溃恢复和...</div></div></div></a><a class="pagination-related" href="/posts/20250104/" title="PostgreSQL面试要点：从MVCC、索引到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-04</div><div class="info-item-2">PostgreSQL面试要点：从MVCC、索引到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言PostgreSQL 面试题看起来很散：有的人会问 MVCC，有的人会问索引，有的人会问事务隔离、锁、WAL、执行计划，也有人会继续追问为什么表会膨胀、为什么索引没有命中、慢 SQL 应该怎么排查。 如果只背结论，很容易被追问卡住。更好的方式是把 PostgreSQL 理解成一条完整链路： 1SQL 进入数据库 -&gt; 解析与优化 -&gt; 访问表和索引 -&gt; 通过 MVCC 判断可见性 -&gt; 通过 WAL 保证崩溃恢复 -&gt; 通过 VACUUM 清理历史版本  本文按面试中最常见的模块整理 PostgreSQL 要点，适合作为面试前的复习清单。 PostgreSQL 整体架构PostgreSQL 采用多进程架构。客户端连接进来后，通常会由一个独立的后端进程负责处理该连接的 SQL 请求。 flowchart TD     A[客户端连接] --> B[Postmaster 主进程]     B --> C[Backend 后端进程]     C --> D[Parser 解析器]     D --> E[Planner 优化器]     E -->...</div></div></div></a><a class="pagination-related" href="/posts/20250109/" title="MongoDB面试要点：从文档模型、索引到副本集和分片的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-09</div><div class="info-item-2">MongoDB面试要点：从文档模型、索引到副本集和分片的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MongoDB 面试题通常不会只问“它是不是 NoSQL 数据库”。更常见的问题是：为什么用文档模型，文档怎么设计，索引怎么建，聚合怎么优化，副本集如何保证高可用，分片如何扩展容量，事务和关系型数据库有什么差异，慢查询应该怎么排查。 如果只把 MongoDB 理解成“可以存 JSON 的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路： 1应用写入文档 -&gt; BSON 编码存储 -&gt; WiredTiger 管理数据页和缓存 -&gt; 索引定位数据 -&gt; 副本集复制 oplog -&gt; 分片集群按 shard key 路由请求  本文按面试中最常见的模块梳理 MongoDB 要点，适合作为面试前的复习清单。 MongoDB 整体架构MongoDB 是一个面向文档的数据库，数据以集合和文档的形式组织。集合类似关系型数据库中的表，文档类似一行记录，但文档结构可以更灵活，字段可以嵌套对象和数组。 flowchart TD     A[客户端请求] --> B[mongod 实例]     B --> C[查询解析与执行]     C -->...</div></div></div></a><a class="pagination-related" href="/posts/20250107/" title="Redis面试要点：从数据结构、持久化到缓存架构的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-07</div><div class="info-item-2">Redis面试要点：从数据结构、持久化到缓存架构的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Redis 面试题看起来很散：有人问数据结构，有人问缓存一致性，有人问持久化、主从复制、哨兵、Cluster，也有人会继续追问热点 Key、大 Key、缓存雪崩、分布式锁和慢查询排查。 如果只背结论，很容易在追问中断掉。更好的方式是把 Redis 理解成一条完整链路： 1请求进入 Redis -&gt; 事件循环处理命令 -&gt; 读写内存数据结构 -&gt; 根据过期和淘汰策略管理 Key -&gt; 通过 RDB/AOF 做持久化 -&gt; 通过复制、哨兵、集群提升可用性和扩展性  本文按面试中最常见的模块梳理 Redis 要点，适合作为面试前的复习清单。 Redis 整体架构Redis 是一个以内存为主要存储介质的高性能 Key-Value 数据库。它常被用作缓存、分布式锁、计数器、排行榜、消息队列、会话存储和实时统计系统。 flowchart TD     A[客户端请求] --> B[网络 IO]     B --> C[事件循环]     C --> D[命令解析与执行]     D --> E[内存数据结构]     D --> F[RDB 快照]    ...</div></div></div></a><a class="pagination-related" href="/posts/20250114/" title="Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-14</div><div class="info-item-2">Elasticsearch面试要点：从倒排索引、分片到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Elasticsearch 面试题通常不会只问“它是不是搜索引擎”。更常见的问题是：倒排索引是什么，写入为什么不是立刻可见，分片和副本怎么工作，查询如何路由，深分页为什么慢，聚合为什么占内存，Mapping 设计错了怎么办，集群变黄或变红怎么排查。 如果只把 Elasticsearch 理解成“可以全文搜索的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路： 1文档写入 Index -&gt; 路由到 Primary Shard -&gt; 写内存 Buffer 和 Translog -&gt; Refresh 生成 Segment -&gt; 查询时并发访问 Shard -&gt; 合并排序和聚合结果  本文按面试中最常见的模块梳理 Elasticsearch 要点，适合作为面试前的复习清单。 Elasticsearch 整体定位Elasticsearch 是基于 Lucene 的分布式搜索和分析引擎，擅长全文检索、结构化过滤、日志检索、指标分析、实时搜索和聚合分析。 它不是传统关系型数据库，也不适合替代所有主库场景。Elasticsearch...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#OpenTSDB-%E6%95%B4%E4%BD%93%E5%AE%9A%E4%BD%8D"><span class="toc-number">2.</span> <span class="toc-text">OpenTSDB 整体定位</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">核心数据模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Metric-%E5%92%8C-Tag"><span class="toc-number">4.</span> <span class="toc-text">Metric 和 Tag</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#UID-%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">UID 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HBase-%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84"><span class="toc-number">6.</span> <span class="toc-text">HBase 存储结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%99%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">7.</span> <span class="toc-text">写入流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E6%B5%81%E7%A8%8B"><span class="toc-number">8.</span> <span class="toc-text">查询流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%9A%E5%90%88%E5%92%8C%E9%99%8D%E9%87%87%E6%A0%B7"><span class="toc-number">9.</span> <span class="toc-text">聚合和降采样</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97%E5%9F%BA%E6%95%B0"><span class="toc-number">10.</span> <span class="toc-text">时间序列基数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#RowKey-%E5%92%8C%E7%83%AD%E7%82%B9"><span class="toc-number">11.</span> <span class="toc-text">RowKey 和热点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#OpenTSDB-%E5%92%8C-Prometheus-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">12.</span> <span class="toc-text">OpenTSDB 和 Prometheus 的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">13.</span> <span class="toc-text">常见性能优化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF"><span class="toc-number">14.</span> <span class="toc-text">常见排查思路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">15.</span> <span class="toc-text">高频面试题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenTSDB-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BE%9D%E8%B5%96-HBase%EF%BC%9F"><span class="toc-number">15.1.</span> <span class="toc-text">OpenTSDB 为什么依赖 HBase？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Metric-%E5%92%8C-Tag-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">15.2.</span> <span class="toc-text">Metric 和 Tag 有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UID-%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F"><span class="toc-number">15.3.</span> <span class="toc-text">UID 有什么作用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tag-%E5%9F%BA%E6%95%B0%E8%BF%87%E9%AB%98%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">15.4.</span> <span class="toc-text">Tag 基数过高有什么问题？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenTSDB-%E6%9F%A5%E8%AF%A2%E4%B8%BA%E4%BB%80%E4%B9%88%E6%85%A2%EF%BC%9F"><span class="toc-number">15.5.</span> <span class="toc-text">OpenTSDB 查询为什么慢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenTSDB-%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">15.6.</span> <span class="toc-text">OpenTSDB 适合什么场景？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenTSDB-%E4%B8%8D%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">15.7.</span> <span class="toc-text">OpenTSDB 不适合什么场景？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/soft-file-converter/" title="Junly文件转换工具">Junly文件转换工具</a><time datetime="2025-04-01T02:00:00.000Z" title="发表于 2025-04-01 10:00:00">2025-04-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250222/" title="设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理">设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理</a><time datetime="2025-02-22T02:00:00.000Z" title="发表于 2025-02-22 10:00:00">2025-02-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '61249fe2fda3c015b06c92c01144aa9b'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

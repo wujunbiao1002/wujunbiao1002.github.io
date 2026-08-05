@@ -1,0 +1,610 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文系统整理 Spring Cloud 面试中的高频知识点，覆盖服务注册发现、配置中心、网关、负载均衡、OpenFeign、熔断降级、限流、链路追踪、配置刷新、灰度发布和常见排查思路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理">
+<meta property="og:url" content="https://junly.top/posts/20250201/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="本文系统整理 Spring Cloud 面试中的高频知识点，覆盖服务注册发现、配置中心、网关、负载均衡、OpenFeign、熔断降级、限流、链路追踪、配置刷新、灰度发布和常见排查思路。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-02-01T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-05T03:52:06.511Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="面试">
+<meta property="article:tag" content="Spring Cloud">
+<meta property="article:tag" content="微服务">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理",
+  "url": "https://junly.top/posts/20250201/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-02-01T02:00:00.000Z",
+  "dateModified": "2026-08-05T03:52:06.511Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250201/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-02-01T02:00:00.000Z" title="发表于 2025-02-01 10:00:00">2025-02-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-05T03:52:06.511Z" title="更新于 2026-08-05 11:52:06">2026-08-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF/">编程技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Spring Cloud 面试题通常不会只问“它是不是微服务框架”。更常见的问题是：服务注册发现怎么做，配置中心如何刷新，网关承担什么职责，服务间调用为什么要负载均衡，OpenFeign 底层怎么发请求，熔断和降级有什么区别，链路追踪如何定位问题，线上某个服务调用突然变慢怎么排查。</p>
+<p>如果只把 Spring Cloud 理解成“一组微服务组件”，回答很容易停留在名词层。更好的方式是把它理解成一条完整链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">服务启动 -&gt; 注册到注册中心 -&gt; 拉取配置 -&gt; 网关接入请求 -&gt; 负载均衡选择实例 -&gt; Feign/HTTP 调用服务 -&gt; 熔断限流保护 -&gt; 链路追踪和监控定位问题</span><br></pre></td></tr></table></figure>
+
+<p>本文按面试中最常见的模块梳理 Spring Cloud 要点，适合作为面试前的复习清单。</p>
+<h1 id="Spring-Cloud-整体定位"><a href="#Spring-Cloud-整体定位" class="headerlink" title="Spring Cloud 整体定位"></a>Spring Cloud 整体定位</h1><p>Spring Cloud 是一套基于 Spring Boot 的微服务治理工具集，提供服务注册发现、配置管理、网关路由、负载均衡、服务调用、熔断降级、链路追踪等能力。</p>
+<p>它不是单个框架，而是一组面向分布式系统常见问题的解决方案。</p>
+<p>面试中可以这样概括：</p>
+<blockquote>
+<p>Spring Boot 解决单个应用如何快速开发和运行；Spring Cloud 解决多个 Spring Boot 服务组成分布式系统后，如何发现、调用、配置、保护、观测和治理。</p>
+</blockquote>
+<h1 id="核心组件"><a href="#核心组件" class="headerlink" title="核心组件"></a>核心组件</h1><p>Spring Cloud 生态中常见组件包括：</p>
+<ul>
+<li>注册中心：Eureka、Nacos、Consul、Zookeeper。</li>
+<li>配置中心：Spring Cloud Config、Nacos Config、Apollo。</li>
+<li>网关：Spring Cloud Gateway。</li>
+<li>负载均衡：Spring Cloud LoadBalancer。</li>
+<li>服务调用：OpenFeign、RestTemplate、WebClient。</li>
+<li>熔断限流：Resilience4j、Sentinel。</li>
+<li>链路追踪：Sleuth、Micrometer Tracing、Zipkin、SkyWalking。</li>
+<li>消息驱动：Spring Cloud Stream。</li>
+</ul>
+<pre class="mermaid">flowchart TD
+    A[Client] --> B[Gateway]
+    B --> C[Service A]
+    C --> D[Service B]
+    C --> E[Service C]
+    C --> F[Registry]
+    D --> F
+    E --> F
+    C --> G[Config Center]
+    D --> G
+    E --> G
+    C --> H[Tracing / Metrics]
+    D --> H
+    E --> H</pre>
+
+<h1 id="服务注册与发现"><a href="#服务注册与发现" class="headerlink" title="服务注册与发现"></a>服务注册与发现</h1><p>服务注册发现解决的问题是：服务实例 IP 和端口会变化，调用方不应该写死地址。</p>
+<p>基本流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">服务启动 -&gt; 向注册中心注册实例 -&gt; 定期心跳续约 -&gt; 调用方拉取服务列表 -&gt; 负载均衡选择实例 -&gt; 发起调用</span><br></pre></td></tr></table></figure>
+
+<p>注册中心保存服务名、实例地址、健康状态、元数据等信息。</p>
+<p>常见追问：服务下线后调用方为什么还会请求到旧实例？</p>
+<p>可能原因包括：</p>
+<ul>
+<li>注册中心剔除有延迟。</li>
+<li>客户端本地服务列表缓存未刷新。</li>
+<li>服务没有优雅下线。</li>
+<li>网关或调用方连接池仍持有旧连接。</li>
+</ul>
+<p>生产环境要配合健康检查、优雅停机、预下线、流量摘除和合理缓存刷新时间。</p>
+<h1 id="配置中心"><a href="#配置中心" class="headerlink" title="配置中心"></a>配置中心</h1><p>配置中心解决多服务、多环境配置统一管理的问题。</p>
+<p>常见能力：</p>
+<ul>
+<li>按环境管理配置。</li>
+<li>配置版本管理。</li>
+<li>动态刷新。</li>
+<li>配置权限控制。</li>
+<li>配置变更审计。</li>
+</ul>
+<p>配置加载链路可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">应用启动 -&gt; 连接配置中心 -&gt; 拉取当前环境配置 -&gt; 注入 Environment -&gt; Bean 读取配置 -&gt; 配置变更后通知刷新</span><br></pre></td></tr></table></figure>
+
+<p>常见问题：配置改了为什么没有生效？</p>
+<p>可能原因包括：</p>
+<ul>
+<li>应用没有接入动态刷新。</li>
+<li>Bean 没有使用可刷新作用域。</li>
+<li>配置 key 写错或环境 namespace&#x2F;group 错误。</li>
+<li>本地配置优先级覆盖了远端配置。</li>
+<li>配置中心推送失败或客户端连接异常。</li>
+</ul>
+<p>面试回答时要明确：不是所有配置都适合动态刷新，例如线程池核心参数、数据库连接池、日志级别等需要结合实现和风险判断。</p>
+<h1 id="Spring-Cloud-Gateway"><a href="#Spring-Cloud-Gateway" class="headerlink" title="Spring Cloud Gateway"></a>Spring Cloud Gateway</h1><p>Gateway 是微服务入口层，常见职责包括：</p>
+<ul>
+<li>统一路由。</li>
+<li>权限认证。</li>
+<li>限流。</li>
+<li>跨域处理。</li>
+<li>灰度发布。</li>
+<li>请求和响应改写。</li>
+<li>统一日志和 traceId 注入。</li>
+</ul>
+<p>Gateway 核心概念：</p>
+<ul>
+<li>Route：路由规则。</li>
+<li>Predicate：匹配条件。</li>
+<li>Filter：过滤器。</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">user-service</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://user-service</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/api/users/**</span></span><br><span class="line">          <span class="attr">filters:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">StripPrefix=1</span></span><br></pre></td></tr></table></figure>
+
+<p><code>lb://user-service</code> 表示通过服务名从注册中心获取实例，并进行负载均衡。</p>
+<h1 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h1><p>负载均衡解决一个服务有多个实例时，调用方选择哪个实例的问题。</p>
+<p>常见策略：</p>
+<ul>
+<li>轮询。</li>
+<li>随机。</li>
+<li>权重。</li>
+<li>最少连接。</li>
+<li>基于实例元数据的灰度路由。</li>
+</ul>
+<p>Spring Cloud 早期常用 Ribbon，新版本更推荐 Spring Cloud LoadBalancer。</p>
+<p>负载均衡通常发生在客户端侧：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">调用 user-service -&gt; 获取实例列表 -&gt; 选择一个实例 -&gt; 发起 HTTP 请求</span><br></pre></td></tr></table></figure>
+
+<p>常见问题：</p>
+<ul>
+<li>实例列表缓存延迟导致请求到已下线实例。</li>
+<li>所有请求打到少数实例，可能是权重或缓存问题。</li>
+<li>灰度元数据不一致导致路由异常。</li>
+<li>健康检查不准确导致异常实例仍被调用。</li>
+</ul>
+<h1 id="OpenFeign"><a href="#OpenFeign" class="headerlink" title="OpenFeign"></a>OpenFeign</h1><p>OpenFeign 是声明式 HTTP 客户端，通过接口和注解描述远程调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient(name = &quot;user-service&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">UserClient</span> &#123;</span><br><span class="line">    <span class="meta">@GetMapping(&quot;/users/&#123;id&#125;&quot;)</span></span><br><span class="line">    UserDTO <span class="title function_">getUser</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Feign 调用大致流程：</p>
+<pre class="mermaid">sequenceDiagram
+    participant ServiceA
+    participant Feign
+    participant LB as LoadBalancer
+    participant ServiceB
+
+    ServiceA->>Feign: 调用接口方法
+    Feign->>Feign: 构造 HTTP 请求
+    Feign->>LB: 根据服务名选择实例
+    LB-->>Feign: 返回实例地址
+    Feign->>ServiceB: 发起 HTTP 请求
+    ServiceB-->>Feign: 返回响应
+    Feign-->>ServiceA: 反序列化结果</pre>
+
+<p>常见配置点：</p>
+<ul>
+<li>连接超时。</li>
+<li>读取超时。</li>
+<li>重试策略。</li>
+<li>编码解码器。</li>
+<li>拦截器。</li>
+<li>日志级别。</li>
+<li>熔断降级集成。</li>
+</ul>
+<p>面试中要注意：远程调用一定要设置超时，不能让默认超时和无限等待拖垮线程池。</p>
+<h1 id="熔断、降级和限流"><a href="#熔断、降级和限流" class="headerlink" title="熔断、降级和限流"></a>熔断、降级和限流</h1><p>这三个概念容易混淆。</p>
+<ul>
+<li>限流：控制进入系统的请求量，防止流量超过承载能力。</li>
+<li>熔断：下游持续失败或变慢时，短时间直接失败，避免拖垮调用方。</li>
+<li>降级：返回兜底结果或关闭非核心功能，保证核心链路可用。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">库存服务变慢 -&gt; 订单服务调用超时增多 -&gt; 熔断库存查询 -&gt; 返回稍后重试或默认结果 -&gt; 避免订单线程池被耗尽</span><br></pre></td></tr></table></figure>
+
+<p>常见指标：</p>
+<ul>
+<li>慢调用比例。</li>
+<li>异常比例。</li>
+<li>QPS。</li>
+<li>并发线程数。</li>
+<li>RT。</li>
+</ul>
+<p>限流是入口保护，熔断是依赖保护，降级是业务兜底。</p>
+<h1 id="服务雪崩"><a href="#服务雪崩" class="headerlink" title="服务雪崩"></a>服务雪崩</h1><p>服务雪崩是微服务面试高频问题。</p>
+<p>典型过程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">下游服务变慢 -&gt; 上游线程阻塞 -&gt; 请求堆积 -&gt; 线程池耗尽 -&gt; 更多服务超时 -&gt; 故障扩散</span><br></pre></td></tr></table></figure>
+
+<p>治理手段：</p>
+<ul>
+<li>超时控制。</li>
+<li>熔断降级。</li>
+<li>限流。</li>
+<li>线程池隔离。</li>
+<li>舱壁隔离。</li>
+<li>缓存兜底。</li>
+<li>快速失败。</li>
+<li>依赖分级。</li>
+</ul>
+<p>面试中要强调：没有超时的远程调用是非常危险的，可能把局部故障放大成全链路故障。</p>
+<h1 id="链路追踪"><a href="#链路追踪" class="headerlink" title="链路追踪"></a>链路追踪</h1><p>微服务调用链变长后，单个服务日志很难定位问题，需要链路追踪。</p>
+<p>常见概念：</p>
+<ul>
+<li>Trace：一次完整请求链路。</li>
+<li>Span：链路中的一个调用片段。</li>
+<li>TraceId：整条链路的唯一标识。</li>
+<li>SpanId：单个调用节点标识。</li>
+</ul>
+<p>链路追踪可以回答：</p>
+<ul>
+<li>请求经过了哪些服务。</li>
+<li>哪个服务耗时最长。</li>
+<li>哪个调用报错。</li>
+<li>下游依赖是否变慢。</li>
+</ul>
+<p>常见工具包括 Zipkin、SkyWalking、Jaeger、Micrometer Tracing 等。</p>
+<p>日志中也应该打印 traceId，方便从监控跳到日志。</p>
+<h1 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h1><p>微服务拆分后，单机数据库事务无法覆盖多个服务。常见方案包括：</p>
+<ul>
+<li>本地事务 + 可靠消息最终一致性。</li>
+<li>TCC。</li>
+<li>Saga。</li>
+<li>Seata AT。</li>
+<li>业务补偿。</li>
+</ul>
+<p>面试中不要简单说“用分布式事务框架”。更重要的是根据业务一致性要求选择方案。</p>
+<p>例如订单创建和库存扣减：</p>
+<ul>
+<li>强一致要求高：可以考虑 TCC 或 Seata，但复杂度高。</li>
+<li>可接受最终一致：订单本地落库后发消息扣库存，失败后补偿。</li>
+<li>读模型一致性：通过状态机和定时任务修复。</li>
+</ul>
+<p>核心取舍是：一致性、性能、复杂度、可用性。</p>
+<h1 id="灰度发布"><a href="#灰度发布" class="headerlink" title="灰度发布"></a>灰度发布</h1><p>灰度发布是让部分流量进入新版本，验证稳定后逐步扩大。</p>
+<p>常见维度：</p>
+<ul>
+<li>用户 ID。</li>
+<li>租户 ID。</li>
+<li>Header。</li>
+<li>Cookie。</li>
+<li>地域。</li>
+<li>服务实例元数据。</li>
+</ul>
+<p>常见实现位置：</p>
+<ul>
+<li>网关层。</li>
+<li>负载均衡层。</li>
+<li>服务调用拦截器。</li>
+<li>注册中心实例元数据。</li>
+</ul>
+<p>灰度发布要配合监控、日志、快速回滚和配置开关，否则只做路由没有治理闭环。</p>
+<h1 id="常见性能优化"><a href="#常见性能优化" class="headerlink" title="常见性能优化"></a>常见性能优化</h1><p>服务治理：</p>
+<ul>
+<li>合理设置超时。</li>
+<li>避免无边界重试。</li>
+<li>对核心依赖配置熔断和降级。</li>
+<li>网关限流保护入口。</li>
+<li>服务优雅下线。</li>
+</ul>
+<p>调用链路：</p>
+<ul>
+<li>减少串行远程调用。</li>
+<li>合并批量接口。</li>
+<li>避免循环调用。</li>
+<li>缓存低频变更数据。</li>
+<li>对慢接口异步化。</li>
+</ul>
+<p>配置和发布：</p>
+<ul>
+<li>配置变更要有审计和回滚。</li>
+<li>灰度发布先小流量验证。</li>
+<li>版本兼容避免上下游同时强依赖升级。</li>
+</ul>
+<p>观测：</p>
+<ul>
+<li>接入指标、日志和链路追踪。</li>
+<li>监控 QPS、RT、错误率、线程池、连接池。</li>
+<li>关键业务指标和技术指标一起看。</li>
+</ul>
+<h1 id="常见排查思路"><a href="#常见排查思路" class="headerlink" title="常见排查思路"></a>常见排查思路</h1><p>如果面试官问“某个微服务接口突然变慢怎么排查”，可以按以下路径回答：</p>
+<ol>
+<li>看是单接口慢、单服务慢，还是全链路慢。</li>
+<li>通过 traceId 查看调用链路，定位耗时最长的 Span。</li>
+<li>看网关、调用方、被调方的 RT 和错误率。</li>
+<li>看是否发生注册中心异常或调用到异常实例。</li>
+<li>看 Feign 超时、重试和连接池状态。</li>
+<li>看下游数据库、缓存、消息队列是否变慢。</li>
+<li>看线程池、CPU、GC、内存和容器资源。</li>
+<li>看最近是否有发布、配置变更、流量突增或灰度规则变化。</li>
+</ol>
+<p>如果是服务调用失败，可以重点看服务是否注册、实例健康、路由规则、网络连通性、鉴权、超时配置、熔断状态和日志异常。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><h2 id="Spring-Cloud-和-Spring-Boot-有什么区别？"><a href="#Spring-Cloud-和-Spring-Boot-有什么区别？" class="headerlink" title="Spring Cloud 和 Spring Boot 有什么区别？"></a>Spring Cloud 和 Spring Boot 有什么区别？</h2><p>Spring Boot 解决单体应用或单个服务快速开发、运行和部署的问题；Spring Cloud 基于 Spring Boot，解决多个服务之间的注册发现、配置、调用、网关、熔断、链路追踪等分布式治理问题。</p>
+<h2 id="注册中心有什么用？"><a href="#注册中心有什么用？" class="headerlink" title="注册中心有什么用？"></a>注册中心有什么用？</h2><p>注册中心保存服务实例地址和健康状态。服务启动后注册，调用方通过服务名获取实例列表，再进行负载均衡调用，避免写死 IP 和端口。</p>
+<h2 id="配置中心改了配置为什么没生效？"><a href="#配置中心改了配置为什么没生效？" class="headerlink" title="配置中心改了配置为什么没生效？"></a>配置中心改了配置为什么没生效？</h2><p>可能是动态刷新未开启、Bean 不支持刷新、namespace&#x2F;group&#x2F;profile 错误、本地配置优先级更高、配置中心推送失败或客户端连接异常。</p>
+<h2 id="Gateway-的核心概念是什么？"><a href="#Gateway-的核心概念是什么？" class="headerlink" title="Gateway 的核心概念是什么？"></a>Gateway 的核心概念是什么？</h2><p>Gateway 核心是 Route、Predicate 和 Filter。Route 定义路由规则，Predicate 判断请求是否匹配，Filter 在请求前后做鉴权、限流、改写、日志、灰度等处理。</p>
+<h2 id="Feign-是怎么调用远程服务的？"><a href="#Feign-是怎么调用远程服务的？" class="headerlink" title="Feign 是怎么调用远程服务的？"></a>Feign 是怎么调用远程服务的？</h2><p>Feign 根据接口注解生成代理，方法调用时构造 HTTP 请求，通过服务名获取实例列表并负载均衡选择实例，然后发起 HTTP 调用并反序列化响应。</p>
+<h2 id="熔断和降级有什么区别？"><a href="#熔断和降级有什么区别？" class="headerlink" title="熔断和降级有什么区别？"></a>熔断和降级有什么区别？</h2><p>熔断是当下游异常或变慢时，临时切断调用以保护系统；降级是返回兜底结果或关闭非核心能力，保证核心链路可用。熔断偏保护机制，降级偏业务策略。</p>
+<h2 id="如何防止服务雪崩？"><a href="#如何防止服务雪崩？" class="headerlink" title="如何防止服务雪崩？"></a>如何防止服务雪崩？</h2><p>设置超时、限流、熔断、降级、线程池隔离、快速失败、缓存兜底和依赖分级，避免一个下游故障拖垮上游和整条链路。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Spring Cloud 面试的主线可以围绕四个问题展开：</p>
+<ol>
+<li>服务怎么发现：注册中心、健康检查、实例缓存、优雅下线。</li>
+<li>服务怎么调用：Gateway、LoadBalancer、Feign、超时和重试。</li>
+<li>系统怎么保护：限流、熔断、降级、隔离、防雪崩。</li>
+<li>线上怎么治理：配置中心、链路追踪、灰度发布、监控和排查。</li>
+</ol>
+<p>把这条链路讲清楚，再结合微服务调用失败、接口变慢、配置不生效和服务雪崩治理，Spring Cloud 相关问题就能从“知道组件名”升级成“理解微服务治理体系”。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250201/">https://junly.top/posts/20250201/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/Spring-Boot/">Spring Boot</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a><a class="post-meta__tags" href="/tags/Spring-Cloud/">Spring Cloud</a><a class="post-meta__tags" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250129/" title="SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Boot 面试题通常不会只问“它和 Spring 有什么区别”。更常见的问题是：自动配置怎么生效，Starter 做了什么，@SpringBootApplication 包含哪些能力，Bean 生命周期如何走，配置文件加载顺序是什么，事务为什么会失效，接口请求进入后经历哪些链路，线上启动慢或接口慢怎么排查。 如果只把 Spring Boot 理解成“简化 Spring 配置的框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1启动应用 -&gt; 创建 SpringApplication -&gt; 准备 Environment -&gt; 加载自动配置 -&gt; 创建 Bean -&gt; 启动 Web 容器 -&gt; 接收请求 -&gt; 执行业务和事务  本文按面试中最常见的模块梳理 Spring Boot 要点，适合作为面试前的复习清单。 Spring Boot 整体定位Spring Boot 是基于 Spring 生态的应用开发框架，核心目标是降低 Spring...</div></div></div></a><a class="pagination-related" href="/posts/20250205/" title="MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MyBatis 面试题通常会从“它和 Hibernate&#x2F;JPA 有什么区别”开始，继续追问 Mapper 接口为什么不用实现类，SQL 是怎么执行的，#&#123;&#125; 和 $&#123;&#125; 有什么区别，一级缓存和二级缓存怎么生效，动态 SQL 如何拼接，插件拦截哪些对象，分页插件原理是什么，懒加载为什么可能产生 N+1 问题。 如果只把 MyBatis 理解成“写 SQL 的 ORM 框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1调用 Mapper 接口 -&gt; 动态代理生成调用 -&gt; 找到 MappedStatement -&gt; Executor 执行 -&gt; StatementHandler 创建 SQL -&gt; JDBC 查询 -&gt; ResultSetHandler 映射结果  本文按面试中最常见的模块梳理 MyBatis 要点，适合作为面试前的复习清单。 MyBatis 整体定位MyBatis 是一个半自动 ORM 框架。它不像 Hibernate 那样尽量屏蔽...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20250129/" title="SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-29</div><div class="info-item-2">SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Boot 面试题通常不会只问“它和 Spring 有什么区别”。更常见的问题是：自动配置怎么生效，Starter 做了什么，@SpringBootApplication 包含哪些能力，Bean 生命周期如何走，配置文件加载顺序是什么，事务为什么会失效，接口请求进入后经历哪些链路，线上启动慢或接口慢怎么排查。 如果只把 Spring Boot 理解成“简化 Spring 配置的框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1启动应用 -&gt; 创建 SpringApplication -&gt; 准备 Environment -&gt; 加载自动配置 -&gt; 创建 Bean -&gt; 启动 Web 容器 -&gt; 接收请求 -&gt; 执行业务和事务  本文按面试中最常见的模块梳理 Spring Boot 要点，适合作为面试前的复习清单。 Spring Boot 整体定位Spring Boot 是基于 Spring 生态的应用开发框架，核心目标是降低 Spring...</div></div></div></a><a class="pagination-related" href="/posts/20201210/" title="Kafka编程实践与开发：多语言客户端实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-10</div><div class="info-item-2">Kafka编程实践与开发：多语言客户端实战指南</div></div><div class="info-2"><div class="info-item-1">前言Apache Kafka作为一个高性能的分布式流处理平台，已经成为现代数据架构中不可或缺的组件。要充分发挥Kafka的强大功能，开发人员需要掌握如何通过不同编程语言与Kafka进行交互。本文将深入探讨Kafka的编程实践与开发，涵盖Java、Python和Spring Boot等主流技术栈，提供从基础概念到高级应用的全面指南，帮助开发人员快速构建可靠、高效的Kafka应用程序。 Kafka客户端编程基础Kafka客户端开发模型在开始具体编程之前，了解Kafka客户端的核心开发模型至关重要。Kafka客户端主要分为生产者(Producer)和消费者(Consumer)两种角色，它们遵循不同的设计模式和交互方式。 graph LR     A[应用程序] --> B[Producer API]     B --> C[Kafka集群]     C --> D[Consumer API]     D --> E[应用程序]          F[Admin API]  C     G[Streams API]  C          style B...</div></div></div></a><a class="pagination-related" href="/posts/20250205/" title="MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-05</div><div class="info-item-2">MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MyBatis 面试题通常会从“它和 Hibernate&#x2F;JPA 有什么区别”开始，继续追问 Mapper 接口为什么不用实现类，SQL 是怎么执行的，#&#123;&#125; 和 $&#123;&#125; 有什么区别，一级缓存和二级缓存怎么生效，动态 SQL 如何拼接，插件拦截哪些对象，分页插件原理是什么，懒加载为什么可能产生 N+1 问题。 如果只把 MyBatis 理解成“写 SQL 的 ORM 框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1调用 Mapper 接口 -&gt; 动态代理生成调用 -&gt; 找到 MappedStatement -&gt; Executor 执行 -&gt; StatementHandler 创建 SQL -&gt; JDBC 查询 -&gt; ResultSetHandler 映射结果  本文按面试中最常见的模块梳理 MyBatis 要点，适合作为面试前的复习清单。 MyBatis 整体定位MyBatis 是一个半自动 ORM 框架。它不像 Hibernate 那样尽量屏蔽...</div></div></div></a><a class="pagination-related" href="/posts/20250210/" title="Java基础面试要点：从语法、集合、并发到JDK 8&#x2F;17&#x2F;21新特性的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-10</div><div class="info-item-2">Java基础面试要点：从语法、集合、并发到JDK 8&#x2F;17&#x2F;21新特性的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Java 基础面试题看起来范围很大：有的问 equals 和 hashCode，有的问 String、泛型、异常、集合、线程池、锁、JVM、类加载，也有的会继续追问 JDK 8、JDK 17、JDK 21 分别带来了哪些重要变化。 如果只背零散结论，遇到追问很容易断。更好的方式是把 Java 基础理解成几条主线： 1语言基础 -&gt; 面向对象 -&gt; 标准类库 -&gt; 集合与泛型 -&gt; 并发与内存模型 -&gt; JVM 与类加载 -&gt; JDK 版本演进  本文按面试中最常见的模块梳理 Java 基础要点，并专门总结 JDK 8、17、21 的新特性，适合作为面试前的复习清单。 Java 整体特点Java 常见特点包括：  面向对象。 跨平台，依赖 JVM。 自动内存管理和垃圾回收。 静态类型语言。 标准库和生态成熟。 支持多线程和并发编程。  面试中可以这样概括：  Java 源码编译成字节码，字节码运行在 JVM 上。JVM 屏蔽不同操作系统差异，并通过类加载、运行时数据区、JIT 编译和垃圾回收支撑程序运行。  flowchart TD    ...</div></div></div></a><a class="pagination-related" href="/posts/20250214/" title="锁相关专题面试要点：从JDK锁、Redis锁到数据库锁的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-14</div><div class="info-item-2">锁相关专题面试要点：从JDK锁、Redis锁到数据库锁的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言锁相关问题是后端面试里的高频专题，不只包括 JDK 自带的 synchronized、ReentrantLock、AQS，也包括 Redis 分布式锁、数据库锁、ZooKeeper 锁、消息队列串行化和业务幂等设计。 常见问题包括：synchronized 锁的是什么，锁升级怎么理解，synchronized 和 ReentrantLock 有什么区别，AQS 是什么，公平锁和非公平锁怎么选，读写锁适合什么场景，CAS 有什么问题，volatile 能不能替代锁，死锁怎么排查，Redis 分布式锁为什么要设置过期时间，数据库乐观锁和悲观锁怎么选，ZooKeeper 锁和 Redis 锁有什么区别。 如果只背“锁保证线程安全”，回答很容易停留在概念层。更好的方式是把锁理解成一条完整主线： 1共享资源竞争 -&gt; 可见性/原子性/有序性问题 -&gt; 单机锁或分布式协调 -&gt; 阻塞/唤醒/队列管理 -&gt; 性能和正确性权衡 -&gt; 线上排查  本文按面试中最常见的模块梳理锁相关要点，适合作为 Java...</div></div></div></a><a class="pagination-related" href="/posts/20250218/" title="JVM面试要点：从内存结构、类加载、GC到JDK 8&#x2F;17&#x2F;21演进的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-18</div><div class="info-item-2">JVM面试要点：从内存结构、类加载、GC到JDK 8&#x2F;17&#x2F;21演进的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言JVM 是 Java 面试里的核心专题。它连接了语言特性、运行时性能、线上排查和版本升级，常见问题包括：JVM 内存结构是什么，堆和栈有什么区别，对象怎么创建，类加载过程是什么，双亲委派有什么用，哪些对象可以作为 GC Roots，Minor GC 和 Full GC 有什么区别，G1 为什么适合大堆，JDK 8、17、21 在 JVM 层面有哪些变化。 如果只背“堆放对象、栈放局部变量”，回答通常不够。更好的方式是把 JVM 理解成一条完整链路： 1Java 源码 -&gt; 字节码 -&gt; 类加载 -&gt; 运行时内存 -&gt; 对象分配 -&gt; 垃圾回收 -&gt; JIT 优化 -&gt; 线上监控与调优  本文按面试高频模块梳理 JVM 要点，并单独总结 JDK 8、JDK 17、JDK 21 的关键变化。 JVM 整体结构JVM 的核心职责是加载字节码、管理运行时内存、执行程序、回收无用对象，并通过即时编译优化热点代码。 flowchart TD     A[Java 源码] --> B[javac 编译为 class 字节码]     B -->...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">85</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">178</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring-Cloud-%E6%95%B4%E4%BD%93%E5%AE%9A%E4%BD%8D"><span class="toc-number">2.</span> <span class="toc-text">Spring Cloud 整体定位</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">核心组件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E4%B8%8E%E5%8F%91%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">服务注册与发现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="toc-number">5.</span> <span class="toc-text">配置中心</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring-Cloud-Gateway"><span class="toc-number">6.</span> <span class="toc-text">Spring Cloud Gateway</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">7.</span> <span class="toc-text">负载均衡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#OpenFeign"><span class="toc-number">8.</span> <span class="toc-text">OpenFeign</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%86%94%E6%96%AD%E3%80%81%E9%99%8D%E7%BA%A7%E5%92%8C%E9%99%90%E6%B5%81"><span class="toc-number">9.</span> <span class="toc-text">熔断、降级和限流</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E9%9B%AA%E5%B4%A9"><span class="toc-number">10.</span> <span class="toc-text">服务雪崩</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA"><span class="toc-number">11.</span> <span class="toc-text">链路追踪</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="toc-number">12.</span> <span class="toc-text">分布式事务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83"><span class="toc-number">13.</span> <span class="toc-text">灰度发布</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">14.</span> <span class="toc-text">常见性能优化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF"><span class="toc-number">15.</span> <span class="toc-text">常见排查思路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">16.</span> <span class="toc-text">高频面试题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-Cloud-%E5%92%8C-Spring-Boot-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">16.1.</span> <span class="toc-text">Spring Cloud 和 Spring Boot 有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8%EF%BC%9F"><span class="toc-number">16.2.</span> <span class="toc-text">注册中心有什么用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%94%B9%E4%BA%86%E9%85%8D%E7%BD%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B2%A1%E7%94%9F%E6%95%88%EF%BC%9F"><span class="toc-number">16.3.</span> <span class="toc-text">配置中心改了配置为什么没生效？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Gateway-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">16.4.</span> <span class="toc-text">Gateway 的核心概念是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Feign-%E6%98%AF%E6%80%8E%E4%B9%88%E8%B0%83%E7%94%A8%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E7%9A%84%EF%BC%9F"><span class="toc-number">16.5.</span> <span class="toc-text">Feign 是怎么调用远程服务的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%86%94%E6%96%AD%E5%92%8C%E9%99%8D%E7%BA%A7%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">16.6.</span> <span class="toc-text">熔断和降级有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%98%B2%E6%AD%A2%E6%9C%8D%E5%8A%A1%E9%9B%AA%E5%B4%A9%EF%BC%9F"><span class="toc-number">16.7.</span> <span class="toc-text">如何防止服务雪崩？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">17.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/soft-file-converter/" title="Junly文件转换工具">Junly文件转换工具</a><time datetime="2025-04-01T02:00:00.000Z" title="发表于 2025-04-01 10:00:00">2025-04-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250222/" title="设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理">设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理</a><time datetime="2025-02-22T02:00:00.000Z" title="发表于 2025-02-22 10:00:00">2025-02-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'c02f0777a43f2bc6cb6b60f94a2c114d'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
