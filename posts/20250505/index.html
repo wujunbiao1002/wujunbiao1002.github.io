@@ -1,0 +1,410 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文围绕多租户 SaaS 场景整理 Java 面试要点，覆盖租户识别、数据隔离、权限隔离、配置隔离、套餐限制、租户级限流、灰度和多种多租户架构对比。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制">
+<meta property="og:url" content="https://junly.top/posts/20250505/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="本文围绕多租户 SaaS 场景整理 Java 面试要点，覆盖租户识别、数据隔离、权限隔离、配置隔离、套餐限制、租户级限流、灰度和多种多租户架构对比。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-05-05T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-07T06:20:17.124Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="架构">
+<meta property="article:tag" content="面试">
+<meta property="article:tag" content="SaaS">
+<meta property="article:tag" content="多租户">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制",
+  "url": "https://junly.top/posts/20250505/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-05-05T02:00:00.000Z",
+  "dateModified": "2026-08-07T06:20:17.124Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250505/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">230</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Java面试要点：多租户 SaaS 租户隔离、数据隔离、配置隔离与套餐限制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-05-05T02:00:00.000Z" title="发表于 2025-05-05 10:00:00">2025-05-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-07T06:20:17.124Z" title="更新于 2026-08-07 14:20:17">2026-08-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF/">编程技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">629</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>多租户 SaaS 关注的是“多个客户共用一套系统，但数据、权限、配置互相隔离”。面试常问：</p>
+<ul>
+<li>租户 ID 从哪里来。</li>
+<li>数据怎么隔离。</li>
+<li>租户配置怎么管理。</li>
+<li>不同套餐怎么限制功能。</li>
+<li>怎么避免跨租户数据泄漏。</li>
+</ul>
+<h1 id="租户识别"><a href="#租户识别" class="headerlink" title="租户识别"></a>租户识别</h1><p>常见方式：</p>
+<ul>
+<li>域名识别：<code>tenantA.example.com</code>。</li>
+<li>Token 中携带 tenantId。</li>
+<li>请求头携带 tenantId。</li>
+<li>登录后绑定租户上下文。</li>
+</ul>
+<p>后端要把 tenantId 放入统一上下文，供权限、数据查询、日志审计使用。</p>
+<h1 id="数据隔离方案"><a href="#数据隔离方案" class="headerlink" title="数据隔离方案"></a>数据隔离方案</h1><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>独立数据库</td>
+<td>隔离强</td>
+<td>成本高</td>
+</tr>
+<tr>
+<td>独立 schema</td>
+<td>隔离较好</td>
+<td>运维复杂</td>
+</tr>
+<tr>
+<td>共享表加 tenant_id</td>
+<td>成本低</td>
+<td>隔离依赖代码和权限</td>
+</tr>
+</tbody></table>
+<p>中小 SaaS 常用共享表加 <code>tenant_id</code>，大型客户可能独立库。</p>
+<h1 id="查询隔离"><a href="#查询隔离" class="headerlink" title="查询隔离"></a>查询隔离</h1><p>共享表方案必须保证所有查询都带租户条件：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> orders</span><br><span class="line"><span class="keyword">where</span> tenant_id <span class="operator">=</span> ? <span class="keyword">and</span> order_no <span class="operator">=</span> ?;</span><br></pre></td></tr></table></figure>
+
+<p>建议：</p>
+<ul>
+<li>ORM 拦截器自动追加 tenantId。</li>
+<li>敏感表强制租户字段。</li>
+<li>管理后台超管权限单独控制。</li>
+</ul>
+<h1 id="配置隔离"><a href="#配置隔离" class="headerlink" title="配置隔离"></a>配置隔离</h1><p>不同租户可能有不同：</p>
+<ul>
+<li>Logo。</li>
+<li>菜单。</li>
+<li>功能开关。</li>
+<li>流程规则。</li>
+<li>字段配置。</li>
+<li>通知模板。</li>
+</ul>
+<p>配置要支持租户维度覆盖默认配置。</p>
+<h1 id="套餐限制"><a href="#套餐限制" class="headerlink" title="套餐限制"></a>套餐限制</h1><p>SaaS 常见套餐：</p>
+<ul>
+<li>用户数上限。</li>
+<li>存储空间上限。</li>
+<li>API 调用次数。</li>
+<li>功能模块开关。</li>
+<li>数据保留周期。</li>
+</ul>
+<p>套餐限制建议在网关、业务服务和定时任务多个位置做校验。</p>
+<h1 id="租户级限流"><a href="#租户级限流" class="headerlink" title="租户级限流"></a>租户级限流</h1><p>不能只按全局限流，否则大租户可能挤压小租户。</p>
+<p>常见维度：</p>
+<ul>
+<li>租户 QPS。</li>
+<li>租户并发数。</li>
+<li>租户任务数。</li>
+<li>租户存储容量。</li>
+</ul>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><h2 id="多租户最大风险是什么？"><a href="#多租户最大风险是什么？" class="headerlink" title="多租户最大风险是什么？"></a>多租户最大风险是什么？</h2><p>跨租户数据泄漏。要从查询条件、权限、日志、缓存 key、文件路径、消息 topic 等多个位置隔离。</p>
+<h2 id="缓存-key-怎么设计？"><a href="#缓存-key-怎么设计？" class="headerlink" title="缓存 key 怎么设计？"></a>缓存 key 怎么设计？</h2><p>必须带 tenantId，例如 <code>tenant:&#123;tenantId&#125;:user:&#123;userId&#125;</code>。</p>
+<h2 id="大客户要求独立部署怎么办？"><a href="#大客户要求独立部署怎么办？" class="headerlink" title="大客户要求独立部署怎么办？"></a>大客户要求独立部署怎么办？</h2><p>可以支持混合模式：普通租户共享集群，大客户独立数据库或独立部署。</p>
+<h2 id="多租户和-RBAC-有什么关系？"><a href="#多租户和-RBAC-有什么关系？" class="headerlink" title="多租户和 RBAC 有什么关系？"></a>多租户和 RBAC 有什么关系？</h2><p>RBAC 解决租户内部权限，多租户解决租户之间隔离，两者要组合。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>多租户 SaaS 的核心是租户识别、数据隔离、权限隔离、配置隔离和资源隔离。面试回答一定要强调 tenantId 贯穿全链路，不能只在表里加一个字段。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250505/">https://junly.top/posts/20250505/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/%E6%9E%B6%E6%9E%84/">架构</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a><a class="post-meta__tags" href="/tags/SaaS/">SaaS</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E7%A7%9F%E6%88%B7/">多租户</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250501/" title="Java面试要点：频率限制、设备指纹、黑名单与规则引擎"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java面试要点：频率限制、设备指纹、黑名单与规则引擎</div></div><div class="info-2"><div class="info-item-1">前言风控反作弊是企业系统保护业务资产的重要能力。常见场景：  登录撞库。 批量注册。 刷接口。 薅优惠券。 恶意下单。 支付风险。  风控链路flowchart TD     A[业务请求] --> B[采集特征]     B --> C[规则判断]     C --> D{风险等级}     D -->|低| E[放行]     D -->|中| F[验证码/二次校验]     D -->|高| G[拒绝/人工审核]  常见特征   特征 示例    用户 账号、等级、历史行为   设备 设备指纹、浏览器、App 版本   网络 IP、代理、地域   行为 点击频率、接口频率、下单频率   业务 金额、商品、优惠券、支付方式   频率限制常见维度：  IP。 用户 ID。 手机号。 设备 ID。 接口。  Redis...</div></div></div></a><a class="pagination-related" href="/posts/20250509/" title="Java面试要点：动态配置、灰度规则、版本回滚与开关治理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java面试要点：动态配置、灰度规则、版本回滚与开关治理</div></div><div class="info-2"><div class="info-item-1">前言配置中心和灰度发布是微服务生产治理的重要能力。面试常问：  配置修改后服务如何感知。 灰度发布怎么按用户或租户放量。 配置错误怎么回滚。 功能开关为什么不能乱用。  动态配置链路sequenceDiagram     participant A as 管理后台     participant C as 配置中心     participant S as 业务服务      A->>C: 修改配置     C->>C: 保存版本     C-->>S: 推送变更     S->>S: 刷新本地缓存  配置类型常见配置：  业务参数。 功能开关。 限流阈值。 白名单。 灰度规则。 第三方接口地址。  敏感配置要加密存储，权限单独控制。 推还是拉   方案 优点 缺点    客户端轮询拉取 简单 实时性差   服务端推送 实时 连接和可靠性复杂   推拉结合 稳定 实现成本中等   灰度规则常见维度：  用户 ID。 租户...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20250222/" title="设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-22</div><div class="info-item-2">设计模式面试要点：从创建型、结构型、行为型到学习样例的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言设计模式是 Java 面试里的高频专题。面试官通常不会只问“单例模式怎么写”，而是会继续追问：为什么要用这个模式，不用会有什么问题，JDK 或 Spring 里哪里用到了，业务里怎么落地，模式用多了会不会过度设计。 学习设计模式时，不建议一开始就死背 23 种模式。更好的方式是先理解它解决的问题： 1对象怎么创建 -&gt; 对象怎么组合 -&gt; 对象之间怎么协作 -&gt; 代码如何应对变化  本文按面试常见问题梳理设计模式，并给出适合练习的学习样例。 设计模式是什么设计模式是前人在软件设计中总结出来的可复用解决方案。它不是语法，也不是框架，而是面对常见设计问题时的一种表达方式。 面试回答可以这样说：  设计模式解决的是代码结构和变化管理问题。 它关注职责划分、扩展性、复用性和可维护性。 不能为了用模式而用模式，模式应该服务于业务复杂度。  flowchart TD     A[业务需求变化] --> B[代码直接堆 if else]     A --> C[抽象变化点]     C --> D[职责拆分]     D --> E[选择合适设计模式]     E...</div></div></div></a><a class="pagination-related" href="/posts/20250129/" title="SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-29</div><div class="info-item-2">SpringBoot面试要点：从自动配置、Starter到生产排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Boot 面试题通常不会只问“它和 Spring 有什么区别”。更常见的问题是：自动配置怎么生效，Starter 做了什么，@SpringBootApplication 包含哪些能力，Bean 生命周期如何走，配置文件加载顺序是什么，事务为什么会失效，接口请求进入后经历哪些链路，线上启动慢或接口慢怎么排查。 如果只把 Spring Boot 理解成“简化 Spring 配置的框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1启动应用 -&gt; 创建 SpringApplication -&gt; 准备 Environment -&gt; 加载自动配置 -&gt; 创建 Bean -&gt; 启动 Web 容器 -&gt; 接收请求 -&gt; 执行业务和事务  本文按面试中最常见的模块梳理 Spring Boot 要点，适合作为面试前的复习清单。 Spring Boot 整体定位Spring Boot 是基于 Spring 生态的应用开发框架，核心目标是降低 Spring...</div></div></div></a><a class="pagination-related" href="/posts/20250201/" title="SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-01</div><div class="info-item-2">SpringCloud面试要点：从服务治理、网关到微服务排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Cloud 面试题通常不会只问“它是不是微服务框架”。更常见的问题是：服务注册发现怎么做，配置中心如何刷新，网关承担什么职责，服务间调用为什么要负载均衡，OpenFeign 底层怎么发请求，熔断和降级有什么区别，链路追踪如何定位问题，线上某个服务调用突然变慢怎么排查。 如果只把 Spring Cloud 理解成“一组微服务组件”，回答很容易停留在名词层。更好的方式是把它理解成一条完整链路： 1服务启动 -&gt; 注册到注册中心 -&gt; 拉取配置 -&gt; 网关接入请求 -&gt; 负载均衡选择实例 -&gt; Feign/HTTP 调用服务 -&gt; 熔断限流保护 -&gt; 链路追踪和监控定位问题  本文按面试中最常见的模块梳理 Spring Cloud 要点，适合作为面试前的复习清单。 Spring Cloud 整体定位Spring Cloud 是一套基于 Spring Boot...</div></div></div></a><a class="pagination-related" href="/posts/20250205/" title="MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-05</div><div class="info-item-2">MyBatis面试要点：从Mapper代理、执行流程到缓存和插件的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MyBatis 面试题通常会从“它和 Hibernate&#x2F;JPA 有什么区别”开始，继续追问 Mapper 接口为什么不用实现类，SQL 是怎么执行的，#&#123;&#125; 和 $&#123;&#125; 有什么区别，一级缓存和二级缓存怎么生效，动态 SQL 如何拼接，插件拦截哪些对象，分页插件原理是什么，懒加载为什么可能产生 N+1 问题。 如果只把 MyBatis 理解成“写 SQL 的 ORM 框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1调用 Mapper 接口 -&gt; 动态代理生成调用 -&gt; 找到 MappedStatement -&gt; Executor 执行 -&gt; StatementHandler 创建 SQL -&gt; JDBC 查询 -&gt; ResultSetHandler 映射结果  本文按面试中最常见的模块梳理 MyBatis 要点，适合作为面试前的复习清单。 MyBatis 整体定位MyBatis 是一个半自动 ORM 框架。它不像 Hibernate 那样尽量屏蔽...</div></div></div></a><a class="pagination-related" href="/posts/20250210/" title="Java基础面试要点：从语法、集合、并发到JDK 8&#x2F;17&#x2F;21新特性的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-10</div><div class="info-item-2">Java基础面试要点：从语法、集合、并发到JDK 8&#x2F;17&#x2F;21新特性的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Java 基础面试题看起来范围很大：有的问 equals 和 hashCode，有的问 String、泛型、异常、集合、线程池、锁、JVM、类加载，也有的会继续追问 JDK 8、JDK 17、JDK 21 分别带来了哪些重要变化。 如果只背零散结论，遇到追问很容易断。更好的方式是把 Java 基础理解成几条主线： 1语言基础 -&gt; 面向对象 -&gt; 标准类库 -&gt; 集合与泛型 -&gt; 并发与内存模型 -&gt; JVM 与类加载 -&gt; JDK 版本演进  本文按面试中最常见的模块梳理 Java 基础要点，并专门总结 JDK 8、17、21 的新特性，适合作为面试前的复习清单。 Java 整体特点Java 常见特点包括：  面向对象。 跨平台，依赖 JVM。 自动内存管理和垃圾回收。 静态类型语言。 标准库和生态成熟。 支持多线程和并发编程。  面试中可以这样概括：  Java 源码编译成字节码，字节码运行在 JVM 上。JVM 屏蔽不同操作系统差异，并通过类加载、运行时数据区、JIT 编译和垃圾回收支撑程序运行。  flowchart TD    ...</div></div></div></a><a class="pagination-related" href="/posts/20250214/" title="锁相关专题面试要点：从JDK锁、Redis锁到数据库锁的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-14</div><div class="info-item-2">锁相关专题面试要点：从JDK锁、Redis锁到数据库锁的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言锁相关问题是后端面试里的高频专题，不只包括 JDK 自带的 synchronized、ReentrantLock、AQS，也包括 Redis 分布式锁、数据库锁、ZooKeeper 锁、消息队列串行化和业务幂等设计。 常见问题包括：synchronized 锁的是什么，锁升级怎么理解，synchronized 和 ReentrantLock 有什么区别，AQS 是什么，公平锁和非公平锁怎么选，读写锁适合什么场景，CAS 有什么问题，volatile 能不能替代锁，死锁怎么排查，Redis 分布式锁为什么要设置过期时间，数据库乐观锁和悲观锁怎么选，ZooKeeper 锁和 Redis 锁有什么区别。 如果只背“锁保证线程安全”，回答很容易停留在概念层。更好的方式是把锁理解成一条完整主线： 1共享资源竞争 -&gt; 可见性/原子性/有序性问题 -&gt; 单机锁或分布式协调 -&gt; 阻塞/唤醒/队列管理 -&gt; 性能和正确性权衡 -&gt; 线上排查  本文按面试中最常见的模块梳理锁相关要点，适合作为 Java...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">230</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%A7%9F%E6%88%B7%E8%AF%86%E5%88%AB"><span class="toc-number">2.</span> <span class="toc-text">租户识别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%9A%94%E7%A6%BB%E6%96%B9%E6%A1%88"><span class="toc-number">3.</span> <span class="toc-text">数据隔离方案</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E9%9A%94%E7%A6%BB"><span class="toc-number">4.</span> <span class="toc-text">查询隔离</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%9A%94%E7%A6%BB"><span class="toc-number">5.</span> <span class="toc-text">配置隔离</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A5%97%E9%A4%90%E9%99%90%E5%88%B6"><span class="toc-number">6.</span> <span class="toc-text">套餐限制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%A7%9F%E6%88%B7%E7%BA%A7%E9%99%90%E6%B5%81"><span class="toc-number">7.</span> <span class="toc-text">租户级限流</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">8.</span> <span class="toc-text">高频面试题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%A7%9F%E6%88%B7%E6%9C%80%E5%A4%A7%E9%A3%8E%E9%99%A9%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">8.1.</span> <span class="toc-text">多租户最大风险是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%93%E5%AD%98-key-%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="toc-number">8.2.</span> <span class="toc-text">缓存 key 怎么设计？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%A7%E5%AE%A2%E6%88%B7%E8%A6%81%E6%B1%82%E7%8B%AC%E7%AB%8B%E9%83%A8%E7%BD%B2%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">8.3.</span> <span class="toc-text">大客户要求独立部署怎么办？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%A7%9F%E6%88%B7%E5%92%8C-RBAC-%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">8.4.</span> <span class="toc-text">多租户和 RBAC 有什么关系？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250712/" title="Java面试要点：发布后故障、灰度回滚、配置变更与快速止血">Java面试要点：发布后故障、灰度回滚、配置变更与快速止血</a><time datetime="2025-07-12T02:00:00.000Z" title="发表于 2025-07-12 10:00:00">2025-07-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250708/" title="Java面试要点：数据不一致、分布式事务、补偿任务与对账修复">Java面试要点：数据不一致、分布式事务、补偿任务与对账修复</a><time datetime="2025-07-08T02:00:00.000Z" title="发表于 2025-07-08 10:00:00">2025-07-08</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '774d89d6bb578f24f85ee4af2de10b2a'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Junly博客 - 一个蹒跚学步的AI开发者</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一个蹒跚学步的AI开发者">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Junly博客">
+<meta property="og:url" content="https://junly.top/page/11/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="一个蹒跚学步的AI开发者">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="一个蹒跚学步的AI开发者">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/page/11/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Junly博客',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">230</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div class="home-tech-stage" aria-hidden="true"><span class="home-tech-orb home-tech-orb-one"></span><span class="home-tech-orb home-tech-orb-two"></span><span class="home-tech-orbit home-tech-orbit-one"></span><span class="home-tech-orbit home-tech-orbit-two"></span><span class="home-tech-beam home-tech-beam-one"></span><span class="home-tech-beam home-tech-beam-two"></span><span class="home-tech-meteor home-tech-meteor-one"></span><span class="home-tech-meteor home-tech-meteor-two"></span><span class="home-tech-meteor home-tech-meteor-three"></span></div><div id="site-info"><h1 id="site-title">Junly博客</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div><div class="home-hero-actions"><a class="home-hero-action" href="/fund/" target="_blank" rel="noopener noreferrer" data-desc="实时追踪基金盘中估值和持仓走势"><i class="fas fa-chart-line"></i><span>估值君</span></a><a class="home-hero-action" href="/time-atlas/" target="_blank" rel="noopener noreferrer" data-desc="把本地照片整理成可探索的 3D 记忆星河"><i class="fas fa-star"></i><span>时光星图</span></a><a class="home-hero-action" href="https://studio.junly.top" target="_blank" rel="noopener noreferrer" data-desc="AI 图片生成、批量创作与水印处理工作台"><i class="fas fa-wand-magic-sparkles"></i><span>AI Image Studio</span></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20200305/" title="MySQL核心功能与技术特性：深入理解数据库引擎">MySQL核心功能与技术特性：深入理解数据库引擎</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-03-05T02:00:00.000Z" title="发表于 2020-03-05 10:00:00">2020-03-05</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/MySQL/">MySQL</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">性能优化</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">存储引擎</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%B4%A2%E5%BC%95/">索引</a></span></div><div class="content">前言MySQL作为世界上最受欢迎的开源关系型数据库之一，凭借其强大的功能和灵活的架构在各类应用场景中广泛应用。从小型网站到大型企业级应用，MySQL都展现出卓越的性能和可靠性。要充分利用MySQL的强大功能，深入理解其核心技术特性至关重要。本文将深入探讨MySQL的存储引擎、事务处理、索引机制等核心功能，帮助开发者和数据库管理员更好地优化和管理MySQL数据库。 MySQL核心架构MySQL采用了客户端&#x2F;服务器架构，其核心架构可以分为以下几个主要组件： graph TD     A[客户端] --> B[连接池]     B --> C[查询缓存]     B --> D[解析器]     D --> E[优化器]     E --> F[执行器]     F --> G[存储引擎]     G -->...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20200215/" title="MySQL基础知识与入门：从零开始学习数据库">MySQL基础知识与入门：从零开始学习数据库</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-15T02:00:00.000Z" title="发表于 2020-02-15 10:00:00">2020-02-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/MySQL/">MySQL</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9F%BA%E7%A1%80/">数据库基础</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/SQL/">SQL</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93/">关系型数据库</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/">入门教程</a></span></div><div class="content">前言在现代应用开发中，数据库是不可或缺的核心组件。MySQL作为全球最流行的开源关系型数据库之一，以其可靠性、易用性和强大的功能赢得了广泛应用。无论是个人博客、电子商务网站还是大型企业应用，MySQL都能提供稳定高效的数据存储解决方案。本文将带领初学者了解MySQL的基础知识，从安装到基本操作，帮助你迈出学习数据库的第一步。 什么是MySQL？MySQL是一个开源的关系型数据库管理系统(RDBMS)，由瑞典MySQL AB公司开发，现在属于Oracle公司。作为一个关系型数据库，MySQL使用表格存储数据，并通过SQL(结构化查询语言)进行数据管理和操作。 graph TD     A[数据库类型] --> B[关系型数据库]     A --> C[非关系型数据库]     B --> D[MySQL]     B --> E[PostgreSQL]     B --> F[Oracle]     B --> G[SQL Server]     C --> H[MongoDB]     C --> I[Redis]     C -->...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20200125/" title="Linux下MySQL安装配置指南：从基础到优化">Linux下MySQL安装配置指南：从基础到优化</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-01-25T01:30:00.000Z" title="发表于 2020-01-25 09:30:00">2020-01-25</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/MySQL/">MySQL</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Linux/">Linux</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%89%E8%A3%85/">数据库安装</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">性能优化</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/">配置管理</a></span></div><div class="content">前言MySQL是世界上最流行的开源关系型数据库管理系统之一，广泛应用于Web应用、企业级应用和云服务等场景。本文将详细介绍MySQL在Linux环境下的安装、配置和基本优化，帮助读者快速部署一个高性能、安全可靠的MySQL服务。 安装前准备在安装MySQL之前，我们需要了解不同的安装方式和版本选择，并做好相应的准备工作。 版本选择MySQL目前主要有以下几个常用版本：    版本 特点 适用场景    MySQL Community 开源免费，社区维护 个人项目、中小型网站   MySQL Enterprise 商业版，提供额外支持和工具 企业级应用   MySQL Cluster 高可用性集群版本 需要高可用的场景   MariaDB MySQL的开源分支，完全兼容 寻求更开放替代方案   本教程将以MySQL Community 8.0版本为例进行安装。 系统要求 Linux操作系统(CentOS 7&#x2F;8, Ubuntu 18.04&#x2F;20.04等) 至少1GB...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20190903/" title="Java多线程编程详解：并发世界的探索之旅">Java多线程编程详解：并发世界的探索之旅</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-09-02T16:00:00.000Z" title="发表于 2019-09-03 00:00:00">2019-09-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF/">编程技术</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java/">Java</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/">线程安全</a></span></div><div class="content">前言在现代软件开发中，多线程编程是提高程序性能和响应能力的重要手段。Java作为一门天生支持多线程的编程语言，提供了丰富的多线程编程API和同步机制。掌握Java多线程编程不仅能够充分利用多核处理器的计算能力，还能构建高并发、高性能的应用程序。本文将深入探讨Java多线程的核心概念、创建方式、同步机制以及实际应用场景。 多线程基础概念进程与线程的区别理解进程和线程的概念是学习多线程编程的基础： graph TB     A[计算机系统] --> B[进程 Process]     A --> C[线程 Thread]          B --> D[独立的内存空间]     B --> E[系统资源分配单位]     B --> F[进程间通信成本高]          C --> G[共享进程内存空间]     C --> H[CPU调度执行单位]     C --> I[线程间通信成本低]          subgraph "进程内部结构"         J[主线程]         K[工作线程1]         L[工作线程2]        ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20190823/" title="Java I/O流详解与应用：数据流转的艺术">Java I/O流详解与应用：数据流转的艺术</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-08-22T16:00:00.000Z" title="发表于 2019-08-23 00:00:00">2019-08-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF/">编程技术</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java/">Java</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/I-O%E6%B5%81/">I/O流</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/">文件操作</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93/">数据传输</a></span></div><div class="content">前言Java I&#x2F;O（Input&#x2F;Output）流是Java程序与外部世界进行数据交换的重要桥梁。无论是读取文件、网络通信，还是控制台交互，都离不开I&#x2F;O流的支持。Java提供了丰富的I&#x2F;O类库，支持字节流、字符流、缓冲流、对象流等多种数据传输方式。本文将深入探讨Java I&#x2F;O流的核心概念、分类体系、使用方法以及实际应用场景。 Java I&#x2F;O流概述I&#x2F;O流的基本概念I&#x2F;O流是Java中处理输入输出的抽象概念，它将数据的传输抽象为流的形式，使得程序可以用统一的方式处理不同来源和目标的数据。 graph TD     A[Java I/O流体系] --> B[按数据单位分类]     A --> C[按数据流向分类]     A --> D[按功能分类]          B --> E[字节流 Stream]     B --> F[字符流 Reader/Writer]          C --> G[输入流 Input]     C --> H[输出流 Output]          D...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/posts/20190812/" title="Java泛型详解与应用：类型安全编程的基石">Java泛型详解与应用：类型安全编程的基石</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-08-11T16:00:00.000Z" title="发表于 2019-08-12 00:00:00">2019-08-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF/">编程技术</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java/">Java</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%B3%9B%E5%9E%8B/">泛型</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%B1%BB%E5%9E%8B%E5%AE%89%E5%85%A8/">类型安全</a></span></div><div class="content">前言Java泛型（Generics）是Java 5引入的重要特性，它提供了编译时的类型安全检查，消除了类型转换的需要，并支持泛型算法的实现。泛型不仅提高了代码的可读性和可维护性，还大大减少了运行时错误的可能性。本文将深入探讨Java泛型的核心概念、语法规则、高级特性以及实际应用场景。 泛型概述与基本概念泛型的定义与优势泛型允许在定义类、接口和方法时使用类型参数，这些参数在使用时会被具体的类型替换。 graph TD     A[Java泛型] --> B[类型安全]     A --> C[消除类型转换]     A --> D[代码重用]     A --> E[编译时检查]          B --> F[编译期类型检查]     B --> G[避免ClassCastException]          C --> H[自动类型推断]     C --> I[减少强制转换]          D --> J[泛型类]     D --> K[泛型接口]     D --> L[泛型方法]          E --> M[早期发现错误]     E -->...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/1573748982/" title="Java集合框架详解"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/java-collections.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java集合框架详解"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/1573748982/" title="Java集合框架详解">Java集合框架详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-08-01T01:00:00.000Z" title="发表于 2019-08-01 09:00:00">2019-08-01</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Java/">Java</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/List/">List</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Set/">Set</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Map/">Map</a></span></div><div class="content">前言Java集合框架是Java编程中最重要的工具之一，它提供了一套统一的接口和实现来处理对象组。集合框架不仅简化了程序设计，还提供了高性能的数据结构实现。理解集合框架的设计思想、各种集合类的特点和适用场景，对于编写高效的Java程序至关重要。本文将系统介绍Java集合框架的核心内容，帮助您全面掌握这一重要知识点。 集合框架概述集合框架的层次结构graph TD     A[Collection接口] --> B[List接口]     A --> C[Set接口]     A --> D[Queue接口]          B --> B1[ArrayList]     B --> B2[LinkedList]     B --> B3[Vector]     B --> B4[Stack]          C --> C1[HashSet]     C --> C2[LinkedHashSet]     C --> C3[TreeSet]     C --> C4[EnumSet]          D --> D1[ArrayDeque]     D -->...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/116804611/" title="Java异常处理机制详解"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/java-exception.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java异常处理机制详解"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/116804611/" title="Java异常处理机制详解">Java异常处理机制详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-07-21T01:00:00.000Z" title="发表于 2019-07-21 09:00:00">2019-07-21</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Java/">Java</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%BC%96%E7%A8%8B%E8%A7%84%E8%8C%83/">编程规范</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/">异常处理</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/try-catch/">try-catch</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8/">自定义异常</a></span></div><div class="content">前言异常处理是Java编程中不可或缺的重要机制，它帮助我们处理程序运行过程中可能出现的各种错误情况。良好的异常处理不仅可以提高程序的健壮性和用户体验，还能帮助开发者快速定位和解决问题。理解异常的本质、分类和处理方式，是编写高质量Java程序的必备技能。本文将全面介绍Java异常处理的各个方面，帮助您掌握这一重要的编程概念。 异常基础概念什么是异常异常（Exception）是程序执行过程中发生的中断正常指令流的事件。当程序运行时遇到无法处理的情况时，就会产生异常。Java通过异常机制提供了一种结构化的错误处理方式。 异常的层次结构graph TD     A[Throwable] --> B[Error]     A --> C[Exception]          B --> B1[OutOfMemoryError]     B --> B2[StackOverflowError]     B --> B3[NoClassDefFoundError]          C --> C1[RuntimeException 运行时异常]     C -->...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/3819824761/" title="Java抽象类与接口详解"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/java-abstract.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java抽象类与接口详解"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/3819824761/" title="Java抽象类与接口详解">Java抽象类与接口详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-07-10T01:00:00.000Z" title="发表于 2019-07-10 09:00:00">2019-07-10</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Java/">Java</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%A4%9A%E6%80%81/">多态</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%8A%BD%E8%B1%A1%E7%B1%BB/">抽象类</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%8E%A5%E5%8F%A3/">接口</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a></span></div><div class="content">前言抽象类和接口是Java面向对象编程中的高级特性，它们为程序设计提供了强大的抽象能力。通过抽象类和接口，我们可以定义规范、建立契约，实现更加灵活和可扩展的程序架构。理解抽象类和接口的概念、特点和应用场景，对于编写高质量的Java程序至关重要。本文将全面介绍Java中抽象类和接口的知识，帮助您掌握这两个重要的编程概念。 抽象类基础什么是抽象类抽象类是一种特殊的类，它不能被实例化，只能被继承。抽象类通常包含一个或多个抽象方法，这些方法只有声明没有实现，必须由子类来实现。 graph TD     A[抽象类特征] --> B[使用abstract关键字]     A --> C[不能实例化]     A --> D[可以包含抽象方法]     A --> E[可以包含具体方法]     A --> F[可以有构造方法]     A --> G[可以有成员变量]          B --> B1[abstract class ClassName]     C --> C1[只能被继承使用]     D --> D1[abstract method]     D -->...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/2440090485/" title="Java继承与多态深度解析"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/java-inheritance.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java继承与多态深度解析"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/2440090485/" title="Java继承与多态深度解析">Java继承与多态深度解析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2019-06-29T01:00:00.000Z" title="发表于 2019-06-29 09:00:00">2019-06-29</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Java/">Java</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%BB%A7%E6%89%BF/">继承</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%A4%9A%E6%80%81/">多态</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%96%B9%E6%B3%95%E9%87%8D%E5%86%99/">方法重写</a><span class="article-meta-link">•</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%90%91%E4%B8%8A%E8%BD%AC%E5%9E%8B/">向上转型</a></span></div><div class="content">前言继承和多态是面向对象编程的重要特性，它们为代码重用和灵活设计提供了强大支持。继承允许我们基于现有类创建新类，实现代码复用；多态则让我们能够用统一的接口处理不同类型的对象。深入理解继承与多态对于编写高质量的Java程序至关重要。本文将全面介绍Java中继承与多态的概念、实现和应用，帮助您掌握这两个核心特性。 继承基础概念什么是继承继承是面向对象编程的核心特性之一，它允许一个类（子类）继承另一个类（父类）的属性和方法。通过继承，子类可以获得父类的特性，同时还可以添加自己的特有功能。 graph TD     A[继承关系] --> B[父类 Parent Class]     A --> C[子类 Child Class]          B --> B1[提供公共属性和方法]     B --> B2[定义通用行为]     B --> B3[被其他类继承]          C --> C1[继承父类特性]     C --> C2[扩展新功能]     C --> C3[重写父类方法]          D[继承的优势] --> D1[代码重用]     D -->...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/10/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/#content-inner">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/#content-inner">12</a><a class="extend next" rel="next" href="/page/12/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">230</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250712/" title="Java面试要点：发布后故障、灰度回滚、配置变更与快速止血">Java面试要点：发布后故障、灰度回滚、配置变更与快速止血</a><time datetime="2025-07-12T02:00:00.000Z" title="发表于 2025-07-12 10:00:00">2025-07-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250708/" title="Java面试要点：数据不一致、分布式事务、补偿任务与对账修复">Java面试要点：数据不一致、分布式事务、补偿任务与对账修复</a><time datetime="2025-07-08T02:00:00.000Z" title="发表于 2025-07-08 10:00:00">2025-07-08</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI/"><span class="card-category-list-name">AI</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Java/"><span class="card-category-list-name">Java</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/"><span class="card-category-list-name">中间件</span><span class="card-category-list-count">4</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/"><span class="card-category-list-name">前端</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%AE%89%E5%85%A8/"><span class="card-category-list-name">安全</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/"><span class="card-category-list-name">数据库</span><span class="card-category-list-count">37</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%B5%85%E8%96%84%E7%9A%84%E6%80%9D%E8%80%83/"><span class="card-category-list-name">浅薄的思考</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"><span class="card-category-list-name">消息队列</span><span class="card-category-list-count">11</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/I-O%E6%B5%81/" style="font-size: 1.1em; color: #999">I/O流</a> <a href="/tags/Vue/" style="font-size: 1.1em; color: #999">Vue</a> <a href="/tags/GC/" style="font-size: 1.21em; color: #999ea4">GC</a> <a href="/tags/MySQL/" style="font-size: 1.5em; color: #99a9bf">MySQL</a> <a href="/tags/HMAC/" style="font-size: 1.1em; color: #999">HMAC</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%BF%90%E7%BB%B4/" style="font-size: 1.27em; color: #99a0a9">系统运维</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 1.16em; color: #999b9e">并发编程</a> <a href="/tags/Lua%E8%84%9A%E6%9C%AC/" style="font-size: 1.1em; color: #999">Lua脚本</a> <a href="/tags/%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7/" style="font-size: 1.1em; color: #999">性能监控</a> <a href="/tags/%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 1.1em; color: #999">交换机</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 1.1em; color: #999">订单</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%8F%91%E5%B1%95/" style="font-size: 1.1em; color: #999">技术发展</a> <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BD/" style="font-size: 1.21em; color: #999ea4">高性能</a> <a href="/tags/%E6%9D%A1%E4%BB%B6%E8%AF%AD%E5%8F%A5/" style="font-size: 1.1em; color: #999">条件语句</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E8%AF%AD%E5%8F%A5/" style="font-size: 1.1em; color: #999">循环语句</a> <a href="/tags/%E5%8F%8D%E4%BD%9C%E5%BC%8A/" style="font-size: 1.1em; color: #999">反作弊</a> <a href="/tags/%E5%86%85%E5%AE%B9%E5%AE%A1%E6%A0%B8/" style="font-size: 1.1em; color: #999">内容审核</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9B%91%E6%8E%A7/" style="font-size: 1.1em; color: #999">数据库监控</a> <a href="/tags/%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83/" style="font-size: 1.1em; color: #999">认证授权</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 1.1em; color: #999">命令行</a> <a href="/tags/%E6%96%B9%E6%B3%95%E9%87%8D%E5%86%99/" style="font-size: 1.1em; color: #999">方法重写</a> <a href="/tags/HBase/" style="font-size: 1.39em; color: #99a4b4">HBase</a> <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" style="font-size: 1.44em; color: #99a7ba">高并发</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" style="font-size: 1.1em; color: #999">查询优化</a> <a href="/tags/%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B/" style="font-size: 1.1em; color: #999">应用案例</a> <a href="/tags/%E9%AB%98%E7%BA%A7%E5%8A%9F%E8%83%BD/" style="font-size: 1.1em; color: #999">高级功能</a> <a href="/tags/%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.1em; color: #999">关系型数据库</a> <a href="/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" style="font-size: 1.16em; color: #999b9e">集合框架</a> <a href="/tags/%E7%9B%91%E6%8E%A7/" style="font-size: 1.33em; color: #99a2af">监控</a> <a href="/tags/Web%E5%AE%89%E5%85%A8/" style="font-size: 1.1em; color: #999">Web安全</a> <a href="/tags/Kafka/" style="font-size: 1.5em; color: #99a9bf">Kafka</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E8%A7%84%E8%8C%83/" style="font-size: 1.16em; color: #999b9e">编程规范</a> <a href="/tags/%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">开发</a> <a href="/tags/CentOS/" style="font-size: 1.1em; color: #999">CentOS</a> <a href="/tags/%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" style="font-size: 1.1em; color: #999">开发环境</a> <a href="/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/" style="font-size: 1.1em; color: #999">状态机</a> <a href="/tags/Zabbix/" style="font-size: 1.27em; color: #99a0a9">Zabbix</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" style="font-size: 1.1em; color: #999">存储引擎</a> <a href="/tags/%E6%85%A2SQL/" style="font-size: 1.1em; color: #999">慢SQL</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/" style="font-size: 1.1em; color: #999">分布式存储</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/07/">
+            <span class="card-archive-list-date">
+              七月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/06/">
+            <span class="card-archive-list-date">
+              六月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/05/">
+            <span class="card-archive-list-date">
+              五月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/07/">
+            <span class="card-archive-list-date">
+              七月 2025
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/04/">
+            <span class="card-archive-list-date">
+              四月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/03/">
+            <span class="card-archive-list-date">
+              三月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">120</div></div><div class="webinfo-item"><div class="item-name">运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2019-03-04T16:00:00.000Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">327.5k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-08-07T11:48:35.369Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div><script>function checkPv(){ 
+    var init_pv = parseInt(40000)
+    var pv = document.getElementById("busuanzi_value_site_pv")
+    if (pv.innerText === ''){
+    setTimeout(checkPv, 100)
+    } else {
+        pv.innerText = parseInt(pv.innerText) + init_pv
+    }
+}</script><script>checkPv()</script><script>function checkUv(){ 
+    var init_uv = parseInt(20000)
+    var uv = document.getElementById("busuanzi_value_site_uv")
+    if (uv.innerText === ''){
+    setTimeout(checkUv, 100)
+    }else{
+        uv.innerText = parseInt(uv.innerText) + init_uv
+    }
+}</script><script>checkUv()</script></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (false) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (false) {
+      const sub = ["一个蹒跚学步的AI开发者"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["一个蹒跚学步的AI开发者"])
+}
+typedJSFn.run(subtitleType)</script><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
