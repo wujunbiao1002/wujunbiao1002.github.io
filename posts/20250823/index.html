@@ -1,0 +1,651 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SpringMVC：请求链路、参数绑定、异常处理与生产实践 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从 DispatcherServlet 请求链路、HandlerMapping、参数绑定、校验、消息转换、Filter 与 Interceptor、统一异常、文件传输、异步请求和生产排查系统梳理 Spring MVC 面试要点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringMVC：请求链路、参数绑定、异常处理与生产实践">
+<meta property="og:url" content="https://junly.top/posts/20250823/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="从 DispatcherServlet 请求链路、HandlerMapping、参数绑定、校验、消息转换、Filter 与 Interceptor、统一异常、文件传输、异步请求和生产排查系统梳理 Spring MVC 面试要点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-08-23T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T09:54:12.128Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Web开发">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Spring MVC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SpringMVC：请求链路、参数绑定、异常处理与生产实践",
+  "url": "https://junly.top/posts/20250823/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-08-23T02:00:00.000Z",
+  "dateModified": "2026-08-13T09:54:12.128Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250823/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SpringMVC：请求链路、参数绑定、异常处理与生产实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">SpringMVC：请求链路、参数绑定、异常处理与生产实践</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SpringMVC：请求链路、参数绑定、异常处理与生产实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-23T02:00:00.000Z" title="发表于 2025-08-23 10:00:00">2025-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-13T09:54:12.128Z" title="更新于 2026-08-13 17:54:12">2026-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Spring-MVC-解决什么问题"><a href="#Spring-MVC-解决什么问题" class="headerlink" title="Spring MVC 解决什么问题"></a>Spring MVC 解决什么问题</h1><p>Spring MVC 是基于 Servlet API 的 Web 框架，负责把 HTTP 请求路由到 Java 方法、完成参数绑定和校验、调用业务服务，并将结果序列化为 HTTP 响应。它的核心入口是 <code>DispatcherServlet</code>，采用前端控制器模式：请求先进入统一入口，再由不同策略组件完成映射、执行和响应处理。</p>
+<p>不要把 Spring MVC 简化为“写 <code>@RestController</code>”。生产中一次接口调用还涉及 Filter、安全链、路由、拦截器、参数转换、事务、异常映射、消息序列化、超时和日志链路。面试回答应能把这些组件按执行顺序串起来。</p>
+<pre class="mermaid">flowchart LR
+    A[Client] --> B[Servlet Container]
+    B --> C[Filter Chain]
+    C --> D[DispatcherServlet]
+    D --> E[HandlerMapping]
+    E --> F[HandlerAdapter]
+    F --> G[HandlerInterceptor preHandle]
+    G --> H[Argument Resolver and Validation]
+    H --> I[Controller]
+    I --> J[Service / AOP / Transaction]
+    J --> K[ReturnValue Handler]
+    K --> L[HttpMessageConverter]
+    L --> M[Interceptor postHandle / afterCompletion]
+    M --> N[HTTP Response]</pre>
+
+<h1 id="DispatcherServlet-请求链路"><a href="#DispatcherServlet-请求链路" class="headerlink" title="DispatcherServlet 请求链路"></a>DispatcherServlet 请求链路</h1><h2 id="一次-RestController-请求如何执行"><a href="#一次-RestController-请求如何执行" class="headerlink" title="一次 @RestController 请求如何执行"></a>一次 <code>@RestController</code> 请求如何执行</h2><p>以 <code>GET /api/orders/1001?includeItems=true</code> 为例，典型过程如下：</p>
+<ol>
+<li>Tomcat、Jetty 等 Servlet 容器接收请求，依次执行匹配的 Filter，例如字符编码、安全过滤器、TraceId Filter。</li>
+<li>请求进入 <code>DispatcherServlet</code>，它向 <code>HandlerMapping</code> 查询哪个 Handler 能处理当前 URL、HTTP Method、Header、Content-Type 和 Accept 条件。</li>
+<li><code>RequestMappingHandlerMapping</code> 找到目标 Controller 方法及其 <code>HandlerInterceptor</code> 列表。</li>
+<li><code>HandlerAdapter</code> 调用目标方法前，依次执行拦截器 <code>preHandle</code>；任何一个返回 <code>false</code>，后续 Controller 不执行。</li>
+<li><code>HandlerMethodArgumentResolver</code> 将路径变量、查询参数、请求头、JSON Body、登录用户等解析为方法参数，并触发 <code>@Valid</code> 校验。</li>
+<li>Controller 调用 Service；事务、审计、权限等 AOP 通常在 Service 代理层执行。</li>
+<li><code>HandlerMethodReturnValueHandler</code> 处理返回值。<code>@ResponseBody</code> 或 <code>@RestController</code> 场景选择 <code>HttpMessageConverter</code>，例如 Jackson 将对象写成 JSON。</li>
+<li>成功后执行 <code>postHandle</code>；请求结束后无论成功失败都会执行 <code>afterCompletion</code>，适合清理 MDC、ThreadLocal 等资源。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>核心职责</th>
+<th>常见面试误区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DispatcherServlet</code></td>
+<td>前端控制器，协调后续策略组件</td>
+<td>它不直接靠 if&#x2F;else 调用每个 Controller</td>
+</tr>
+<tr>
+<td><code>HandlerMapping</code></td>
+<td>根据请求找到 Handler</td>
+<td><code>@RequestMapping</code> 的映射关系通常由 <code>RequestMappingHandlerMapping</code> 管理</td>
+</tr>
+<tr>
+<td><code>HandlerAdapter</code></td>
+<td>用统一方式调用不同类型 Handler</td>
+<td>找到 Handler 后仍需要 Adapter 执行</td>
+</tr>
+<tr>
+<td><code>HandlerInterceptor</code></td>
+<td>围绕 Spring MVC Handler 的前后处理</td>
+<td>不等价于 Servlet Filter，不能覆盖所有容器层请求</td>
+</tr>
+<tr>
+<td><code>HttpMessageConverter</code></td>
+<td>HTTP Body 与 Java 对象互转</td>
+<td>不负责把每个请求参数绑定到方法参数</td>
+</tr>
+<tr>
+<td><code>HandlerExceptionResolver</code></td>
+<td>将异常解析为 HTTP 响应</td>
+<td>不能替代业务事务回滚和日志记录</td>
+</tr>
+</tbody></table>
+<h2 id="Controller、-RestController-和-ResponseBody"><a href="#Controller、-RestController-和-ResponseBody" class="headerlink" title="@Controller、@RestController 和 @ResponseBody"></a><code>@Controller</code>、<code>@RestController</code> 和 <code>@ResponseBody</code></h2><p><code>@Controller</code> 表示 MVC Controller。方法返回字符串时，默认可能被当作视图名，由 <code>ViewResolver</code> 渲染页面；在方法或类上加 <code>@ResponseBody</code> 后，返回值写入 HTTP Body。</p>
+<p><code>@RestController</code> 等价于 <code>@Controller + @ResponseBody</code>，适合 JSON API。若接口需要同时返回 HTML 页面和 JSON API，可分别使用 <code>@Controller</code> 和 <code>@RestController</code>，不要依赖返回值字符串“碰巧被解析成 JSON”。</p>
+<h1 id="路由匹配与-API-设计"><a href="#路由匹配与-API-设计" class="headerlink" title="路由匹配与 API 设计"></a>路由匹配与 API 设计</h1><p><code>@RequestMapping</code> 可以按路径、HTTP Method、请求参数、Header、<code>consumes</code> 和 <code>produces</code> 共同限定映射。<code>@GetMapping</code>、<code>@PostMapping</code> 等是更明确的语法糖。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/api/orders&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderController</span> &#123;</span><br><span class="line">    <span class="meta">@GetMapping(value = &quot;/&#123;orderId&#125;&quot;, produces = MediaType.APPLICATION_JSON_VALUE)</span></span><br><span class="line">    <span class="keyword">public</span> OrderView <span class="title function_">detail</span><span class="params">(<span class="meta">@PathVariable</span> Long orderId,</span></span><br><span class="line"><span class="params">                            <span class="meta">@RequestParam(defaultValue = &quot;false&quot;)</span> <span class="type">boolean</span> includeItems)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> orderApplicationService.detail(orderId, includeItems);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方式</th>
+<th>注意点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>资源标识</td>
+<td><code>@PathVariable</code></td>
+<td><code>/orders/&#123;orderId&#125;</code> 表示一个明确资源</td>
+</tr>
+<tr>
+<td>可选筛选、分页、排序</td>
+<td><code>@RequestParam</code> 或查询对象</td>
+<td>设置默认值和最大 <code>pageSize</code>，不能让调用方无限分页</td>
+</tr>
+<tr>
+<td>创建&#x2F;更新复杂对象</td>
+<td><code>@RequestBody</code> DTO</td>
+<td>不要直接接收数据库 Entity，避免字段越权绑定</td>
+</tr>
+<tr>
+<td>文件上传</td>
+<td><code>MultipartFile</code> &#x2F; <code>@RequestPart</code></td>
+<td>限制文件大小、类型、数量并做流式处理</td>
+</tr>
+<tr>
+<td>版本演进</td>
+<td>路径或 Header 版本</td>
+<td>团队统一一种版本策略，避免无规则混用</td>
+</tr>
+</tbody></table>
+<p>路径匹配应避免歧义。例如 <code>/users/&#123;id&#125;</code> 与 <code>/users/search</code> 同时存在时，框架会按映射规则选择更具体路径，但 API 设计上仍应让动作型路径与资源型路径清晰分开。生产接口还要限制 URL、Header、查询参数和 Body 大小，防止异常大请求占用容器内存或解析线程。</p>
+<h1 id="参数绑定、类型转换与校验"><a href="#参数绑定、类型转换与校验" class="headerlink" title="参数绑定、类型转换与校验"></a>参数绑定、类型转换与校验</h1><h2 id="参数如何变成-Java-对象"><a href="#参数如何变成-Java-对象" class="headerlink" title="参数如何变成 Java 对象"></a>参数如何变成 Java 对象</h2><p>Spring MVC 不是反射地把所有内容“自动塞进对象”。它为不同参数类型选择不同 <code>HandlerMethodArgumentResolver</code>：<code>@PathVariable</code> 从路径模板取值，<code>@RequestParam</code> 从 query&#x2F;form 参数取值，<code>@RequestHeader</code> 从 Header 取值，<code>@RequestBody</code> 交给消息转换器读取 Body。</p>
+<table>
+<thead>
+<tr>
+<th>注解&#x2F;类型</th>
+<th>数据来源</th>
+<th>常见问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@PathVariable</code></td>
+<td>URL 路径</td>
+<td>路径变量名和模板不一致，或未显式声明名称</td>
+</tr>
+<tr>
+<td><code>@RequestParam</code></td>
+<td>查询参数、表单参数</td>
+<td>基本类型未传会绑定失败；可用包装类型或 <code>defaultValue</code></td>
+</tr>
+<tr>
+<td><code>@RequestHeader</code></td>
+<td>HTTP Header</td>
+<td>不应把不可信 Header 直接作为用户身份</td>
+</tr>
+<tr>
+<td><code>@CookieValue</code></td>
+<td>Cookie</td>
+<td>Cookie 是客户端可修改数据，敏感状态仍需服务端校验</td>
+</tr>
+<tr>
+<td><code>@RequestBody</code></td>
+<td>JSON&#x2F;XML 等请求体</td>
+<td>Body 通常只能读取一次；字段类型错误会在转换阶段失败</td>
+</tr>
+<tr>
+<td><code>@ModelAttribute</code></td>
+<td>多个 query&#x2F;form 字段绑定对象</td>
+<td>注意白名单字段，避免 Mass Assignment</td>
+</tr>
+<tr>
+<td><code>Principal</code> &#x2F; 自定义用户参数</td>
+<td>安全上下文或自定义解析器</td>
+<td>认证身份应由安全框架验证后提供</td>
+</tr>
+</tbody></table>
+<p>类型转换由 <code>Converter</code>、<code>Formatter</code>、<code>ConversionService</code> 等完成。若有统一的枚举、日期、租户或当前用户参数，可注册 <code>Converter</code> 或自定义参数解析器，而不是在每个 Controller 中重复 <code>parse</code>。但不要把数据库查询、远程调用等重操作放进参数解析器，否则每个请求在进入业务前都可能被隐藏地阻塞。</p>
+<h2 id="Bean-Validation-的正确使用"><a href="#Bean-Validation-的正确使用" class="headerlink" title="Bean Validation 的正确使用"></a>Bean Validation 的正确使用</h2><p><code>@Valid</code> 或 <code>@Validated</code> 触发 Jakarta Bean Validation。Controller 接收 DTO 时应优先校验边界，业务层仍要校验依赖数据库状态的规则，例如“优惠券是否属于当前用户”“库存是否充足”。格式校验不能替代业务校验。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">record</span> <span class="title class_">CreateOrderRequest</span><span class="params">(</span></span><br><span class="line"><span class="params">        @NotBlank String requestId,</span></span><br><span class="line"><span class="params">        @NotEmpty List&lt;@Valid OrderItemRequest&gt; items,</span></span><br><span class="line"><span class="params">        @NotNull @FutureOrPresent LocalDateTime expectedDeliveryTime)</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="keyword">public</span> OrderCreatedResponse <span class="title function_">create</span><span class="params">(<span class="meta">@Valid</span> <span class="meta">@RequestBody</span> CreateOrderRequest request)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> orderApplicationService.create(request);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@RequestBody</code> 校验失败通常抛出 <code>MethodArgumentNotValidException</code>；<code>@RequestParam</code>、<code>@PathVariable</code> 的 <code>@Validated</code> 校验常见为 <code>ConstraintViolationException</code> 或框架版本对应的处理异常。统一异常处理应把它们映射为稳定的 400 错误格式，并包含字段名、规则和可展示的提示，不能把内部堆栈返回给客户端。</p>
+<h1 id="消息转换与内容协商"><a href="#消息转换与内容协商" class="headerlink" title="消息转换与内容协商"></a>消息转换与内容协商</h1><p><code>HttpMessageConverter</code> 负责读写 HTTP Body。请求侧依据 <code>Content-Type</code> 选择转换器，例如 <code>application/json</code> 常由 Jackson 转成 DTO；响应侧会综合返回类型、<code>Accept</code>、<code>produces</code> 选择转换器。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>关键点</th>
+<th>生产建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSON 序列化</td>
+<td>Jackson <code>ObjectMapper</code>、字段命名、日期格式</td>
+<td>统一日期&#x2F;时区和 <code>null</code> 策略；DTO 避免暴露敏感字段</td>
+</tr>
+<tr>
+<td>枚举输出</td>
+<td>名称、编码或对象</td>
+<td>API 契约固定后不要随 Java 枚举重命名而改变</td>
+</tr>
+<tr>
+<td>大响应</td>
+<td>序列化和网络写出都占用 Servlet 线程</td>
+<td>分页、字段裁剪、异步导出或流式下载</td>
+</tr>
+<tr>
+<td>内容协商</td>
+<td><code>Accept</code>、<code>produces</code></td>
+<td>API 通常固定 JSON，避免为不需要的 XML&#x2F;扩展名协商增加复杂度</td>
+</tr>
+<tr>
+<td>Body 读取</td>
+<td>InputStream 通常一次性消费</td>
+<td>需要记录请求 Body 时使用包装器并控制大小，不能无界缓存</td>
+</tr>
+</tbody></table>
+<p><code>@ResponseBody</code> 不等于一定返回 JSON。若返回 <code>String</code>，可能由 String Converter 直接写为文本；如果接口声明 JSON 却返回手工拼接字符串，容易造成双重编码或 <code>Content-Type</code> 不一致。让 Controller 返回 DTO，由统一 Jackson 配置序列化。</p>
+<h1 id="Filter、Interceptor、AOP-的边界"><a href="#Filter、Interceptor、AOP-的边界" class="headerlink" title="Filter、Interceptor、AOP 的边界"></a>Filter、Interceptor、AOP 的边界</h1><p>这三者都能做“前后处理”，但所在层次不同，不能互相替代。</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>所在层次</th>
+<th>适合做什么</th>
+<th>不适合做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Filter</td>
+<td>Servlet 容器</td>
+<td>编码、CORS、请求大小限制、原始访问日志、安全框架前置处理</td>
+<td>依赖 Controller 方法注解的业务授权</td>
+</tr>
+<tr>
+<td>Interceptor</td>
+<td>Spring MVC Handler 调用周围</td>
+<td>登录态校验、接口审计、轻量限流、请求上下文</td>
+<td>包装所有响应字节、处理静态资源以外的容器级场景</td>
+</tr>
+<tr>
+<td>AOP</td>
+<td>Spring Bean 方法调用</td>
+<td>事务、服务层审计、权限校验、指标</td>
+<td>判断原始 HTTP Body 或设置响应 Header</td>
+</tr>
+</tbody></table>
+<p>Filter 的 <code>doFilter</code> 可以包围整个请求链；Interceptor 的 <code>preHandle</code> 在 Handler 调用前，<code>postHandle</code> 通常只在正常返回后执行，<code>afterCompletion</code> 在请求完成后执行。若在 Interceptor 中设置 MDC、租户或 ThreadLocal，必须在 <code>afterCompletion</code> 的 <code>finally</code> 语义中清理，线程复用时遗漏清理会导致串请求。</p>
+<p>认证与授权不要只靠一个“登录拦截器”。生产系统通常由 Spring Security 或网关验证 Token、签名和权限，Controller&#x2F;Service 只处理已经验证的主体。业务数据权限仍需在查询条件和服务层校验，例如“当前用户是否可以读取该订单”，不能只根据前端传来的 <code>userId</code> 判断。</p>
+<h1 id="统一异常、响应与可观测性"><a href="#统一异常、响应与可观测性" class="headerlink" title="统一异常、响应与可观测性"></a>统一异常、响应与可观测性</h1><p><code>@RestControllerAdvice</code> 可集中处理异常，底层依赖 <code>HandlerExceptionResolver</code>。统一响应的目标是稳定 API 契约，而不是把所有异常包装成 HTTP 200。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestControllerAdvice</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApiExceptionHandler</span> &#123;</span><br><span class="line">    <span class="meta">@ExceptionHandler(MethodArgumentNotValidException.class)</span></span><br><span class="line">    <span class="meta">@ResponseStatus(HttpStatus.BAD_REQUEST)</span></span><br><span class="line">    <span class="keyword">public</span> ApiError <span class="title function_">validation</span><span class="params">(MethodArgumentNotValidException ex)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> ApiError.invalidArgument(ex.getBindingResult());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler(BusinessException.class)</span></span><br><span class="line">    <span class="keyword">public</span> ResponseEntity&lt;ApiError&gt; <span class="title function_">business</span><span class="params">(BusinessException ex)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.status(ex.getHttpStatus())</span><br><span class="line">                .body(ApiError.of(ex.getCode(), ex.getMessage()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>建议至少区分：参数校验错误（400）、未认证（401）、无权限（403）、资源不存在（404）、业务冲突如幂等键重复或状态不允许（409）、限流（429）、依赖失败&#x2F;服务异常（5xx）。系统异常记录完整堆栈、<code>traceId</code>、请求路径、方法、业务主键和脱敏后的参数；响应只返回稳定错误码和可理解提示。</p>
+<p>异常处理不能吞掉异常后返回成功，也不能在 <code>@ControllerAdvice</code> 中直接打印 <code>e.getMessage()</code> 就结束。对于超时、连接池满、线程池拒绝等异常，除了返回合适状态码，还要关联下游指标、入口流量和重试量，避免重试风暴。</p>
+<h1 id="文件上传、下载与大响应"><a href="#文件上传、下载与大响应" class="headerlink" title="文件上传、下载与大响应"></a>文件上传、下载与大响应</h1><p>文件处理是 Spring MVC 常见的生产追问。<code>MultipartFile</code> 方便，但不代表可以把任意大文件一次读入内存。</p>
+<p>上传流程：限制 <code>max-file-size</code>、<code>max-request-size</code> 和文件数量；校验扩展名、MIME、魔数和业务归属；使用流式上传到对象存储或临时文件；异步做病毒扫描、转码和解析；数据库只保存对象 Key、大小、校验和、状态和权限元数据。不要信任客户端传来的文件名和 <code>Content-Type</code>。</p>
+<p>下载流程：小文件可由 <code>Resource</code>&#x2F;<code>ResponseEntity</code> 返回；大文件使用流式输出、对象存储预签名 URL 或 Nginx&#x2F;X-Accel-Redirect，避免应用 JVM 读取完整文件。支持断点续传时正确处理 <code>Range</code>、<code>Content-Range</code>、<code>Content-Length</code>，并在下载前校验租户和用户权限。</p>
+<h1 id="异步请求、超时与线程模型"><a href="#异步请求、超时与线程模型" class="headerlink" title="异步请求、超时与线程模型"></a>异步请求、超时与线程模型</h1><p>Spring MVC 基于 Servlet 线程模型。普通 Controller 从容器工作线程开始处理，执行同步阻塞的数据库或 HTTP 调用时会占用该线程。<code>Callable</code>、<code>DeferredResult</code>、<code>WebAsyncTask</code> 或 <code>CompletableFuture</code> 可以将部分工作交给业务线程池，并在完成后恢复响应处理，但不会让阻塞 IO 自动变成非阻塞。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/&#123;id&#125;/summary&quot;)</span></span><br><span class="line"><span class="keyword">public</span> CompletableFuture&lt;OrderSummary&gt; <span class="title function_">summary</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> CompletableFuture.supplyAsync(() -&gt; orderQueryService.summary(id), queryExecutor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>异步必须显式使用具名、有界、受监控的 <code>queryExecutor</code>，不要默认使用 commonPool，也不要把异步当作无限并发。容器线程池、业务线程池、HTTP 客户端连接池、数据库连接池和下游限流共同决定系统最大并发。外层请求超时后，底层任务未必自动停止，因此 HTTP、数据库和任务都要设置超时；有副作用的操作必须幂等。</p>
+<p>WebFlux 是另一套以响应式、非阻塞运行时为重点的框架，不等同于“Spring MVC 加 <code>CompletableFuture</code>”。当团队主要使用 Servlet&#x2F;Tomcat、JPA&#x2F;JDBC 和阻塞 SDK 时，Spring MVC 仍是常见且成熟的选择；不要只为“非阻塞”把阻塞调用搬进 WebFlux 事件循环。</p>
+<h1 id="常见生产问题排查"><a href="#常见生产问题排查" class="headerlink" title="常见生产问题排查"></a>常见生产问题排查</h1><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>先查什么</th>
+<th>常见根因和处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接口 404</td>
+<td><code>HandlerMapping</code> 日志、路径、Method、context-path</td>
+<td>映射没扫描到、HTTP Method 不匹配、网关重写路径错误</td>
+</tr>
+<tr>
+<td>接口 405</td>
+<td>Controller 映射支持的方法</td>
+<td>客户端使用了错误 HTTP Method，或 CORS 预检未正确放行</td>
+</tr>
+<tr>
+<td>接口 415</td>
+<td>请求 <code>Content-Type</code>、<code>consumes</code>、Body 格式</td>
+<td>JSON 未设置 <code>application/json</code>，或缺少对应 Converter</td>
+</tr>
+<tr>
+<td>接口 406</td>
+<td><code>Accept</code>、<code>produces</code>、返回类型</td>
+<td>服务无法按客户端要求的媒体类型响应</td>
+</tr>
+<tr>
+<td>参数总是 null&#x2F;400</td>
+<td>参数来源、注解、字段名、Converter、校验异常</td>
+<td><code>@RequestBody</code>&#x2F;<code>@RequestParam</code> 用错，日期格式不一致，字段类型不匹配</td>
+</tr>
+<tr>
+<td>P99 升高且容器线程忙</td>
+<td>线程 dump、连接池等待、下游耗时</td>
+<td>慢 SQL、慢 HTTP、锁等待、线程池&#x2F;连接池耗尽；先止血限流和超时</td>
+</tr>
+<tr>
+<td>事务&#x2F;审计不生效</td>
+<td>调用是否经过 Spring 代理</td>
+<td>自调用、对象自行 <code>new</code>、异步切线程、异常被吞掉</td>
+</tr>
+<tr>
+<td>内存上涨</td>
+<td>请求体大小、文件上传、响应大小、缓存包装器</td>
+<td>无界 Body 缓存、大文件读入内存、超大分页、响应序列化堆积</td>
+</tr>
+</tbody></table>
+<p>排查顺序应从“请求有没有到应用”开始：网关访问日志和状态码 -&gt; Filter&#x2F;安全链 -&gt; HandlerMapping -&gt; 参数&#x2F;Converter -&gt; Controller -&gt; Service&#x2F;事务 -&gt; 数据库和外部依赖 -&gt; 响应序列化与网络写出。每一层都用 <code>traceId</code> 串联，避免只凭一个接口超时现象直接调大 Tomcat 线程数。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>回答要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring MVC 请求执行流程？</td>
+<td>Filter -&gt; DispatcherServlet -&gt; HandlerMapping -&gt; HandlerAdapter -&gt; Interceptor -&gt; 参数解析&#x2F;校验 -&gt; Controller -&gt; 返回值处理 -&gt; MessageConverter -&gt; 响应。</td>
+</tr>
+<tr>
+<td><code>@RequestBody</code> 与 <code>@RequestParam</code> 区别？</td>
+<td>前者通过 MessageConverter 读取 Body，后者读取 URL query&#x2F;form 参数；复杂 JSON 通常使用前者。</td>
+</tr>
+<tr>
+<td>Filter 和 Interceptor 区别？</td>
+<td>Filter 属于 Servlet 容器，可包围整个请求；Interceptor 属于 Spring MVC，更容易获得 Handler 信息。</td>
+</tr>
+<tr>
+<td><code>@ControllerAdvice</code> 做什么？</td>
+<td>统一处理 Controller 层异常、绑定器和响应体增强；应映射稳定 HTTP 状态和错误码，不能吞异常伪造成功。</td>
+</tr>
+<tr>
+<td><code>HttpMessageConverter</code> 做什么？</td>
+<td>负责 HTTP Body 与 Java 对象转换，依据 Content-Type、Accept、返回类型选择。</td>
+</tr>
+<tr>
+<td>为什么大文件下载不能直接读 <code>byte[]</code>？</td>
+<td>文件会完整进入 JVM 堆，容易 OOM；应流式传输或让对象存储&#x2F;Nginx 承担文件下发。</td>
+</tr>
+<tr>
+<td>Spring MVC 异步就一定更高性能吗？</td>
+<td>不一定。它只释放或转移部分容器线程；阻塞下游、业务线程池、连接池和超时仍是容量边界。</td>
+</tr>
+</tbody></table>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Spring MVC 的主线是：<code>DispatcherServlet</code> 协调映射、参数解析、Handler 执行、返回值处理和消息转换。生产上要明确 Filter、Interceptor、AOP 的边界，在 Controller 层完成输入校验，在 Service 层完成业务与数据权限校验，通过统一异常维持 API 契约，并将超时、线程池、连接池、文件大小和 TraceId 纳入整体治理。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250823/">https://junly.top/posts/20250823/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/Web%E5%BC%80%E5%8F%91/">Web开发</a><a class="post-meta__tags" href="/tags/Spring/">Spring</a><a class="post-meta__tags" href="/tags/Spring-MVC/">Spring MVC</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250819/" title="Spring：IoC、AOP、事务、生命周期与生产实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Spring：IoC、AOP、事务、生命周期与生产实践</div></div><div class="info-2"><div class="info-item-1">Spring 的核心不是注解Spring 的核心价值是把对象创建、依赖装配和横切能力从业务代码中抽离出来。业务类只描述“需要什么”，容器负责创建、连接和管理对象；日志、鉴权、事务、监控等不应散落在每个方法里，而是通过 AOP 在合适的位置统一织入。 以订单服务为例：OrderService 依赖库存、支付和订单仓储。没有 Spring 时，业务代码常常自己 new 依赖，难以替换实现、测试或统一治理；有 Spring 后，容器创建这些对象并注入依赖，事务代理围绕下单方法开启和提交事务。 flowchart LR     A[应用启动] --> B[读取 Bean 定义]     B --> C[创建 IoC 容器]     C --> D[实例化 Bean]     D --> E[注入依赖]     E --> F[执行初始化回调]     F --> G[生成可代理 Bean]     H[HTTP 请求] --> I[Controller]     I --> J[事务/AOP 代理]     J --> K[OrderService]     K -->...</div></div></div></a><a class="pagination-related" href="/posts/20250827/" title="Java：集合框架、HashMap与数据结构选型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java：集合框架、HashMap与数据结构选型</div></div><div class="info-2"><div class="info-item-1">集合题要回答“为什么这样选”集合面试不应只背 ArrayList、HashMap 的源码细节。实际需要根据访问模式回答：是否按下标访问、是否大量头尾插入、是否要去重或排序、是否并发、元素规模和内存上限是什么。集合是进程内数据结构，不能替代数据库索引、缓存或跨实例协调。    需求 常见选择 原因与边界    顺序遍历、尾部追加、按下标读取 ArrayList 连续数组，随机访问快；中间插入&#x2F;删除要移动元素   双端队列 ArrayDeque 数组环形队列，通常优于旧 Stack&#x2F;LinkedList   去重且不要求顺序 HashSet 底层通常是 HashMap 的 Key 集合   Key 精确查找 HashMap 平均 O(1)，依赖正确 hashCode&#x2F;equals   按 Key 排序或范围查询 TreeMap &#x2F; TreeSet 红黑树，O(log n)，支持 subMap 等范围视图   保留插入顺序 LinkedHashMap 双向链表维护顺序，可实现 LRU   高并发...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20250129/" title="SpringBoot：从自动配置、Starter到生产排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-29</div><div class="info-item-2">SpringBoot：从自动配置、Starter到生产排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Boot 面试题通常不会只问“它和 Spring 有什么区别”。更常见的问题是：自动配置怎么生效，Starter 做了什么，@SpringBootApplication 包含哪些能力，Bean 生命周期如何走，配置文件加载顺序是什么，事务为什么会失效，接口请求进入后经历哪些链路，线上启动慢或接口慢怎么排查。 如果只把 Spring Boot 理解成“简化 Spring 配置的框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1启动应用 -&gt; 创建 SpringApplication -&gt; 准备 Environment -&gt; 加载自动配置 -&gt; 创建 Bean -&gt; 启动 Web 容器 -&gt; 接收请求 -&gt; 执行业务和事务  本文按面试中最常见的模块梳理 Spring Boot 要点，适合作为面试前的复习清单。 Spring Boot 整体定位Spring Boot 是基于 Spring 生态的应用开发框架，核心目标是降低 Spring...</div></div></div></a><a class="pagination-related" href="/posts/20250819/" title="Spring：IoC、AOP、事务、生命周期与生产实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-19</div><div class="info-item-2">Spring：IoC、AOP、事务、生命周期与生产实践</div></div><div class="info-2"><div class="info-item-1">Spring 的核心不是注解Spring 的核心价值是把对象创建、依赖装配和横切能力从业务代码中抽离出来。业务类只描述“需要什么”，容器负责创建、连接和管理对象；日志、鉴权、事务、监控等不应散落在每个方法里，而是通过 AOP 在合适的位置统一织入。 以订单服务为例：OrderService 依赖库存、支付和订单仓储。没有 Spring 时，业务代码常常自己 new 依赖，难以替换实现、测试或统一治理；有 Spring 后，容器创建这些对象并注入依赖，事务代理围绕下单方法开启和提交事务。 flowchart LR     A[应用启动] --> B[读取 Bean 定义]     B --> C[创建 IoC 容器]     C --> D[实例化 Bean]     D --> E[注入依赖]     E --> F[执行初始化回调]     F --> G[生成可代理 Bean]     H[HTTP 请求] --> I[Controller]     I --> J[事务/AOP 代理]     J --> K[OrderService]     K -->...</div></div></div></a><a class="pagination-related" href="/posts/20190413/" title="Java开发环境搭建完全指南：从零开始构建Java开发平台"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-13</div><div class="info-item-2">Java开发环境搭建完全指南：从零开始构建Java开发平台</div></div><div class="info-2"><div class="info-item-1">前言工欲善其事，必先利其器。Java开发环境的搭建是每个Java开发者必须掌握的基础技能。本文将详细介绍如何在不同操作系统上安装和配置Java开发环境，包括JDK的安装、环境变量配置、IDE的选择与安装，以及创建第一个Java程序的完整过程。 JDK的下载与安装JDK版本选择策略在开始安装之前，我们需要了解如何选择合适的JDK版本： graph TD     A[选择JDK版本] --> B{项目需求}     B --> C[企业级长期项目]     B --> D[学习/个人项目]     B --> E[特定功能需求]          C --> F[LTS版本Java 8/11/17/21]     D --> G[最新稳定版本]     E --> H[特定版本特性]          F --> I[Oracle JDKOpenJDKAdoptOpenJDK]     G --> I     H --> I  JDK发行版选择 Oracle JDK：官方发行版，企业级支持 OpenJDK：开源免费版本 AdoptOpenJDK&#x2F;Eclipse...</div></div></div></a><a class="pagination-related" href="/posts/20190424/" title="Java基础语法详解：构建坚实的编程基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-24</div><div class="info-item-2">Java基础语法详解：构建坚实的编程基础</div></div><div class="info-2"><div class="info-item-1">前言Java基础语法是每个Java开发者必须掌握的核心知识。良好的语法基础不仅能够帮助我们编写出正确的程序，还能让代码更加规范、易读和易维护。本文将详细讲解Java的基础语法，包括标识符、关键字、注释、程序结构和包的概念，为后续深入学习Java奠定坚实基础。 标识符与命名规则标识符的定义标识符是程序员为变量、方法、类、接口等程序元素起的名字。在Java中，标识符必须遵循特定的命名规则。 标识符命名规则基本规则 字符组成：只能包含字母、数字、下划线(_)和美元符号($) 首字符限制：不能以数字开头 大小写敏感：Java区分大小写 长度限制：理论上没有长度限制，但建议控制在合理范围内 关键字禁用：不能使用Java关键字作为标识符  graph TD     A[标识符命名规则] --> B[字符限制]     A --> C[首字符限制]     A --> D[大小写敏感]     A --> E[避免关键字]          B --> F[字母: a-z, A-Z]     B --> G[数字: 0-9]     B --> H[特殊字符: _, $]         ...</div></div></div></a><a class="pagination-related" href="/posts/20190505/" title="Java数据类型与变量深入解析：掌握Java的数据基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-05-05</div><div class="info-item-2">Java数据类型与变量深入解析：掌握Java的数据基础</div></div><div class="info-2"><div class="info-item-1">前言数据类型和变量是程序设计语言的基础要素，它们决定了程序如何存储和操作数据。Java作为强类型语言，对数据类型有着严格的定义和规范。本文将深入探讨Java的数据类型系统、变量的声明与使用、常量的定义以及类型转换机制，帮助读者构建扎实的Java编程基础。 Java数据类型概览Java的数据类型分为两大类：基本数据类型（原始类型）和引用数据类型。理解这两类数据类型的区别和特点是掌握Java编程的重要基础。 graph TD     A[Java数据类型] --> B[基本数据类型Primitive Types]     A --> C[引用数据类型Reference Types]          B --> D[整数类型]     B --> E[浮点类型]     B --> F[字符类型]     B --> G[布尔类型]          D --> H[byte 8位]     D --> I[short 16位]     D --> J[int 32位]     D --> K[long 64位]          E --> L[float 32位]     E...</div></div></div></a><a class="pagination-related" href="/posts/20190402/" title="Java简介与发展：从起源到现代的编程语言演进"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-02</div><div class="info-item-2">Java简介与发展：从起源到现代的编程语言演进</div></div><div class="info-2"><div class="info-item-1">前言Java作为世界上最流行的编程语言之一，自1995年诞生以来就以其”一次编写，到处运行”的理念改变了软件开发的格局。本文将深入探讨Java语言的起源、发展历程、核心特性以及JDK、JRE、JVM之间的关系，带领读者全面了解Java技术生态。 Java语言的起源与发展历史诞生背景Java语言诞生于1990年代初期，当时Sun Microsystems公司的工程师James Gosling带领团队开发一种用于消费电子设备的编程语言。最初这个项目被称为”Green Project”，目标是创建一种平台无关的编程语言来解决不同硬件平台之间的兼容性问题。 timeline     title Java发展历程     1990 : Green Project启动     1991 : Oak语言诞生     1995 : Java 1.0正式发布     1997 : Java 1.1发布     1998 : Java 2 (J2SE 1.2)发布     2004 : Java 5.0重大更新     2014 : Java 8 LTS版本     2017 : Java...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring-MVC-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">Spring MVC 解决什么问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DispatcherServlet-%E8%AF%B7%E6%B1%82%E9%93%BE%E8%B7%AF"><span class="toc-number">2.</span> <span class="toc-text">DispatcherServlet 请求链路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1-RestController-%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C"><span class="toc-number">2.1.</span> <span class="toc-text">一次 @RestController 请求如何执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Controller%E3%80%81-RestController-%E5%92%8C-ResponseBody"><span class="toc-number">2.2.</span> <span class="toc-text">@Controller、@RestController 和 @ResponseBody</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E5%8C%B9%E9%85%8D%E4%B8%8E-API-%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">路由匹配与 API 设计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A%E3%80%81%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E4%B8%8E%E6%A0%A1%E9%AA%8C"><span class="toc-number">4.</span> <span class="toc-text">参数绑定、类型转换与校验</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%A6%82%E4%BD%95%E5%8F%98%E6%88%90-Java-%E5%AF%B9%E8%B1%A1"><span class="toc-number">4.1.</span> <span class="toc-text">参数如何变成 Java 对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bean-Validation-%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8"><span class="toc-number">4.2.</span> <span class="toc-text">Bean Validation 的正确使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E8%BD%AC%E6%8D%A2%E4%B8%8E%E5%86%85%E5%AE%B9%E5%8D%8F%E5%95%86"><span class="toc-number">5.</span> <span class="toc-text">消息转换与内容协商</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Filter%E3%80%81Interceptor%E3%80%81AOP-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">6.</span> <span class="toc-text">Filter、Interceptor、AOP 的边界</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%9F%E4%B8%80%E5%BC%82%E5%B8%B8%E3%80%81%E5%93%8D%E5%BA%94%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7"><span class="toc-number">7.</span> <span class="toc-text">统一异常、响应与可观测性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E3%80%81%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%A4%A7%E5%93%8D%E5%BA%94"><span class="toc-number">8.</span> <span class="toc-text">文件上传、下载与大响应</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82%E3%80%81%E8%B6%85%E6%97%B6%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">9.</span> <span class="toc-text">异步请求、超时与线程模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%94%9F%E4%BA%A7%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="toc-number">10.</span> <span class="toc-text">常见生产问题排查</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">11.</span> <span class="toc-text">高频面试题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250917/" title="分层架构、DDD、整洁代码与重构">分层架构、DDD、整洁代码与重构</a><time datetime="2025-09-17T02:00:00.000Z" title="发表于 2025-09-17 10:00:00">2025-09-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250913/" title="Java：JDK8到21升级、兼容性与生产验证">Java：JDK8到21升级、兼容性与生产验证</a><time datetime="2025-09-13T02:00:00.000Z" title="发表于 2025-09-13 10:00:00">2025-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '6d99a80fa0d84404fb7c2f969e9035c5'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

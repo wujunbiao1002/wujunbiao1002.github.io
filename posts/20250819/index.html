@@ -1,0 +1,643 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring：IoC、AOP、事务、生命周期与生产实践 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从 IoC 容器、依赖注入、Bean 生命周期、AOP 动态代理、声明式事务、循环依赖、Web 请求链路和生产排查系统梳理 Spring Framework 面试要点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring：IoC、AOP、事务、生命周期与生产实践">
+<meta property="og:url" content="https://junly.top/posts/20250819/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="从 IoC 容器、依赖注入、Bean 生命周期、AOP 动态代理、声明式事务、循环依赖、Web 请求链路和生产排查系统梳理 Spring Framework 面试要点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-08-19T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T09:54:12.127Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="事务">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="IoC">
+<meta property="article:tag" content="AOP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Spring：IoC、AOP、事务、生命周期与生产实践",
+  "url": "https://junly.top/posts/20250819/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-08-19T02:00:00.000Z",
+  "dateModified": "2026-08-13T09:54:12.127Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250819/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring：IoC、AOP、事务、生命周期与生产实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Spring：IoC、AOP、事务、生命周期与生产实践</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Spring：IoC、AOP、事务、生命周期与生产实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-19T02:00:00.000Z" title="发表于 2025-08-19 10:00:00">2025-08-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-13T09:54:12.127Z" title="更新于 2026-08-13 17:54:12">2026-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Spring-的核心不是注解"><a href="#Spring-的核心不是注解" class="headerlink" title="Spring 的核心不是注解"></a>Spring 的核心不是注解</h1><p>Spring 的核心价值是把对象创建、依赖装配和横切能力从业务代码中抽离出来。业务类只描述“需要什么”，容器负责创建、连接和管理对象；日志、鉴权、事务、监控等不应散落在每个方法里，而是通过 AOP 在合适的位置统一织入。</p>
+<p>以订单服务为例：<code>OrderService</code> 依赖库存、支付和订单仓储。没有 Spring 时，业务代码常常自己 <code>new</code> 依赖，难以替换实现、测试或统一治理；有 Spring 后，容器创建这些对象并注入依赖，事务代理围绕下单方法开启和提交事务。</p>
+<pre class="mermaid">flowchart LR
+    A[应用启动] --> B[读取 Bean 定义]
+    B --> C[创建 IoC 容器]
+    C --> D[实例化 Bean]
+    D --> E[注入依赖]
+    E --> F[执行初始化回调]
+    F --> G[生成可代理 Bean]
+    H[HTTP 请求] --> I[Controller]
+    I --> J[事务/AOP 代理]
+    J --> K[OrderService]
+    K --> L[Repository / 外部服务]</pre>
+
+<p>面试中可先用一句话概括：<strong>IoC 解决对象由谁创建和管理，DI 解决依赖如何提供，AOP 解决事务、日志等横切逻辑如何统一织入。</strong></p>
+<h1 id="IoC、DI-与容器"><a href="#IoC、DI-与容器" class="headerlink" title="IoC、DI 与容器"></a>IoC、DI 与容器</h1><h2 id="IoC-和-DI-分别是什么"><a href="#IoC-和-DI-分别是什么" class="headerlink" title="IoC 和 DI 分别是什么"></a>IoC 和 DI 分别是什么</h2><p>IoC（控制反转）指对象的创建和装配控制权从业务代码转交给容器。它不是“没有控制”，而是由应用代码控制变为框架容器控制。</p>
+<p>DI（依赖注入）是实现 IoC 的主要方式：容器在创建 <code>OrderService</code> 时，将其依赖的 <code>StockService</code>、<code>OrderRepository</code> 注入进去。DI 常见方式如下。</p>
+<table>
+<thead>
+<tr>
+<th>注入方式</th>
+<th>示例</th>
+<th>推荐程度</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>构造器注入</td>
+<td><code>OrderService(StockService stockService)</code></td>
+<td>推荐</td>
+<td>依赖明确，可使用 <code>final</code>，对象创建后状态完整，单元测试方便</td>
+</tr>
+<tr>
+<td>Setter 注入</td>
+<td><code>setRuleEngine(...)</code></td>
+<td>适合可选依赖</td>
+<td>可后置设置，但会让对象存在未完全初始化的窗口</td>
+</tr>
+<tr>
+<td>字段注入</td>
+<td><code>@Autowired private StockService stockService</code></td>
+<td>不推荐用于新代码</td>
+<td>隐藏依赖，不便于 <code>final</code> 和脱离容器的单元测试</td>
+</tr>
+</tbody></table>
+<p>单构造器从 Spring 4.3 起可以省略 <code>@Autowired</code>。当同一接口有多个实现时，用 <code>@Primary</code> 提供默认实现，用 <code>@Qualifier(&quot;xxx&quot;)</code> 精确选择；不要依赖字段名或注册顺序这种隐式规则。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderService</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StockService stockService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> OrderRepository orderRepository;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">OrderService</span><span class="params">(</span></span><br><span class="line"><span class="params">            <span class="meta">@Qualifier(&quot;dbStockService&quot;)</span> StockService stockService,</span></span><br><span class="line"><span class="params">            OrderRepository orderRepository)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.stockService = stockService;</span><br><span class="line">        <span class="built_in">this</span>.orderRepository = orderRepository;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="BeanFactory、ApplicationContext-与-Bean-定义"><a href="#BeanFactory、ApplicationContext-与-Bean-定义" class="headerlink" title="BeanFactory、ApplicationContext 与 Bean 定义"></a>BeanFactory、ApplicationContext 与 Bean 定义</h2><p><code>BeanFactory</code> 是最基础的 IoC 容器接口，提供 Bean 获取和依赖管理能力；<code>ApplicationContext</code> 在其基础上增加国际化、事件发布、资源加载、环境配置和自动识别后处理器等企业应用常用能力。Spring Boot 应用实际使用的是 <code>ApplicationContext</code> 的具体实现。</p>
+<p>容器并不只管理 <code>@Component</code>。Bean 定义可来自 <code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code> 的组件扫描，也可来自 <code>@Configuration</code> 类中的 <code>@Bean</code> 方法、XML 或编程式注册。<code>@Bean</code> 适合第三方类库对象，例如 HTTP 客户端、SDK 客户端或复杂构造对象；不应为了“统一风格”把所有业务类都改成 <code>@Bean</code>。</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>作用</th>
+<th>面试易错点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BeanDefinition</td>
+<td>Bean 的元数据，如类型、作用域、依赖、初始化方法</td>
+<td>它不是 Bean 实例</td>
+</tr>
+<tr>
+<td>BeanFactoryPostProcessor</td>
+<td>修改 BeanDefinition</td>
+<td>在 Bean 实例化前运行，不能直接依赖普通 Bean</td>
+</tr>
+<tr>
+<td>BeanPostProcessor</td>
+<td>在 Bean 初始化前后处理实例</td>
+<td>AOP 代理常在此阶段生成</td>
+</tr>
+<tr>
+<td>FactoryBean</td>
+<td>一个“生产其他 Bean 的 Bean”</td>
+<td>获取 <code>&amp;name</code> 才是 FactoryBean 本身，<code>name</code> 通常取得其产品</td>
+</tr>
+</tbody></table>
+<h1 id="Bean-生命周期与作用域"><a href="#Bean-生命周期与作用域" class="headerlink" title="Bean 生命周期与作用域"></a>Bean 生命周期与作用域</h1><h2 id="单例-Bean-的关键流程"><a href="#单例-Bean-的关键流程" class="headerlink" title="单例 Bean 的关键流程"></a>单例 Bean 的关键流程</h2><p>常见生命周期可以记为：<strong>定义解析 -&gt; 实例化 -&gt; 属性注入 -&gt; Aware 回调 -&gt; 初始化前处理 -&gt; 初始化 -&gt; 初始化后处理 -&gt; 销毁</strong>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">BeanDefinition</span><br><span class="line">  -&gt; 构造器实例化</span><br><span class="line">  -&gt; populateBean: 注入字段、Setter 和依赖</span><br><span class="line">  -&gt; BeanNameAware / BeanFactoryAware / ApplicationContextAware</span><br><span class="line">  -&gt; BeanPostProcessor#postProcessBeforeInitialization</span><br><span class="line">  -&gt; @PostConstruct / InitializingBean#afterPropertiesSet / initMethod</span><br><span class="line">  -&gt; BeanPostProcessor#postProcessAfterInitialization</span><br><span class="line">  -&gt; 可被替换为 AOP 代理对象</span><br><span class="line">  -&gt; 容器关闭时: @PreDestroy / DisposableBean / destroyMethod</span><br></pre></td></tr></table></figure>
+
+<p>初始化回调的选择上，业务代码通常使用 <code>@PostConstruct</code> 和 <code>@PreDestroy</code> 即可；实现 <code>InitializingBean</code>、<code>DisposableBean</code> 会耦合 Spring 接口；<code>initMethod</code>&#x2F;<code>destroyMethod</code> 更适合第三方对象。不要在 <code>@PostConstruct</code> 中执行长时间远程调用或全量预热，否则会拖慢启动并放大发布失败风险。</p>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>含义</th>
+<th>使用提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>singleton</td>
+<td>一个 ApplicationContext 一份实例，默认作用域</td>
+<td>单例不等于线程安全，不要保存请求级可变状态</td>
+</tr>
+<tr>
+<td>prototype</td>
+<td>每次获取 Bean 新建一个实例</td>
+<td>容器只负责创建，不负责其销毁；注入到 singleton 后不会自动每次新建</td>
+</tr>
+<tr>
+<td>request &#x2F; session</td>
+<td>每个 HTTP 请求或会话一份</td>
+<td>只用于 Web 上下文，优先传递参数而不是滥用请求作用域</td>
+</tr>
+</tbody></table>
+<p>如果 singleton 需要每次获取 prototype，可以注入 <code>ObjectProvider&lt;T&gt;</code>，或使用 scoped proxy；更常见的选择是把临时状态放在方法局部变量，避免扩大 Bean scope 的复杂度。</p>
+<h1 id="AOP-与动态代理"><a href="#AOP-与动态代理" class="headerlink" title="AOP 与动态代理"></a>AOP 与动态代理</h1><h2 id="为什么事务、日志能“自动执行”"><a href="#为什么事务、日志能“自动执行”" class="headerlink" title="为什么事务、日志能“自动执行”"></a>为什么事务、日志能“自动执行”</h2><p>AOP 将分散在多个业务方法中的横切逻辑统一处理。术语要能对应到实际代码：</p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+<th>下单示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Aspect</td>
+<td>横切模块</td>
+<td>事务切面、审计切面</td>
+</tr>
+<tr>
+<td>Advice</td>
+<td>具体增强逻辑</td>
+<td>方法前校验、方法后提交事务、异常后回滚</td>
+</tr>
+<tr>
+<td>Pointcut</td>
+<td>哪些方法被匹配</td>
+<td><code>execution(* ..OrderService.place(..))</code></td>
+</tr>
+<tr>
+<td>Join Point</td>
+<td>可被增强的位置</td>
+<td>Spring AOP 中主要是方法执行</td>
+</tr>
+<tr>
+<td>Proxy</td>
+<td>容器交给调用方的代理对象</td>
+<td>调用代理后再进入真实 <code>OrderService</code></td>
+</tr>
+</tbody></table>
+<p>Spring AOP 默认在运行期通过代理实现，并非修改目标类字节码。目标类实现接口时可使用 JDK 动态代理；没有接口时通常使用 CGLIB 子类代理。两者都是“外部调用先到代理，再到目标方法”，所以 <code>final</code> 类&#x2F;方法不能被 CGLIB 子类覆写增强，<code>private</code> 方法也无法通过 Spring 代理拦截。</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as Controller
+    participant P as Transaction Proxy
+    participant S as OrderService
+    participant D as Database
+    C->>P: placeOrder()
+    P->>P: 开启事务
+    P->>S: 调用目标方法
+    S->>D: 写订单和扣库存
+    D-->>S: 成功或异常
+    alt 正常返回
+      P->>P: 提交事务
+    else 抛出匹配异常
+      P->>P: 回滚事务
+    end
+    P-->>C: 返回结果或异常</pre>
+
+<h2 id="自调用为什么导致-AOP-失效"><a href="#自调用为什么导致-AOP-失效" class="headerlink" title="自调用为什么导致 AOP 失效"></a>自调用为什么导致 AOP 失效</h2><p>代理只能拦截“经过代理对象的外部调用”。同一个对象中 <code>this.inner()</code> 是直接调用目标对象方法，没有经过代理，因此 <code>@Transactional</code>、<code>@Async</code>、自定义切面都可能失效。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderService</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">submit</span><span class="params">()</span> &#123;</span><br><span class="line">        createOrder(); <span class="comment">// 自调用，不经过事务代理</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Transactional</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">createOrder</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 事务可能不会按预期创建</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优先把 <code>createOrder</code> 拆到另一个职责清晰的 Bean，让调用跨越代理边界。通过 <code>AopContext.currentProxy()</code> 绕过属于强耦合方案，只有理解其前提并显式开启代理暴露时才考虑；不要把它作为默认写法。</p>
+<h1 id="声明式事务与生产边界"><a href="#声明式事务与生产边界" class="headerlink" title="声明式事务与生产边界"></a>声明式事务与生产边界</h1><h2 id="Transactional-实际做了什么"><a href="#Transactional-实际做了什么" class="headerlink" title="@Transactional 实际做了什么"></a><code>@Transactional</code> 实际做了什么</h2><p><code>@Transactional</code> 不是数据库功能本身。Spring 在代理进入目标方法前，根据事务传播行为向 <code>PlatformTransactionManager</code> 请求事务；对于 JDBC&#x2F;JPA，事务管理器会把数据库连接绑定到当前线程。方法正常结束则提交，抛出满足规则的异常则回滚，并清理线程绑定资源。</p>
+<p>默认规则：运行时异常（<code>RuntimeException</code>）和 <code>Error</code> 回滚；受检异常默认不回滚。需要时使用 <code>rollbackFor = Exception.class</code>，但更重要的是明确异常语义，不要为了“全部回滚”吞掉异常后继续返回成功。</p>
+<table>
+<thead>
+<tr>
+<th>传播行为</th>
+<th>语义</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>REQUIRED</code></td>
+<td>当前有事务则加入，没有则新建，默认值</td>
+<td>创建订单、扣库存等同一原子操作</td>
+</tr>
+<tr>
+<td><code>REQUIRES_NEW</code></td>
+<td>挂起外层事务，独立开启新事务</td>
+<td>审计记录、独立失败记录；不能滥用来掩盖一致性问题</td>
+</tr>
+<tr>
+<td><code>SUPPORTS</code></td>
+<td>有事务则加入，没有则非事务执行</td>
+<td>纯查询或可选事务逻辑</td>
+</tr>
+<tr>
+<td><code>MANDATORY</code></td>
+<td>必须在已有事务中运行</td>
+<td>必须随主业务一起提交的内部方法</td>
+</tr>
+<tr>
+<td><code>NESTED</code></td>
+<td>在同一物理事务内创建保存点</td>
+<td>支持保存点的 JDBC 场景；不等同于独立事务</td>
+</tr>
+</tbody></table>
+<p>隔离级别要基于数据库能力理解。MySQL InnoDB 的默认隔离级别通常是 <code>REPEATABLE_READ</code>，PostgreSQL 默认是 <code>READ_COMMITTED</code>。设置 Spring 注解并不会让数据库支持不存在的语义；高隔离级别可能增加锁等待、序列化失败或重试成本。</p>
+<h2 id="最常见的事务失效原因"><a href="#最常见的事务失效原因" class="headerlink" title="最常见的事务失效原因"></a>最常见的事务失效原因</h2><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>常见原因</th>
+<th>修复方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方法没有事务</td>
+<td>自调用、对象不是 Spring Bean、方法不可代理</td>
+<td>拆分 Bean，通过代理调用，确认扫描与代理条件</td>
+</tr>
+<tr>
+<td>抛异常却提交</td>
+<td>捕获异常未再抛出；抛出受检异常</td>
+<td>重新抛出，或按业务设置 <code>rollbackFor</code></td>
+</tr>
+<tr>
+<td>异步方法不在原事务内</td>
+<td><code>@Async</code> 切换了线程，线程绑定事务不会自动传播</td>
+<td>明确异步边界，用独立事务、Outbox 或消息最终一致</td>
+</tr>
+<tr>
+<td>外部 HTTP 调用拖住事务</td>
+<td>事务内调用支付、物流等慢接口</td>
+<td>缩短事务，只写本地事实和 Outbox，提交后异步调用</td>
+</tr>
+<tr>
+<td>事务看起来存在但数据未提交</td>
+<td>使用了错误数据源&#x2F;事务管理器，或非事务资源</td>
+<td>指定事务管理器，核对数据源与日志</td>
+</tr>
+</tbody></table>
+<p>事务应尽可能短：校验参数、查询远程数据、生成大文件、循环调用第三方接口都不应包在数据库事务里。跨服务一致性优先采用本地事务 + Outbox + 消息消费幂等 + 对账补偿；不要把分布式锁或长数据库事务当作跨系统事务的万能替代。</p>
+<h1 id="循环依赖、配置类与常见启动问题"><a href="#循环依赖、配置类与常见启动问题" class="headerlink" title="循环依赖、配置类与常见启动问题"></a>循环依赖、配置类与常见启动问题</h1><h2 id="为什么构造器循环依赖无法解决"><a href="#为什么构造器循环依赖无法解决" class="headerlink" title="为什么构造器循环依赖无法解决"></a>为什么构造器循环依赖无法解决</h2><p><code>A</code> 构造器依赖 <code>B</code>，<code>B</code> 构造器又依赖 <code>A</code> 时，两者都需要对方实例才能完成创建，容器无法提前暴露完整对象，因此会启动失败。字段或 Setter 注入的 singleton 在某些版本和配置下可以利用“三级缓存”暴露早期引用来打破循环，但这不应视为设计能力。</p>
+<p>三级缓存可简化理解为：一级缓存保存完整 singleton，二级缓存保存提前暴露的对象或代理，三级缓存保存生成早期引用的工厂。它主要解决 singleton 的属性注入循环依赖；prototype 循环依赖通常无法解决；涉及 AOP 代理时还可能拿到早期代理引用。Spring Boot 2.6 起默认不鼓励循环依赖，生产代码应按职责拆分，例如提取协调服务、事件发布或领域接口。</p>
+<p><code>@Configuration</code> 类中的 <code>@Bean</code> 方法默认会被 CGLIB 增强，以保证配置类内部多次调用 <code>@Bean</code> 方法时仍获取容器中的同一个 singleton。<code>@Configuration(proxyBeanMethods = false)</code> 可减少代理开销，但此时不要在同一个配置类里直接互相调用 <code>@Bean</code> 方法来依赖单例语义，应通过方法参数注入依赖。</p>
+<h2 id="启动失败排查顺序"><a href="#启动失败排查顺序" class="headerlink" title="启动失败排查顺序"></a>启动失败排查顺序</h2><ol>
+<li>先看异常栈最底层的 <code>Caused by</code>，不要只看最外层 <code>ApplicationContext</code> 启动失败。</li>
+<li><code>NoSuchBeanDefinitionException</code>：检查组件扫描范围、条件装配、Profile、Bean 名称和类型是否匹配。</li>
+<li><code>NoUniqueBeanDefinitionException</code>：用 <code>@Primary</code> 或 <code>@Qualifier</code> 明确注入目标，而不是随意删实现类。</li>
+<li><code>BeanCurrentlyInCreationException</code>：确认是否构造器循环依赖，优先重构职责。</li>
+<li>代理或事务问题：开启 <code>org.springframework.transaction</code>、<code>org.springframework.aop</code> 的调试日志，确认调用是否经过代理。</li>
+</ol>
+<h1 id="Web-请求链路与异常处理"><a href="#Web-请求链路与异常处理" class="headerlink" title="Web 请求链路与异常处理"></a>Web 请求链路与异常处理</h1><p>Spring MVC 中，一个请求通常经历：Servlet 容器 -&gt; <code>DispatcherServlet</code> -&gt; <code>HandlerMapping</code> 找 Controller 方法 -&gt; <code>HandlerInterceptor</code> 前置处理 -&gt; 参数解析和校验 -&gt; Controller -&gt; Service&#x2F;AOP&#x2F;事务 -&gt; 返回值处理 -&gt; <code>HttpMessageConverter</code> 序列化响应 -&gt; 拦截器后置&#x2F;完成回调。</p>
+<table>
+<thead>
+<tr>
+<th>扩展点</th>
+<th>适合做什么</th>
+<th>不适合做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Filter</td>
+<td>编码、CORS、原始请求日志、安全框架前置处理</td>
+<td>依赖具体 Controller 方法信息的业务逻辑</td>
+</tr>
+<tr>
+<td>HandlerInterceptor</td>
+<td>登录态、接口审计、轻量权限检查</td>
+<td>在 <code>preHandle</code> 中做长耗时远程调用</td>
+</tr>
+<tr>
+<td><code>@ControllerAdvice</code></td>
+<td>统一业务异常、参数校验异常到响应码映射</td>
+<td>吞掉异常后仍返回 HTTP 200 成功</td>
+</tr>
+<tr>
+<td><code>HttpMessageConverter</code></td>
+<td>JSON、文件等请求&#x2F;响应编解码</td>
+<td>承担业务字段转换和复杂规则</td>
+</tr>
+</tbody></table>
+<p>统一异常处理要区分客户端错误、可预期业务错误、系统错误和依赖错误。响应给客户端的信息应稳定、可理解且不泄漏堆栈；日志和链路中保留 <code>traceId</code>、业务主键和根因异常，便于排查。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>回答要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring 和 Spring Boot 的关系？</td>
+<td>Spring 提供 IoC、AOP、事务、MVC 等基础能力；Spring Boot 基于它提供自动配置、Starter、内嵌容器和生产化约定。</td>
+</tr>
+<tr>
+<td>singleton Bean 线程安全吗？</td>
+<td>不一定。容器只保证实例数量，不保证可变字段并发安全；业务 Bean 应尽量无状态。</td>
+</tr>
+<tr>
+<td>BeanPostProcessor 和 BeanFactoryPostProcessor 区别？</td>
+<td>前者处理 Bean 实例，可创建代理；后者处理 BeanDefinition，发生在实例化前。</td>
+</tr>
+<tr>
+<td>JDK 动态代理和 CGLIB 区别？</td>
+<td>JDK 基于接口生成代理；CGLIB 生成目标类子类。两者都依赖代理边界，无法自然拦截自调用。</td>
+</tr>
+<tr>
+<td><code>@Transactional</code> 为什么失效？</td>
+<td>先查是否经过代理，再查异常回滚规则、线程切换、事务管理器和数据库资源。</td>
+</tr>
+<tr>
+<td>循环依赖为什么不推荐？</td>
+<td>它反映职责耦合，构造器循环依赖无法解决，早期引用还会带来代理和初始化时序风险。</td>
+</tr>
+<tr>
+<td>为什么事务中不建议调远程服务？</td>
+<td>长事务占用连接和锁，远程超时会放大资源占用；应使用本地事务和异步可靠事件解耦。</td>
+</tr>
+</tbody></table>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Spring 面试不能停留在“会用注解”。需要把容器创建 Bean、注入依赖、后处理器生成代理、代理开启事务、事务绑定资源和 Web 请求进入业务的链路连起来。生产设计上，优先使用构造器注入和无状态 singleton，缩短事务，避免自调用和循环依赖，并通过明确的异步事件与幂等补偿处理跨系统边界。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250819/">https://junly.top/posts/20250819/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a><a class="post-meta__tags" href="/tags/Spring/">Spring</a><a class="post-meta__tags" href="/tags/IoC/">IoC</a><a class="post-meta__tags" href="/tags/AOP/">AOP</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250815/" title="Java并发：JDK21虚拟线程、结构化并发与生产排查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java并发：JDK21虚拟线程、结构化并发与生产排查</div></div><div class="info-2"><div class="info-item-1">虚拟线程解决什么问题平台线程直接映射操作系统线程，创建和阻塞的成本较高。虚拟线程由 JVM 调度到少量载体（carrier）平台线程上，遇到大多数 JDK 可感知的阻塞 IO 时可卸载，让载体线程继续运行其他虚拟线程。 flowchart LR     V1[虚拟线程 1: HTTP 等待] --> C[少量载体平台线程]     V2[虚拟线程 2: DB 等待] --> C     V3[虚拟线程 3: CPU 计算] --> C     C --> OS[操作系统线程]  它的价值是让大量阻塞型、每请求一线程的任务不再需要为等待占用等量 OS 线程。它不是让 CPU、数据库连接、远程服务 QPS 或内存无限增长。 123try (var executor = Executors.newVirtualThreadPerTaskExecutor()) &#123;    Future&lt;String&gt; result =...</div></div></div></a><a class="pagination-related" href="/posts/20250823/" title="SpringMVC：请求链路、参数绑定、异常处理与生产实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">SpringMVC：请求链路、参数绑定、异常处理与生产实践</div></div><div class="info-2"><div class="info-item-1">Spring MVC 解决什么问题Spring MVC 是基于 Servlet API 的 Web 框架，负责把 HTTP 请求路由到 Java 方法、完成参数绑定和校验、调用业务服务，并将结果序列化为 HTTP 响应。它的核心入口是 DispatcherServlet，采用前端控制器模式：请求先进入统一入口，再由不同策略组件完成映射、执行和响应处理。 不要把 Spring MVC 简化为“写 @RestController”。生产中一次接口调用还涉及 Filter、安全链、路由、拦截器、参数转换、事务、异常映射、消息序列化、超时和日志链路。面试回答应能把这些组件按执行顺序串起来。 flowchart LR     A[Client] --> B[Servlet Container]     B --> C[Filter Chain]     C --> D[DispatcherServlet]     D --> E[HandlerMapping]     E --> F[HandlerAdapter]     F --> G[HandlerInterceptor...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20250129/" title="SpringBoot：从自动配置、Starter到生产排查的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-29</div><div class="info-item-2">SpringBoot：从自动配置、Starter到生产排查的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言Spring Boot 面试题通常不会只问“它和 Spring 有什么区别”。更常见的问题是：自动配置怎么生效，Starter 做了什么，@SpringBootApplication 包含哪些能力，Bean 生命周期如何走，配置文件加载顺序是什么，事务为什么会失效，接口请求进入后经历哪些链路，线上启动慢或接口慢怎么排查。 如果只把 Spring Boot 理解成“简化 Spring 配置的框架”，回答很容易停留在使用层。更好的方式是把它理解成一条完整链路： 1启动应用 -&gt; 创建 SpringApplication -&gt; 准备 Environment -&gt; 加载自动配置 -&gt; 创建 Bean -&gt; 启动 Web 容器 -&gt; 接收请求 -&gt; 执行业务和事务  本文按面试中最常见的模块梳理 Spring Boot 要点，适合作为面试前的复习清单。 Spring Boot 整体定位Spring Boot 是基于 Spring 生态的应用开发框架，核心目标是降低 Spring...</div></div></div></a><a class="pagination-related" href="/posts/20250823/" title="SpringMVC：请求链路、参数绑定、异常处理与生产实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-23</div><div class="info-item-2">SpringMVC：请求链路、参数绑定、异常处理与生产实践</div></div><div class="info-2"><div class="info-item-1">Spring MVC 解决什么问题Spring MVC 是基于 Servlet API 的 Web 框架，负责把 HTTP 请求路由到 Java 方法、完成参数绑定和校验、调用业务服务，并将结果序列化为 HTTP 响应。它的核心入口是 DispatcherServlet，采用前端控制器模式：请求先进入统一入口，再由不同策略组件完成映射、执行和响应处理。 不要把 Spring MVC 简化为“写 @RestController”。生产中一次接口调用还涉及 Filter、安全链、路由、拦截器、参数转换、事务、异常映射、消息序列化、超时和日志链路。面试回答应能把这些组件按执行顺序串起来。 flowchart LR     A[Client] --> B[Servlet Container]     B --> C[Filter Chain]     C --> D[DispatcherServlet]     D --> E[HandlerMapping]     E --> F[HandlerAdapter]     F --> G[HandlerInterceptor...</div></div></div></a><a class="pagination-related" href="/posts/20190413/" title="Java开发环境搭建完全指南：从零开始构建Java开发平台"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-13</div><div class="info-item-2">Java开发环境搭建完全指南：从零开始构建Java开发平台</div></div><div class="info-2"><div class="info-item-1">前言工欲善其事，必先利其器。Java开发环境的搭建是每个Java开发者必须掌握的基础技能。本文将详细介绍如何在不同操作系统上安装和配置Java开发环境，包括JDK的安装、环境变量配置、IDE的选择与安装，以及创建第一个Java程序的完整过程。 JDK的下载与安装JDK版本选择策略在开始安装之前，我们需要了解如何选择合适的JDK版本： graph TD     A[选择JDK版本] --> B{项目需求}     B --> C[企业级长期项目]     B --> D[学习/个人项目]     B --> E[特定功能需求]          C --> F[LTS版本Java 8/11/17/21]     D --> G[最新稳定版本]     E --> H[特定版本特性]          F --> I[Oracle JDKOpenJDKAdoptOpenJDK]     G --> I     H --> I  JDK发行版选择 Oracle JDK：官方发行版，企业级支持 OpenJDK：开源免费版本 AdoptOpenJDK&#x2F;Eclipse...</div></div></div></a><a class="pagination-related" href="/posts/20190424/" title="Java基础语法详解：构建坚实的编程基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-24</div><div class="info-item-2">Java基础语法详解：构建坚实的编程基础</div></div><div class="info-2"><div class="info-item-1">前言Java基础语法是每个Java开发者必须掌握的核心知识。良好的语法基础不仅能够帮助我们编写出正确的程序，还能让代码更加规范、易读和易维护。本文将详细讲解Java的基础语法，包括标识符、关键字、注释、程序结构和包的概念，为后续深入学习Java奠定坚实基础。 标识符与命名规则标识符的定义标识符是程序员为变量、方法、类、接口等程序元素起的名字。在Java中，标识符必须遵循特定的命名规则。 标识符命名规则基本规则 字符组成：只能包含字母、数字、下划线(_)和美元符号($) 首字符限制：不能以数字开头 大小写敏感：Java区分大小写 长度限制：理论上没有长度限制，但建议控制在合理范围内 关键字禁用：不能使用Java关键字作为标识符  graph TD     A[标识符命名规则] --> B[字符限制]     A --> C[首字符限制]     A --> D[大小写敏感]     A --> E[避免关键字]          B --> F[字母: a-z, A-Z]     B --> G[数字: 0-9]     B --> H[特殊字符: _, $]         ...</div></div></div></a><a class="pagination-related" href="/posts/20190505/" title="Java数据类型与变量深入解析：掌握Java的数据基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-05-05</div><div class="info-item-2">Java数据类型与变量深入解析：掌握Java的数据基础</div></div><div class="info-2"><div class="info-item-1">前言数据类型和变量是程序设计语言的基础要素，它们决定了程序如何存储和操作数据。Java作为强类型语言，对数据类型有着严格的定义和规范。本文将深入探讨Java的数据类型系统、变量的声明与使用、常量的定义以及类型转换机制，帮助读者构建扎实的Java编程基础。 Java数据类型概览Java的数据类型分为两大类：基本数据类型（原始类型）和引用数据类型。理解这两类数据类型的区别和特点是掌握Java编程的重要基础。 graph TD     A[Java数据类型] --> B[基本数据类型Primitive Types]     A --> C[引用数据类型Reference Types]          B --> D[整数类型]     B --> E[浮点类型]     B --> F[字符类型]     B --> G[布尔类型]          D --> H[byte 8位]     D --> I[short 16位]     D --> J[int 32位]     D --> K[long 64位]          E --> L[float 32位]     E...</div></div></div></a><a class="pagination-related" href="/posts/20190402/" title="Java简介与发展：从起源到现代的编程语言演进"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-02</div><div class="info-item-2">Java简介与发展：从起源到现代的编程语言演进</div></div><div class="info-2"><div class="info-item-1">前言Java作为世界上最流行的编程语言之一，自1995年诞生以来就以其”一次编写，到处运行”的理念改变了软件开发的格局。本文将深入探讨Java语言的起源、发展历程、核心特性以及JDK、JRE、JVM之间的关系，带领读者全面了解Java技术生态。 Java语言的起源与发展历史诞生背景Java语言诞生于1990年代初期，当时Sun Microsystems公司的工程师James Gosling带领团队开发一种用于消费电子设备的编程语言。最初这个项目被称为”Green Project”，目标是创建一种平台无关的编程语言来解决不同硬件平台之间的兼容性问题。 timeline     title Java发展历程     1990 : Green Project启动     1991 : Oak语言诞生     1995 : Java 1.0正式发布     1997 : Java 1.1发布     1998 : Java 2 (J2SE 1.2)发布     2004 : Java 5.0重大更新     2014 : Java 8 LTS版本     2017 : Java...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring-%E7%9A%84%E6%A0%B8%E5%BF%83%E4%B8%8D%E6%98%AF%E6%B3%A8%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">Spring 的核心不是注解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IoC%E3%80%81DI-%E4%B8%8E%E5%AE%B9%E5%99%A8"><span class="toc-number">2.</span> <span class="toc-text">IoC、DI 与容器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#IoC-%E5%92%8C-DI-%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.1.</span> <span class="toc-text">IoC 和 DI 分别是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanFactory%E3%80%81ApplicationContext-%E4%B8%8E-Bean-%E5%AE%9A%E4%B9%89"><span class="toc-number">2.2.</span> <span class="toc-text">BeanFactory、ApplicationContext 与 Bean 定义</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Bean-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E4%BD%9C%E7%94%A8%E5%9F%9F"><span class="toc-number">3.</span> <span class="toc-text">Bean 生命周期与作用域</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8B-Bean-%E7%9A%84%E5%85%B3%E9%94%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">单例 Bean 的关键流程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#AOP-%E4%B8%8E%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">AOP 与动态代理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BA%8B%E5%8A%A1%E3%80%81%E6%97%A5%E5%BF%97%E8%83%BD%E2%80%9C%E8%87%AA%E5%8A%A8%E6%89%A7%E8%A1%8C%E2%80%9D"><span class="toc-number">4.1.</span> <span class="toc-text">为什么事务、日志能“自动执行”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E8%B0%83%E7%94%A8%E4%B8%BA%E4%BB%80%E4%B9%88%E5%AF%BC%E8%87%B4-AOP-%E5%A4%B1%E6%95%88"><span class="toc-number">4.2.</span> <span class="toc-text">自调用为什么导致 AOP 失效</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E%E5%BC%8F%E4%BA%8B%E5%8A%A1%E4%B8%8E%E7%94%9F%E4%BA%A7%E8%BE%B9%E7%95%8C"><span class="toc-number">5.</span> <span class="toc-text">声明式事务与生产边界</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Transactional-%E5%AE%9E%E9%99%85%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">5.1.</span> <span class="toc-text">@Transactional 实际做了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B8%B8%E8%A7%81%E7%9A%84%E4%BA%8B%E5%8A%A1%E5%A4%B1%E6%95%88%E5%8E%9F%E5%9B%A0"><span class="toc-number">5.2.</span> <span class="toc-text">最常见的事务失效原因</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E3%80%81%E9%85%8D%E7%BD%AE%E7%B1%BB%E4%B8%8E%E5%B8%B8%E8%A7%81%E5%90%AF%E5%8A%A8%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">循环依赖、配置类与常见启动问题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9E%84%E9%80%A0%E5%99%A8%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E6%97%A0%E6%B3%95%E8%A7%A3%E5%86%B3"><span class="toc-number">6.1.</span> <span class="toc-text">为什么构造器循环依赖无法解决</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%A4%B1%E8%B4%A5%E6%8E%92%E6%9F%A5%E9%A1%BA%E5%BA%8F"><span class="toc-number">6.2.</span> <span class="toc-text">启动失败排查顺序</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web-%E8%AF%B7%E6%B1%82%E9%93%BE%E8%B7%AF%E4%B8%8E%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">Web 请求链路与异常处理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">8.</span> <span class="toc-text">高频面试题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250917/" title="分层架构、DDD、整洁代码与重构">分层架构、DDD、整洁代码与重构</a><time datetime="2025-09-17T02:00:00.000Z" title="发表于 2025-09-17 10:00:00">2025-09-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250913/" title="Java：JDK8到21升级、兼容性与生产验证">Java：JDK8到21升级、兼容性与生产验证</a><time datetime="2025-09-13T02:00:00.000Z" title="发表于 2025-09-13 10:00:00">2025-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'd933ab5be2e4ccc6896258e1c0a82181'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

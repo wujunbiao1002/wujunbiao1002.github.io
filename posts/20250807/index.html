@@ -1,0 +1,587 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java并发：线程池、CompletableFuture与异步编排 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从线程池参数、任务隔离、拒绝策略、CompletableFuture 编排、超时、上下文传递与优雅停机讲解 Java 异步编程生产实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发：线程池、CompletableFuture与异步编排">
+<meta property="og:url" content="https://junly.top/posts/20250807/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="从线程池参数、任务隔离、拒绝策略、CompletableFuture 编排、超时、上下文传递与优雅停机讲解 Java 异步编程生产实践。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-08-07T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T09:54:12.126Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="线程池">
+<meta property="article:tag" content="CompletableFuture">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java并发：线程池、CompletableFuture与异步编排",
+  "url": "https://junly.top/posts/20250807/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-08-07T03:00:00.000Z",
+  "dateModified": "2026-08-13T09:54:12.126Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250807/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Java并发：线程池、CompletableFuture与异步编排',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Java并发：线程池、CompletableFuture与异步编排</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Java并发：线程池、CompletableFuture与异步编排</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-07T03:00:00.000Z" title="发表于 2025-08-07 11:00:00">2025-08-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-13T09:54:12.126Z" title="更新于 2026-08-13 17:54:12">2026-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="线程池不是参数题"><a href="#线程池不是参数题" class="headerlink" title="线程池不是参数题"></a>线程池不是参数题</h1><p>线程池的目标是复用线程、控制并发、隔离不同任务和提供背压。核心配置应从任务性质和下游容量推导，而不是套固定公式。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+<th>常见误区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>corePoolSize</td>
+<td>常驻工作线程</td>
+<td>认为设置得越大越快</td>
+</tr>
+<tr>
+<td>maximumPoolSize</td>
+<td>队列满后可扩到的上限</td>
+<td>使用无界队列后该参数几乎不会生效</td>
+</tr>
+<tr>
+<td>workQueue</td>
+<td>缓冲突发任务并形成背压</td>
+<td>无界队列掩盖积压，最终 OOM</td>
+</tr>
+<tr>
+<td>keepAliveTime</td>
+<td>非核心线程空闲回收</td>
+<td>忽略突发恢复后的线程收缩</td>
+</tr>
+<tr>
+<td>RejectedExecutionHandler</td>
+<td>饱和后的动作</td>
+<td>默认抛异常但调用方没有处理</td>
+</tr>
+</tbody></table>
+<pre class="mermaid">flowchart LR
+    A[提交任务] --> B{核心线程未满?}
+    B -->|是| C[创建核心线程]
+    B -->|否| D{队列可放入?}
+    D -->|是| E[进入队列]
+    D -->|否| F{未到最大线程?}
+    F -->|是| G[创建非核心线程]
+    F -->|否| H[拒绝策略]</pre>
+
+<p>建议按领域隔离：支付回调、邮件发送、报表导出、外部 HTTP 调用不能共用一个无界线程池。每个池配置有界队列、线程名、监控、拒绝后的业务降级，并把连接池&#x2F;下游限流一起纳入容量估算。</p>
+<h2 id="参数不是独立生效的"><a href="#参数不是独立生效的" class="headerlink" title="参数不是独立生效的"></a>参数不是独立生效的</h2><p><code>ThreadPoolExecutor</code> 的执行顺序是面试常考点：先创建核心线程，再入队，队列满了才创建非核心线程，线程数到达 <code>maximumPoolSize</code> 后才拒绝。因此，<code>maximumPoolSize</code> 不是“并发数”，它只在<strong>队列满</strong>时才有机会生效。</p>
+<p>例如配置 <code>corePoolSize=16</code>、<code>maximumPoolSize=64</code>，但使用 <code>new LinkedBlockingQueue&lt;&gt;()</code>：16 个线程忙碌后，后续任务会持续进入无界队列，线程数通常不会增长到 64，积压最终可能耗尽堆内存。反过来，使用 <code>SynchronousQueue</code> 时不存放任务，提交任务需要立刻交给空闲线程，线程更容易增长到最大值，适合短时、高并发的直接移交模型，但会更早触发拒绝。</p>
+<table>
+<thead>
+<tr>
+<th>队列</th>
+<th>特点</th>
+<th>适用场景</th>
+<th>风险与治理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ArrayBlockingQueue</code></td>
+<td>固定数组容量，可选公平锁</td>
+<td>容量需要严格受控的业务池</td>
+<td>提前按可接受积压量设置容量；容量太小会频繁拒绝</td>
+</tr>
+<tr>
+<td><code>LinkedBlockingQueue(capacity)</code></td>
+<td>链表有界队列，最常用</td>
+<td>普通异步任务、外部 IO 调用</td>
+<td>必须显式传容量，不能使用默认无界构造</td>
+</tr>
+<tr>
+<td><code>SynchronousQueue</code></td>
+<td>不缓存任务，直接交给工作线程</td>
+<td>突发短任务、需要快速扩线程的池</td>
+<td>最大线程和下游连接数必须严格受限</td>
+</tr>
+<tr>
+<td><code>DelayQueue</code></td>
+<td>按延迟时间取任务</td>
+<td>延迟&#x2F;定时任务</td>
+<td>不适合一般业务池；元素数量仍需监控</td>
+</tr>
+<tr>
+<td>无界 <code>LinkedBlockingQueue</code></td>
+<td>几乎不拒绝任务</td>
+<td>不建议作为线上业务默认选择</td>
+<td>掩盖过载，延迟不断升高，最终 GC&#x2F;OOM 或服务雪崩</td>
+</tr>
+</tbody></table>
+<p>队列容量不是“越大越稳”。它代表系统愿意暂存多少等待工作。若任务平均耗时 200ms、实际稳定处理能力为 1000 TPS，允许额外等待 2 秒，队列上限可以先按约 2000 个任务估算，再用压测校正。队列很长时，请求虽然没有报错，但用户看到的往往是超时，这比尽早拒绝并降级更难恢复。</p>
+<h2 id="从任务性质推导线程数"><a href="#从任务性质推导线程数" class="headerlink" title="从任务性质推导线程数"></a>从任务性质推导线程数</h2><p>先区分任务，而不是直接给出“CPU 核数 * 2”：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>示例</th>
+<th>初始思路</th>
+<th>必须一起约束的资源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU 密集</td>
+<td>图片压缩、加密、规则计算、大 JSON 转换</td>
+<td>接近 CPU 核数，通常从 <code>Ncpu</code> 到 <code>Ncpu + 1</code> 压测开始</td>
+<td>CPU 配额、GC、上下文切换</td>
+</tr>
+<tr>
+<td>IO 密集</td>
+<td>调用支付&#x2F;物流 HTTP、文件上传、对象存储下载</td>
+<td>可以多于 CPU 核数，但由等待比例和下游并发决定</td>
+<td>HTTP 连接池、数据库连接池、下游限流、超时</td>
+</tr>
+<tr>
+<td>混合任务</td>
+<td>导出时查库、计算、写文件</td>
+<td>拆成 CPU 与 IO 两段或不同线程池</td>
+<td>不要让慢 IO 占满计算线程</td>
+</tr>
+<tr>
+<td>长时间任务</td>
+<td>大文件导出、批处理、离线对账</td>
+<td>使用独立批处理池或任务平台</td>
+<td>任务持久化、进度、可恢复性、租户隔离</td>
+</tr>
+</tbody></table>
+<p>经验公式 <code>Nthreads = Ncpu * (1 + W / C)</code> 只能用于估算起点，其中 <code>W</code> 是平均等待时间，<code>C</code> 是平均计算时间。它不能替代压测，因为真实系统还受连接池、网络抖动、下游限额和容器 CPU quota 影响。</p>
+<p>生产上更实用的过程是：先明确目标并发、P95&#x2F;P99 延迟和允许排队时间；再以较小有界队列和保守最大线程压测；观察活跃线程、队列长度、拒绝数、下游耗时和 CPU；最后把线程数限制在下游实际可承受并发以内。比如 HTTP 连接池最多 50 个连接，即使线程池扩到 200 个，另外 150 个线程也可能只是在等连接，反而放大超时和线程切换。</p>
+<h2 id="一个可运维的线程池样例"><a href="#一个可运维的线程池样例" class="headerlink" title="一个可运维的线程池样例"></a>一个可运维的线程池样例</h2><p>不要使用 <code>Executors.newFixedThreadPool()</code>、<code>newCachedThreadPool()</code> 作为线上默认方案：前者使用无界队列，后者最大线程数接近无界。显式创建 <code>ThreadPoolExecutor</code>，让容量、线程名和拒绝行为可见。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ThreadFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadFactoryBuilder</span>()</span><br><span class="line">    .setNameFormat(<span class="string">&quot;inventory-http-%d&quot;</span>)</span><br><span class="line">    .setUncaughtExceptionHandler((thread, error) -&gt;</span><br><span class="line">        log.error(<span class="string">&quot;uncaught error in &#123;&#125;&quot;</span>, thread.getName(), error))</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line"><span class="type">ThreadPoolExecutor</span> <span class="variable">inventoryExecutor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(</span><br><span class="line">    <span class="number">16</span>,</span><br><span class="line">    <span class="number">48</span>,</span><br><span class="line">    <span class="number">60</span>,</span><br><span class="line">    TimeUnit.SECONDS,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">LinkedBlockingQueue</span>&lt;&gt;(<span class="number">500</span>),</span><br><span class="line">    factory,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.AbortPolicy());</span><br><span class="line"></span><br><span class="line">inventoryExecutor.allowCoreThreadTimeOut(<span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<p>上例的 <code>500</code> 不是通用推荐值，而是一个需要按“允许等待时长”和“稳定处理能力”推导并压测验证的容量。<code>AbortPolicy</code> 抛出 <code>RejectedExecutionException</code> 后，入口必须捕获并转换为明确的业务结果，例如返回“系统繁忙，请稍后重试”、写入可靠消息队列，或让上游按约定重试；不能只打日志后继续假装任务已提交成功。</p>
+<p>若不引入 Guava 的 <code>ThreadFactoryBuilder</code>，可用自定义 <code>ThreadFactory</code> 为线程设置名称。线程名应包含领域，如 <code>payment-callback-1</code>、<code>report-export-1</code>，这样在线程 dump、日志和监控中可以快速定位池的归属。</p>
+<h2 id="任务隔离、背压与拒绝后的业务动作"><a href="#任务隔离、背压与拒绝后的业务动作" class="headerlink" title="任务隔离、背压与拒绝后的业务动作"></a>任务隔离、背压与拒绝后的业务动作</h2><p>线程池隔离不是“多建几个池”这么简单，而是防止一个资源域耗尽影响另一个资源域。下面以订单服务为例：</p>
+<table>
+<thead>
+<tr>
+<th>任务池</th>
+<th>任务</th>
+<th>推荐拒绝动作</th>
+<th>为什么不能和其他任务混用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>order-db</code></td>
+<td>下单、扣库存、写事务库</td>
+<td>快速失败或入口限流，不能静默丢弃</td>
+<td>队列堆积会占住数据库连接并拖垮核心交易</td>
+</tr>
+<tr>
+<td><code>payment-callback</code></td>
+<td>支付渠道回调处理</td>
+<td>持久化回调事件后异步重试</td>
+<td>回调会突发且必须最终处理，不能因为池满丢失</td>
+</tr>
+<tr>
+<td><code>notify</code></td>
+<td>短信、邮件、站内信</td>
+<td>写 MQ&#x2F;延迟任务，允许延后</td>
+<td>外部通道慢不应阻塞订单完成</td>
+</tr>
+<tr>
+<td><code>report-export</code></td>
+<td>导出、聚合、文件生成</td>
+<td>限制并发并提示排队，或转离线任务</td>
+<td>单个大任务可能占用 CPU、内存和数据库很久</td>
+</tr>
+<tr>
+<td><code>third-party-http</code></td>
+<td>风控、物流、地图等外部调用</td>
+<td>熔断、降级、快速失败</td>
+<td>下游变慢时不能占满所有业务工作线程</td>
+</tr>
+</tbody></table>
+<p><code>CallerRunsPolicy</code> 的本质是让提交方承担工作，以降低生产速度。它适合消费线程、批处理提交者等可被反压的入口；对于 Tomcat&#x2F;Netty 请求线程要谨慎，执行慢任务会占住请求线程，可能把局部过载扩大成接口超时。<code>DiscardPolicy</code> 和 <code>DiscardOldestPolicy</code> 只适用于允许丢失且有补数机制的任务，例如可再计算的预热；不能用于支付、库存、消息消费确认等任务。</p>
+<p>真正的背压要贯穿入口到下游：网关限流限制进入速率，业务池用有界队列限制在途任务，HTTP&#x2F;数据库客户端用连接池限制下游并发，超时和熔断阻断持续堆积。只把线程数调大不是扩容，而是把压力暂存在更多线程、更多连接和更长队列中。</p>
+<h2 id="监控、告警与故障排查"><a href="#监控、告警与故障排查" class="headerlink" title="监控、告警与故障排查"></a>监控、告警与故障排查</h2><p>每个业务线程池至少要暴露以下指标，Spring Boot 可通过 Micrometer 注册为 Gauge&#x2F;Counter，或接入线程池监控组件：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>说明</th>
+<th>告警或排查信号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>poolSize</code> &#x2F; <code>activeCount</code></td>
+<td>当前线程数和活跃线程数</td>
+<td>长时间接近最大线程数，说明实际并发已饱和</td>
+</tr>
+<tr>
+<td><code>queue.size</code> &#x2F; <code>queue.remainingCapacity</code></td>
+<td>排队任务数和剩余容量</td>
+<td>队列持续增长或接近满，比瞬时峰值更危险</td>
+</tr>
+<tr>
+<td><code>completedTaskCount</code> &#x2F; 任务耗时分位数</td>
+<td>吞吐和执行耗时</td>
+<td>吞吐下降且耗时升高，通常是下游慢或锁竞争</td>
+</tr>
+<tr>
+<td><code>taskCount - completedTaskCount</code></td>
+<td>粗略在途与已排队任务</td>
+<td>持续增加表示进入速率超过处理速率</td>
+</tr>
+<tr>
+<td><code>rejectedCount</code></td>
+<td>被拒绝次数，需自行包装拒绝策略计数</td>
+<td>任意关键池出现拒绝都应告警并关联入口流量</td>
+</tr>
+<tr>
+<td>JVM CPU、GC、线程数</td>
+<td>线程池的外部约束</td>
+<td>CPU 高说明计算饱和；CPU 不高但队列满多为 IO&#x2F;下游阻塞</td>
+</tr>
+</tbody></table>
+<p>排查“接口变慢、线程池满”时，不要先修改参数。先确认是哪一个池满、何时开始、队列是持续增长还是瞬时峰值；再用线程 dump 看线程是在等 HTTP 连接、数据库连接、锁、网络读写还是 CPU 计算；随后核对下游 P99、连接池等待、超时和重试量。若线程都卡在同一个下游，扩线程只会制造更多并发请求，应先限流、熔断、缩短超时或修复下游。</p>
+<h2 id="生命周期与异常处理"><a href="#生命周期与异常处理" class="headerlink" title="生命周期与异常处理"></a>生命周期与异常处理</h2><p><code>execute</code> 中未捕获的运行时异常会交给线程的 <code>UncaughtExceptionHandler</code>；<code>submit</code> 会把异常封装到 <code>Future</code>，如果调用方从不执行 <code>get()</code>，异常可能被静默忽略。对关键异步任务，应在任务内部记录带业务标识的异常，或统一检查 <code>Future</code>&#x2F;<code>CompletableFuture</code> 的异常结果。</p>
+<p>线程池中的线程会复用，任务必须在 <code>finally</code> 中清理 MDC、ThreadLocal、租户上下文和临时状态。不能在线程池中持有请求对象、数据库事务或过期的安全上下文。任务执行时间要有上限，网络、数据库和文件操作都要配置各自超时，不能仅依赖外层 Future 超时。</p>
+<h1 id="拒绝策略与背压"><a href="#拒绝策略与背压" class="headerlink" title="拒绝策略与背压"></a>拒绝策略与背压</h1><p>AbortPolicy 直接报错，适合必须由上游感知失败的任务；CallerRunsPolicy 让提交线程执行任务，能反压上游但可能拖慢 Web 请求；Discard&#x2F;DiscardOldest 只适合明确允许丢弃的可再生任务。关键业务不能静默丢弃，应记录任务、重试或进入可靠消息队列。</p>
+<h1 id="CompletableFuture-异步编排"><a href="#CompletableFuture-异步编排" class="headerlink" title="CompletableFuture 异步编排"></a>CompletableFuture 异步编排</h1><p><code>CompletableFuture</code> 适合组合独立 IO，例如商品详情页并行获取商品、库存和推荐：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;Product&gt; product = supplyAsync(<span class="built_in">this</span>::loadProduct, productExecutor);</span><br><span class="line">CompletableFuture&lt;Stock&gt; stock = supplyAsync(<span class="built_in">this</span>::loadStock, stockExecutor);</span><br><span class="line"><span class="type">Page</span> <span class="variable">page</span> <span class="operator">=</span> product.thenCombine(stock, Page::<span class="keyword">new</span>)</span><br><span class="line">    .orTimeout(<span class="number">300</span>, TimeUnit.MILLISECONDS)</span><br><span class="line">    .exceptionally(<span class="built_in">this</span>::fallbackPage)</span><br><span class="line">    .join();</span><br></pre></td></tr></table></figure>
+
+<p><code>thenCombine</code> 用于两个独立结果汇合；<code>thenCompose</code> 用于前一步结果决定下一异步调用；<code>allOf</code> 用于等待多任务完成。不要默认使用 commonPool 承载生产 IO：它是全局共享资源，阻塞任务会影响无关功能，应显式传入具名线程池。</p>
+<h1 id="超时、取消与上下文"><a href="#超时、取消与上下文" class="headerlink" title="超时、取消与上下文"></a>超时、取消与上下文</h1><p>异步超时只表示调用方不再等待，不代表底层 HTTP、SQL 或线程一定停止。需要同时配置客户端超时、数据库查询超时和任务取消策略。取消前先确认任务是否可中断、是否有副作用；支付、写库等操作要做幂等，而不能依赖 <code>cancel(true)</code> 回滚。</p>
+<p>MDC、TraceId、租户和安全上下文不会自动可靠地跨线程传递。使用任务装饰器、框架提供的上下文传播或显式参数传递；不要随意把 ThreadLocal 复制到长期线程池而不清理，可能造成串请求和内存泄漏。</p>
+<h1 id="优雅停机"><a href="#优雅停机" class="headerlink" title="优雅停机"></a>优雅停机</h1><p>停止服务应先摘流量，拒绝新任务，等待短时间处理在途任务，超时后取消可取消任务并关闭资源。直接 <code>shutdownNow()</code> 可能中断到一半的写入，必须配合幂等、重试和消息确认策略。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>回答要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无界队列有什么问题？</td>
+<td>积压无限增长会耗尽内存，maxPoolSize 也可能失效。</td>
+</tr>
+<tr>
+<td><code>maximumPoolSize</code> 什么时候生效？</td>
+<td>核心线程满、工作队列也满之后，才会继续创建非核心线程；无界队列下通常很难生效。</td>
+</tr>
+<tr>
+<td>IO 线程池怎么定？</td>
+<td>根据等待比例、下游连接数、目标延迟和压测结果定，并设置上限和隔离。</td>
+</tr>
+<tr>
+<td><code>execute</code> 与 <code>submit</code> 的异常有什么差异？</td>
+<td><code>execute</code> 的未捕获异常会交给线程异常处理器；<code>submit</code> 将异常放进 <code>Future</code>，不调用 <code>get()</code> 可能看不到。</td>
+</tr>
+<tr>
+<td><code>CallerRunsPolicy</code> 总能解决过载吗？</td>
+<td>它只能让提交方变慢；若提交方是 Web I&#x2F;O 线程，可能放大请求超时，需结合入口限流和任务隔离。</td>
+</tr>
+<tr>
+<td>CompletableFuture 为什么指定 executor？</td>
+<td>避免阻塞 commonPool，隔离不同业务资源。</td>
+</tr>
+<tr>
+<td>超时后任务一定停止吗？</td>
+<td>不一定；要同时治理下游超时、取消和幂等。</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250807/">https://junly.top/posts/20250807/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a><a class="post-meta__tags" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a><a class="post-meta__tags" href="/tags/CompletableFuture/">CompletableFuture</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250803/" title="Java并发：CAS、原子类、ConcurrentHashMap与并发容器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java并发：CAS、原子类、ConcurrentHashMap与并发容器</div></div><div class="info-2"><div class="info-item-1">CAS 与原子类CAS（Compare And Swap）含义是“当内存值仍等于预期值时，才更新为新值”。它把比较与写入交给 CPU 原子指令完成，是 Atomic 系列和并发容器实现高并发更新的重要基础。 12AtomicInteger counter = new AtomicInteger();counter.incrementAndGet();  CAS 失败通常会重试。低冲突下它避免了线程阻塞；高冲突下大量自旋会浪费 CPU，所以“无锁”不等于永远更快。 ABA 问题线程 A 看见值为 A，线程 B 将 A 改为 B 又改回 A，A 的 CAS 仍成功，但中间变化可能有业务意义。对只关心数值结果的计数器，ABA 通常无害；对栈顶、库存版本、状态迁移等场景，可用版本号，如 AtomicStampedReference，或直接使用数据库条件更新。 AtomicLong 与 LongAdder   场景 优先选择 原因    需要精确当前值并频繁读 AtomicLong 单一原子值，读取简单准确   高并发只做累加、统计时再汇总 LongAdder 分散到多个 Cell，降低...</div></div></div></a><a class="pagination-related" href="/posts/20250811/" title="Java并发：并发工具类、生产消费、背压与优雅停机"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java并发：并发工具类、生产消费、背压与优雅停机</div></div><div class="info-2"><div class="info-item-1">并发工具类怎么选   工具 核心语义 可否复用 生产场景    CountDownLatch 等 N 件事完成再继续 否 并行加载多个启动配置、等待批任务结束   CyclicBarrier N 个参与者到齐后一起继续 是 分阶段并行计算、模拟并发压测   Semaphore 同时最多允许 N 个许可 是 限制外部 API、文件处理、昂贵资源并发数   Phaser 可动态注册参与者的多阶段屏障 是 参与者数量动态的分阶段任务   BlockingQueue 生产者和消费者之间的有界缓冲 是 异步批处理、日志&#x2F;任务削峰   DelayQueue 到期才可取出的队列 是 单机延迟任务、超时清理   CountDownLatch 适合“主线程等子任务”；CyclicBarrier 适合“子任务互相等”；Semaphore 不是锁，它限制的是并发许可证数量。 有界队列和背压生产速度大于消费速度时，队列长度会持续增长。无界队列只是在延后失败：内存越来越高、延迟越来越大，最后 OOM。正确做法是让队列有界，并定义满时的业务语义。 flowchart LR     P[生产者]...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20190903/" title="Java多线程编程详解：并发世界的探索之旅"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-09-03</div><div class="info-item-2">Java多线程编程详解：并发世界的探索之旅</div></div><div class="info-2"><div class="info-item-1">前言在现代软件开发中，多线程编程是提高程序性能和响应能力的重要手段。Java作为一门天生支持多线程的编程语言，提供了丰富的多线程编程API和同步机制。掌握Java多线程编程不仅能够充分利用多核处理器的计算能力，还能构建高并发、高性能的应用程序。本文将深入探讨Java多线程的核心概念、创建方式、同步机制以及实际应用场景。 多线程基础概念进程与线程的区别理解进程和线程的概念是学习多线程编程的基础： graph TB     A[计算机系统] --> B[进程 Process]     A --> C[线程 Thread]          B --> D[独立的内存空间]     B --> E[系统资源分配单位]     B --> F[进程间通信成本高]          C --> G[共享进程内存空间]     C --> H[CPU调度执行单位]     C --> I[线程间通信成本低]          subgraph "进程内部结构"         J[主线程]         K[工作线程1]         L[工作线程2]        ...</div></div></div></a><a class="pagination-related" href="/posts/20250214/" title="锁相关专题：从JDK锁、Redis锁到数据库锁的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-14</div><div class="info-item-2">锁相关专题：从JDK锁、Redis锁到数据库锁的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言锁相关问题是后端面试里的高频专题，不只包括 JDK 自带的 synchronized、ReentrantLock、AQS，也包括 Redis 分布式锁、数据库锁、ZooKeeper 锁、消息队列串行化和业务幂等设计。 常见问题包括：synchronized 锁的是什么，锁升级怎么理解，synchronized 和 ReentrantLock 有什么区别，AQS 是什么，公平锁和非公平锁怎么选，读写锁适合什么场景，CAS 有什么问题，volatile 能不能替代锁，死锁怎么排查，Redis 分布式锁为什么要设置过期时间，数据库乐观锁和悲观锁怎么选，ZooKeeper 锁和 Redis 锁有什么区别。 如果只背“锁保证线程安全”，回答很容易停留在概念层。更好的方式是把锁理解成一条完整主线： 1共享资源竞争 -&gt; 可见性/原子性/有序性问题 -&gt; 单机锁或分布式协调 -&gt; 阻塞/唤醒/队列管理 -&gt; 性能和正确性权衡 -&gt; 线上排查  本文按面试中最常见的模块梳理锁相关要点，适合作为 Java...</div></div></div></a><a class="pagination-related" href="/posts/20250730/" title="Java并发：synchronized、AQS、ReentrantLock与Condition"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-07-30</div><div class="info-item-2">Java并发：synchronized、AQS、ReentrantLock与Condition</div></div><div class="info-2"><div class="info-item-1">前言锁用于保护共享可变状态。先界定“哪一份数据必须一起变化”，再选择锁；不能把锁当作解决所有一致性问题的万能工具。跨实例的最终正确性仍要依赖数据库约束、事务与幂等。 synchronized 与 ReentrantLock   维度 synchronized ReentrantLock    使用方式 JVM 内置监视器，自动释放 显式 lock()&#x2F;unlock()，必须 finally 释放   可中断获取 不直接支持 lockInterruptibly() 支持   超时获取 不直接支持 tryLock(timeout) 支持   多条件队列 一个监视器一个 wait set 多个 Condition 可区分队列   公平性 无公平锁选择 可选公平&#x2F;非公平   适用建议 简短临界区、语义简单 需要超时、中断、多条件或可观测能力   12345678910private final ReentrantLock lock = new ReentrantLock();void update() &#123;    lock.lock();    try...</div></div></div></a><a class="pagination-related" href="/posts/20250726/" title="Java并发：线程、JMM、happens-before与volatile"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-07-26</div><div class="info-item-2">Java并发：线程、JMM、happens-before与volatile</div></div><div class="info-2"><div class="info-item-1">前言Java 并发的起点不是线程 API，而是同一份共享数据被多个线程同时访问后，结果为什么会不确定。判断一个并发问题，固定按三步思考：数据是否共享、操作是否不止一步、线程之间是否需要确定的先后关系。 原子性、可见性与有序性   问题 含义 典型例子 常见解决方式    原子性 操作不能只执行一半就被别人观察或插入 count++ 是读、加、写三步 锁、CAS、原子类   可见性 一个线程修改后，其他线程能及时看到 工作线程看不到 stop = true volatile、锁、线程安全容器   有序性 指令不会以破坏语义的方式重排 双重检查单例发布半初始化对象 volatile、锁、正确发布   1234private int count;void increment() &#123;    count++; // 不是原子操作&#125;  两个线程都读到 0 后分别写回 1，最终值仍是 1。这里的根因是原子性，而不是“CPU 太快”。 JMM 与 happens-beforeJava 内存模型（JMM）规定线程如何读写共享变量，以及编译器和 CPU...</div></div></div></a><a class="pagination-related" href="/posts/20250803/" title="Java并发：CAS、原子类、ConcurrentHashMap与并发容器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-03</div><div class="info-item-2">Java并发：CAS、原子类、ConcurrentHashMap与并发容器</div></div><div class="info-2"><div class="info-item-1">CAS 与原子类CAS（Compare And Swap）含义是“当内存值仍等于预期值时，才更新为新值”。它把比较与写入交给 CPU 原子指令完成，是 Atomic 系列和并发容器实现高并发更新的重要基础。 12AtomicInteger counter = new AtomicInteger();counter.incrementAndGet();  CAS 失败通常会重试。低冲突下它避免了线程阻塞；高冲突下大量自旋会浪费 CPU，所以“无锁”不等于永远更快。 ABA 问题线程 A 看见值为 A，线程 B 将 A 改为 B 又改回 A，A 的 CAS 仍成功，但中间变化可能有业务意义。对只关心数值结果的计数器，ABA 通常无害；对栈顶、库存版本、状态迁移等场景，可用版本号，如 AtomicStampedReference，或直接使用数据库条件更新。 AtomicLong 与 LongAdder   场景 优先选择 原因    需要精确当前值并频繁读 AtomicLong 单一原子值，读取简单准确   高并发只做累加、统计时再汇总 LongAdder 分散到多个 Cell，降低...</div></div></div></a><a class="pagination-related" href="/posts/20250811/" title="Java并发：并发工具类、生产消费、背压与优雅停机"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-11</div><div class="info-item-2">Java并发：并发工具类、生产消费、背压与优雅停机</div></div><div class="info-2"><div class="info-item-1">并发工具类怎么选   工具 核心语义 可否复用 生产场景    CountDownLatch 等 N 件事完成再继续 否 并行加载多个启动配置、等待批任务结束   CyclicBarrier N 个参与者到齐后一起继续 是 分阶段并行计算、模拟并发压测   Semaphore 同时最多允许 N 个许可 是 限制外部 API、文件处理、昂贵资源并发数   Phaser 可动态注册参与者的多阶段屏障 是 参与者数量动态的分阶段任务   BlockingQueue 生产者和消费者之间的有界缓冲 是 异步批处理、日志&#x2F;任务削峰   DelayQueue 到期才可取出的队列 是 单机延迟任务、超时清理   CountDownLatch 适合“主线程等子任务”；CyclicBarrier 适合“子任务互相等”；Semaphore 不是锁，它限制的是并发许可证数量。 有界队列和背压生产速度大于消费速度时，队列长度会持续增长。无界队列只是在延后失败：内存越来越高、延迟越来越大，最后 OOM。正确做法是让队列有界，并定义满时的业务语义。 flowchart LR     P[生产者]...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%8D%E6%98%AF%E5%8F%82%E6%95%B0%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">线程池不是参数题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E4%B8%8D%E6%98%AF%E7%8B%AC%E7%AB%8B%E7%94%9F%E6%95%88%E7%9A%84"><span class="toc-number">1.1.</span> <span class="toc-text">参数不是独立生效的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E4%BB%BB%E5%8A%A1%E6%80%A7%E8%B4%A8%E6%8E%A8%E5%AF%BC%E7%BA%BF%E7%A8%8B%E6%95%B0"><span class="toc-number">1.2.</span> <span class="toc-text">从任务性质推导线程数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%8F%AF%E8%BF%90%E7%BB%B4%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%A0%B7%E4%BE%8B"><span class="toc-number">1.3.</span> <span class="toc-text">一个可运维的线程池样例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E9%9A%94%E7%A6%BB%E3%80%81%E8%83%8C%E5%8E%8B%E4%B8%8E%E6%8B%92%E7%BB%9D%E5%90%8E%E7%9A%84%E4%B8%9A%E5%8A%A1%E5%8A%A8%E4%BD%9C"><span class="toc-number">1.4.</span> <span class="toc-text">任务隔离、背压与拒绝后的业务动作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E3%80%81%E5%91%8A%E8%AD%A6%E4%B8%8E%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">1.5.</span> <span class="toc-text">监控、告警与故障排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">1.6.</span> <span class="toc-text">生命周期与异常处理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E4%B8%8E%E8%83%8C%E5%8E%8B"><span class="toc-number">2.</span> <span class="toc-text">拒绝策略与背压</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CompletableFuture-%E5%BC%82%E6%AD%A5%E7%BC%96%E6%8E%92"><span class="toc-number">3.</span> <span class="toc-text">CompletableFuture 异步编排</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B6%85%E6%97%B6%E3%80%81%E5%8F%96%E6%B6%88%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">4.</span> <span class="toc-text">超时、取消与上下文</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BC%98%E9%9B%85%E5%81%9C%E6%9C%BA"><span class="toc-number">5.</span> <span class="toc-text">优雅停机</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">高频面试题</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250917/" title="分层架构、DDD、整洁代码与重构">分层架构、DDD、整洁代码与重构</a><time datetime="2025-09-17T02:00:00.000Z" title="发表于 2025-09-17 10:00:00">2025-09-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250913/" title="Java：JDK8到21升级、兼容性与生产验证">Java：JDK8到21升级、兼容性与生产验证</a><time datetime="2025-09-13T02:00:00.000Z" title="发表于 2025-09-13 10:00:00">2025-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '72793d6706f423c0c14e30d43cc368e4'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

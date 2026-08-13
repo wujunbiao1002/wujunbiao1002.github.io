@@ -1,0 +1,1353 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>数据存储横向对比：模型、索引、一致性与适用场景 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从数据模型、物理存储、索引、查询、一致性、扩展方式和生产场景横向对比常见数据库，并科普 MySQL、PostgreSQL、Redis、MongoDB、HBase、Elasticsearch、OpenTSDB、ClickHouse、TiDB 等系统的核心用途。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据存储横向对比：模型、索引、一致性与适用场景">
+<meta property="og:url" content="https://junly.top/posts/20250718/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="从数据模型、物理存储、索引、查询、一致性、扩展方式和生产场景横向对比常见数据库，并科普 MySQL、PostgreSQL、Redis、MongoDB、HBase、Elasticsearch、OpenTSDB、ClickHouse、TiDB 等系统的核心用途。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-07-18T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T09:54:46.282Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MongoDB">
+<meta property="article:tag" content="数据库选型">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="HBase">
+<meta property="article:tag" content="OpenTSDB">
+<meta property="article:tag" content="技术选型">
+<meta property="article:tag" content="PostgreSQL">
+<meta property="article:tag" content="Elasticsearch">
+<meta property="article:tag" content="ClickHouse">
+<meta property="article:tag" content="TiDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "数据存储横向对比：模型、索引、一致性与适用场景",
+  "url": "https://junly.top/posts/20250718/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-07-18T03:00:00.000Z",
+  "dateModified": "2026-08-13T09:54:46.282Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250718/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '数据存储横向对比：模型、索引、一致性与适用场景',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">数据存储横向对比：模型、索引、一致性与适用场景</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">数据存储横向对比：模型、索引、一致性与适用场景</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-07-18T03:00:00.000Z" title="发表于 2025-07-18 11:00:00">2025-07-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-13T09:54:46.282Z" title="更新于 2026-08-13 17:54:46">2026-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">9.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>31分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>面试中问“这些存储怎么选”时，不能只回答“MySQL 存关系数据、Redis 做缓存、ES 做搜索”。这种说法方向没错，但无法说明为什么，以及数据增长、查询变复杂、故障发生后系统是否还成立。</p>
+<p>更可靠的比较方式是依次判断：数据之间有什么关系、一次查询要按什么条件找、是否要事务、单条记录多大、写入是随机还是按时间顺序、数据量增长后如何扩展。</p>
+<p>本文比较的对象并不完全在同一层：OpenTSDB 建立在 HBase 之上，通常将时间序列写入 HBase；Elasticsearch&#x2F;OpenSearch 是检索和分析引擎；Redis、Memcached 是内存存储；Prometheus 同时是监控采集、告警和时序查询系统；RocksDB 是嵌入式存储引擎。它们常常组合使用，而不是非此即彼。</p>
+<p>因此，本文中的“数据库”是广义数据存储。面试回答时要先说明它在架构中的角色：<strong>权威事实源</strong>保存订单、账户和库存等可追责数据；<strong>派生存储</strong>保存搜索索引、报表明细、向量和指标，可由事实源或消息流重建；<strong>缓存</strong>只加速访问，失效后必须允许回源。角色边界比产品名称更重要。</p>
+<h1 id="一张总览表"><a href="#一张总览表" class="headerlink" title="一张总览表"></a>一张总览表</h1><p>这张表不是“数据库排行榜”，而是面试或实际选型时的第一轮排除工具。它覆盖本文介绍的所有常见产品；后文再按类别补充核心用途、适用场景和选型边界。产品很多时，先按“要解决什么数据问题”筛选，再进入对应章节深入比较。</p>
+<p>阅读时从左到右看三件事：</p>
+<ol>
+<li><strong>核心定位</strong>：它在系统中通常承担权威事实、缓存加速、检索投影还是监控指标等哪一层职责。</li>
+<li><strong>数据模型和最擅长的访问方式</strong>：先根据真实查询判断是否匹配，例如“按订单号更新并保证扣库存正确”与“按关键词检索商品标题”是两类完全不同的问题。</li>
+<li><strong>不适合承担的职责</strong>：这一列不是说产品绝对不能使用，而是提示一旦将其作为主方案，通常会付出一致性、成本、性能或运维复杂度的代价，需要有明确理由和补偿方案。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>系统</th>
+<th>核心定位</th>
+<th>数据模型</th>
+<th>最擅长的访问方式</th>
+<th>不适合承担的职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>关系型</td>
+<td>MySQL InnoDB</td>
+<td>通用在线事务库</td>
+<td>行、表、外键关系</td>
+<td>主键&#x2F;二级索引查询、短事务、强一致更新</td>
+<td>大规模全文检索、海量时序明细</td>
+</tr>
+<tr>
+<td>关系型</td>
+<td>PostgreSQL</td>
+<td>功能丰富的关系型数据库</td>
+<td>行、表、JSONB、范围等丰富类型</td>
+<td>复杂 SQL、事务、分析能力、扩展类型</td>
+<td>将它当作无限横向扩容的 KV 存储</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Redis</td>
+<td>内存数据结构服务器</td>
+<td>String、Hash、List、Set、ZSet、Stream 等</td>
+<td>极低延迟读写、缓存、计数、排行榜、短状态</td>
+<td>唯一持久化事实来源、超大数据集存储</td>
+</tr>
+<tr>
+<td>文档</td>
+<td>MongoDB</td>
+<td>文档数据库</td>
+<td>BSON 文档与集合</td>
+<td>聚合文档读写、字段经常演进、嵌套对象查询</td>
+<td>高度复杂跨实体事务的核心账务模型</td>
+</tr>
+<tr>
+<td>宽列</td>
+<td>HBase</td>
+<td>分布式宽列存储</td>
+<td>RowKey + 列族 + 列限定符 + 时间戳</td>
+<td>海量数据按 RowKey 范围读写、稀疏宽表</td>
+<td>任意字段筛选、跨行事务、低延迟多维分析</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>Elasticsearch</td>
+<td>分布式检索与分析引擎</td>
+<td>JSON 文档、倒排索引</td>
+<td>全文搜索、筛选、聚合、排序、高亮</td>
+<td>作为唯一订单&#x2F;账务真相库</td>
+</tr>
+<tr>
+<td>时序</td>
+<td>OpenTSDB</td>
+<td>基于 HBase 的时序数据库</td>
+<td>指标 + 时间戳 + Tag</td>
+<td>指标按时间范围查询、监控看板</td>
+<td>高基数 Tag、复杂关系事务</td>
+</tr>
+<tr>
+<td>关系型</td>
+<td>Oracle Database</td>
+<td>商业级关系型事务数据库</td>
+<td>行、表、关系与丰富企业特性</td>
+<td>核心交易、高可用、传统大型企业系统</td>
+<td>低成本快速试错、轻量级本地嵌入</td>
+</tr>
+<tr>
+<td>关系型</td>
+<td>SQL Server</td>
+<td>Microsoft 生态关系数据库</td>
+<td>行、表、关系</td>
+<td>.NET 业务、报表和 Microsoft 数据平台</td>
+<td>脱离 Microsoft 生态且极度追求低许可成本的场景</td>
+</tr>
+<tr>
+<td>嵌入式</td>
+<td>SQLite</td>
+<td>嵌入式单文件关系数据库</td>
+<td>本地文件中的表和索引</td>
+<td>移动端、桌面端、IoT、本地元数据</td>
+<td>多实例高并发集中写入的服务端系统</td>
+</tr>
+<tr>
+<td>分布式 SQL</td>
+<td>TiDB</td>
+<td>分布式 NewSQL &#x2F; HTAP 数据库</td>
+<td>分布式行存事务表与列存分析副本</td>
+<td>MySQL 兼容、横向扩展事务数据和分析</td>
+<td>规模不大却只为“分布式”引入复杂运维</td>
+</tr>
+<tr>
+<td>分布式 SQL</td>
+<td>CockroachDB &#x2F; YugabyteDB</td>
+<td>多地域分布式 SQL 数据库</td>
+<td>分布式关系表</td>
+<td>跨可用区&#x2F;跨地域强一致 SQL</td>
+<td>对跨地域写延迟非常敏感的链路</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Memcached</td>
+<td>简单分布式内存 KV 缓存</td>
+<td>Key-Value</td>
+<td>纯对象缓存、降低读库压力</td>
+<td>持久化、复杂数据结构、可靠消息处理</td>
+</tr>
+<tr>
+<td>嵌入式 KV</td>
+<td>RocksDB</td>
+<td>嵌入式 LSM KV 存储引擎</td>
+<td>本地 Key-Value</td>
+<td>流处理状态、服务本地存储</td>
+<td>作为开箱即用的分布式数据库服务</td>
+</tr>
+<tr>
+<td>宽列</td>
+<td>Cassandra</td>
+<td>去中心化宽列数据库</td>
+<td>分区键 + 聚簇列的宽行</td>
+<td>多机房高可用写入、按分区键读取</td>
+<td>任意条件查询、复杂 Join 和强事务账务</td>
+</tr>
+<tr>
+<td>云 KV&#x2F;文档</td>
+<td>DynamoDB</td>
+<td>托管式分布式 KV&#x2F;文档数据库</td>
+<td>主键、文档、二级索引</td>
+<td>AWS 云原生按键高吞吐访问</td>
+<td>需要规避云厂商绑定或复杂临时分析查询</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>OpenSearch</td>
+<td>开源搜索与分析引擎</td>
+<td>JSON 文档、倒排索引</td>
+<td>搜索、日志检索、聚合分析</td>
+<td>唯一权威业务数据存储</td>
+</tr>
+<tr>
+<td>列式分析</td>
+<td>ClickHouse</td>
+<td>列式 OLAP 分析数据库</td>
+<td>列式表、分区和排序键</td>
+<td>大范围扫描、报表、行为和日志分析</td>
+<td>高频单行更新的在线交易</td>
+</tr>
+<tr>
+<td>列式分析</td>
+<td>Apache Druid</td>
+<td>实时 OLAP 分析数据库</td>
+<td>时间分区列式数据</td>
+<td>实时看板、流式事件聚合</td>
+<td>通用多表事务处理</td>
+</tr>
+<tr>
+<td>列式分析</td>
+<td>Apache Pinot</td>
+<td>实时 OLAP 分析数据库</td>
+<td>实时&#x2F;离线列式段</td>
+<td>Kafka 流式行为分析、低延迟聚合</td>
+<td>在线订单更新和复杂事务</td>
+</tr>
+<tr>
+<td>时序</td>
+<td>InfluxDB</td>
+<td>专用时序数据库</td>
+<td>Measurement + Tag + Field + 时间戳</td>
+<td>IoT、业务指标、时序查询</td>
+<td>把高基数业务标识无限制写入 Tag</td>
+</tr>
+<tr>
+<td>时序&#x2F;监控</td>
+<td>Prometheus</td>
+<td>监控采集与查询时序库</td>
+<td>指标 + Label + 时间戳</td>
+<td>云原生监控、告警、短中期指标查询</td>
+<td>业务明细、无限期海量原始指标留存</td>
+</tr>
+<tr>
+<td>时序</td>
+<td>VictoriaMetrics</td>
+<td>高性能 Prometheus 时序存储</td>
+<td>指标 + Label + 时间戳</td>
+<td>大规模指标长期保存、PromQL 查询</td>
+<td>需要复杂关系事务的数据模型</td>
+</tr>
+<tr>
+<td>图</td>
+<td>Neo4j</td>
+<td>图数据库</td>
+<td>节点、边、属性</td>
+<td>知识图谱、反欺诈、多跳关系查询</td>
+<td>大规模核心账务交易和纯时序分析</td>
+</tr>
+<tr>
+<td>时序</td>
+<td>TimescaleDB</td>
+<td>PostgreSQL 时序扩展</td>
+<td>关系表 + 时间分区 Hypertable</td>
+<td>既要 SQL&#x2F;事务又要时序分区和聚合</td>
+<td>极端高基数、超大规模监控指标而无容量规划</td>
+</tr>
+<tr>
+<td>向量</td>
+<td>Milvus</td>
+<td>向量数据库</td>
+<td>向量、标量元数据、ANN 索引</td>
+<td>语义检索、RAG、相似内容召回</td>
+<td>替代精确事务查询、权限校验和最终排序</td>
+</tr>
+<tr>
+<td>时序</td>
+<td>QuestDB</td>
+<td>面向高吞吐写入的时序 SQL 数据库</td>
+<td>时间序列列式表</td>
+<td>行情、IoT、指标数据的快速写入和 SQL 查询</td>
+<td>需要成熟跨地域事务与复杂企业治理的核心系统</td>
+</tr>
+</tbody></table>
+<p>例如电商商品系统通常不是在表中任选一个：商品价格、库存和上下架状态放在 MySQL 或 PostgreSQL 中作为权威数据；商品标题和属性被异步同步到 Elasticsearch 或 OpenSearch 供搜索；热点商品详情放 Redis 减少数据库压力；主机 CPU、接口延迟等指标进入 Prometheus、VictoriaMetrics 或 OpenTSDB；运营行为明细可以进入 ClickHouse 做大范围聚合。总览表的目的，是先让每类数据回到合适的位置，再讨论索引、分片、同步延迟和故障恢复等具体实现。</p>
+<h2 id="先按需求快速定位"><a href="#先按需求快速定位" class="headerlink" title="先按需求快速定位"></a>先按需求快速定位</h2><p>大总览用于查产品边界，实际面试或设计评审可以先用下面的路径缩小范围，再回到具体产品比较：</p>
+<table>
+<thead>
+<tr>
+<th>首要需求</th>
+<th>先看哪类产品</th>
+<th>生产上必须追问的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>扣库存、账户余额、订单状态必须正确</td>
+<td>MySQL、PostgreSQL、Oracle、SQL Server；明确需要分布式 SQL 时再看 TiDB、CockroachDB、YugabyteDB</td>
+<td>事务边界在哪里？条件更新、唯一约束、幂等键和失败补偿如何做？</td>
+</tr>
+<tr>
+<td>热点详情、会话、计数、限流需要毫秒级甚至更低延迟</td>
+<td>Redis、Memcached；服务内部状态可看 RocksDB</td>
+<td>缓存失效如何回源？热 Key、大 Key、穿透和雪崩如何治理？</td>
+</tr>
+<tr>
+<td>商品&#x2F;内容对象字段经常变化，通常整体读取</td>
+<td>MongoDB；AWS 托管按键访问可看 DynamoDB</td>
+<td>文档边界是否覆盖主要读取？是否把本该拆开的无限增长数组塞进一个文档？</td>
+</tr>
+<tr>
+<td>数十亿明细按业务键、时间前缀批量写入和范围读取</td>
+<td>HBase、Cassandra</td>
+<td>RowKey 或分区键能否同时满足查询和写入均衡？热点与超大分区怎么办？</td>
+</tr>
+<tr>
+<td>关键词搜索、筛选、高亮、搜索聚合</td>
+<td>Elasticsearch、OpenSearch</td>
+<td>谁是权威源？索引通过 CDC&#x2F;消息如何重建、补偿和对账？</td>
+</tr>
+<tr>
+<td>大范围扫描日志、行为或报表并做聚合</td>
+<td>ClickHouse、Druid、Pinot</td>
+<td>分区、排序键、明细保留和预聚合是否围绕高频报表？</td>
+</tr>
+<tr>
+<td>按时间窗口看指标并告警</td>
+<td>Prometheus、VictoriaMetrics、OpenTSDB、InfluxDB、TimescaleDB、QuestDB</td>
+<td>标签基数、保留周期、降采样、迟到点和长期存储如何控制？</td>
+</tr>
+<tr>
+<td>多跳关系、相似内容召回</td>
+<td>Neo4j、Milvus</td>
+<td>图遍历起点与深度是否受限？向量召回后的权限过滤和重排序由谁完成？</td>
+</tr>
+</tbody></table>
+<h1 id="常见数据库科普与核心用途"><a href="#常见数据库科普与核心用途" class="headerlink" title="常见数据库科普与核心用途"></a>常见数据库科普与核心用途</h1><p>先澄清一点：日常口中的“数据库”既包含事务数据库，也包含缓存、搜索引擎、时序库和分析型存储。它们解决的问题不同，不能只按 SQL&#x2F;NoSQL 二分。</p>
+<pre class="mermaid">mindmap
+  root((数据存储))
+    在线交易
+      MySQL
+      PostgreSQL
+      Oracle
+      SQL Server
+      TiDB
+      CockroachDB
+      YugabyteDB
+    内存与缓存
+      Redis
+      Memcached
+      RocksDB
+    文档与宽列
+      MongoDB
+      HBase
+      Cassandra
+      DynamoDB
+    搜索与分析
+      Elasticsearch
+      OpenSearch
+      ClickHouse
+      Druid
+      Pinot
+    时间序列
+      OpenTSDB
+      InfluxDB
+      Prometheus
+      VictoriaMetrics
+      TimescaleDB
+      QuestDB
+    专用存储
+      Neo4j
+      SQLite
+      Milvus</pre>
+
+<h2 id="关系型与分布式-SQL-数据库"><a href="#关系型与分布式-SQL-数据库" class="headerlink" title="关系型与分布式 SQL 数据库"></a>关系型与分布式 SQL 数据库</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL</td>
+<td>通用 OLTP 事务库</td>
+<td>电商订单、用户、支付、后台管理系统</td>
+<td>先做索引、归档和读写分离；写入或容量到瓶颈后再考虑分库分表</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>企业级关系库和可扩展数据平台</td>
+<td>复杂 SQL、GIS、JSONB、报表、规则数据</td>
+<td>强在丰富类型、扩展和 SQL 表达力；要重视长事务、VACUUM 和大表维护</td>
+</tr>
+<tr>
+<td>Oracle Database</td>
+<td>高可靠商业关系数据库</td>
+<td>核心金融、电信、传统大型企业系统</td>
+<td>成熟的高可用、治理和商业支持，代价是许可、运维与迁移成本</td>
+</tr>
+<tr>
+<td>SQL Server</td>
+<td>Microsoft 生态关系数据库</td>
+<td>.NET 企业应用、报表、数据平台</td>
+<td>与 Windows、AD、Power BI 等生态集成度高，注意许可与平台依赖</td>
+</tr>
+<tr>
+<td>SQLite</td>
+<td>嵌入式单文件关系数据库</td>
+<td>移动端、桌面端、IoT、CLI 工具、本地元数据</td>
+<td>无独立服务进程，部署简单；不适合高并发网络服务的集中写入</td>
+</tr>
+<tr>
+<td>TiDB</td>
+<td>分布式 HTAP &#x2F; NewSQL</td>
+<td>希望保留 MySQL 协议，同时横向扩展事务数据和分析能力</td>
+<td>适合分布式扩展需求明确的场景；不能把分布式系统的网络、运维和事务成本当作免费收益</td>
+</tr>
+<tr>
+<td>CockroachDB &#x2F; YugabyteDB</td>
+<td>分布式 SQL</td>
+<td>多地域部署、跨可用区高可用 SQL 服务</td>
+<td>强调一致性与多地域容灾；需评估跨地域延迟、事务冲突和 SQL 兼容性</td>
+</tr>
+</tbody></table>
+<p><strong>OLTP</strong> 指高并发、短事务的在线交易处理，例如下单和扣款；<strong>HTAP</strong> 指同一份数据既做事务处理又支持接近实时分析。不要因为需要报表就把交易库直接替换成分析库，优先明确读写和分析链路的时效要求。</p>
+<h2 id="内存缓存与-KV-存储"><a href="#内存缓存与-KV-存储" class="headerlink" title="内存缓存与 KV 存储"></a>内存缓存与 KV 存储</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Redis</td>
+<td>丰富数据结构的内存存储</td>
+<td>缓存、会话、排行榜、限流、分布式协调、Stream</td>
+<td>关注热 Key、大 Key、过期策略和缓存一致性；通常不是唯一事实源</td>
+</tr>
+<tr>
+<td>Memcached</td>
+<td>简单分布式内存 KV 缓存</td>
+<td>纯对象缓存、历史系统</td>
+<td>模型简单、无复杂数据结构和持久化；新项目通常 Redis 更常见</td>
+</tr>
+<tr>
+<td>RocksDB</td>
+<td>嵌入式 LSM KV 引擎</td>
+<td>流处理状态、嵌入式存储、服务本地状态</td>
+<td>它是库而非独立数据库服务；写放大和 compaction 是主要运维&#x2F;性能关注点</td>
+</tr>
+</tbody></table>
+<p>Redis 与 Memcached 的核心任务都是减轻后端压力、降低读取延迟。差异不应只回答“Redis 支持更多结构”，还要说明 Redis 可以承担计数、队列等数据结构操作，而 Memcached 更专注简单缓存；两者缓存失效后都应能从权威源重建。</p>
+<h2 id="文档、宽列与大规模-KV-数据库"><a href="#文档、宽列与大规模-KV-数据库" class="headerlink" title="文档、宽列与大规模 KV 数据库"></a>文档、宽列与大规模 KV 数据库</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MongoDB</td>
+<td>面向文档的应用数据存储</td>
+<td>内容详情、商品聚合信息、字段经常变化的业务对象</td>
+<td>文档聚合边界要合理；跨大量文档事务会增加复杂度</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>基于 HDFS 的海量稀疏宽表</td>
+<td>日志明细、用户画像、轨迹、历史流水</td>
+<td>查询必须围绕 RowKey 设计；列族数量和热点 RowKey 要控制</td>
+</tr>
+<tr>
+<td>Cassandra</td>
+<td>去中心化宽列数据库</td>
+<td>多机房高可用写入、按分区键访问的海量数据</td>
+<td>一致性可调；分区键设计和避免超大分区是关键</td>
+</tr>
+<tr>
+<td>DynamoDB</td>
+<td>托管式分布式 KV&#x2F;文档数据库</td>
+<td>AWS 云原生应用、按主键高吞吐访问</td>
+<td>容量模型、热分区、二级索引和供应商绑定需要提前评估</td>
+</tr>
+</tbody></table>
+<p>这类系统共同特点是：通常不提供关系型数据库那样任意字段 Join 和自由组合查询。建模前必须先列出最重要的查询，再设计文档主键、RowKey 或分区键。</p>
+<h2 id="搜索、分析与列式数据库"><a href="#搜索、分析与列式数据库" class="headerlink" title="搜索、分析与列式数据库"></a>搜索、分析与列式数据库</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Elasticsearch &#x2F; OpenSearch</td>
+<td>全文检索、过滤、聚合、日志搜索</td>
+<td>商品搜索、知识库、日志检索、运营筛选</td>
+<td>是派生索引而非核心事实库；需要处理 mapping、分片、重建与同步延迟</td>
+</tr>
+<tr>
+<td>ClickHouse</td>
+<td>列式 OLAP 分析数据库</td>
+<td>BI 报表、行为分析、日志分析、指标聚合</td>
+<td>擅长大范围扫描和聚合，不适合频繁按主键更新单行的交易模型</td>
+</tr>
+<tr>
+<td>Apache Druid</td>
+<td>实时 OLAP 分析库</td>
+<td>实时看板、广告&#x2F;行为流分析</td>
+<td>时间分区和预聚合能力强，需评估数据摄入与查询模型</td>
+</tr>
+<tr>
+<td>Apache Pinot</td>
+<td>面向实时分析的 OLAP</td>
+<td>用户行为实时查询、运营大盘</td>
+<td>常与 Kafka 配合，适合低延迟聚合查询，不是通用事务库</td>
+</tr>
+</tbody></table>
+<p>列式分析数据库与 MySQL 的区别在于读取方式：报表经常只读取少数指标列、扫描大量行并聚合，列式存储可减少无关列 IO 并提高压缩率；交易更新通常涉及一整行状态，行式事务库更自然。</p>
+<h2 id="时序数据库"><a href="#时序数据库" class="headerlink" title="时序数据库"></a>时序数据库</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenTSDB</td>
+<td>建在 HBase 上的指标时序库</td>
+<td>主机&#x2F;应用监控、历史指标曲线</td>
+<td>关注 Tag 基数和 HBase RowKey 热点</td>
+</tr>
+<tr>
+<td>InfluxDB</td>
+<td>专用时序数据库</td>
+<td>IoT 传感器、业务指标、监控数据</td>
+<td>使用 Tag 做索引、Field 存数值；高基数 Tag 仍会带来压力</td>
+</tr>
+<tr>
+<td>Prometheus</td>
+<td>监控采集与查询时序库</td>
+<td>云原生服务监控、告警、Kubernetes 指标</td>
+<td>拉取模型和本地存储适合监控；长期海量存储常接 Thanos、Mimir、VictoriaMetrics 等远端方案</td>
+</tr>
+<tr>
+<td>VictoriaMetrics</td>
+<td>高性能时序存储与 PromQL 生态</td>
+<td>大规模 Prometheus 指标长期保存</td>
+<td>重点评估写入基数、保留周期、告警查询和运维形态</td>
+</tr>
+<tr>
+<td>TimescaleDB</td>
+<td>PostgreSQL 上的时序扩展</td>
+<td>既需 PostgreSQL SQL&#x2F;事务又有时序分区与聚合</td>
+<td>适合团队已使用 PostgreSQL 的时序业务，仍需规划压缩、分区和保留策略</td>
+</tr>
+<tr>
+<td>QuestDB</td>
+<td>面向高吞吐写入的时序 SQL 数据库</td>
+<td>市场行情、IoT、指标数据</td>
+<td>适合时间序列写入与 SQL 查询，仍需评估生态、运维和高可用方案</td>
+</tr>
+</tbody></table>
+<p>时序数据的最大风险通常不是单点值数量，而是<strong>时间序列基数</strong>。例如将 <code>user_id</code>、完整 URL、请求 ID 作为标签，会让每种标签组合形成一条新序列，索引和内存开销迅速失控。</p>
+<h2 id="图数据库与专用数据库"><a href="#图数据库与专用数据库" class="headerlink" title="图数据库与专用数据库"></a>图数据库与专用数据库</h2><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>核心作用</th>
+<th>常见场景</th>
+<th>选型提醒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Neo4j</td>
+<td>图关系存储与图遍历</td>
+<td>知识图谱、反欺诈关联、推荐关系、多跳路径查询</td>
+<td>适合关系遍历，不替代大规模账务交易库</td>
+</tr>
+<tr>
+<td>Milvus</td>
+<td>向量数据库</td>
+<td>语义检索、RAG、相似图片&#x2F;文本搜索</td>
+<td>向量召回不是最终业务过滤，通常要结合关系库元数据和重排序</td>
+</tr>
+</tbody></table>
+<p>向量数据库的核心用途是近似最近邻（ANN）召回，不应把它描述为“替代 Elasticsearch 或 MySQL”。实际 RAG&#x2F;搜索链路通常是向量召回 + 关键词&#x2F;元数据过滤 + 重排序 + 权限校验。</p>
+<h1 id="数据怎样落盘"><a href="#数据怎样落盘" class="headerlink" title="数据怎样落盘"></a>数据怎样落盘</h1><p>物理存储决定了写入放大、更新成本和查询路径。下面的模型比产品名称更值得记住。</p>
+<pre class="mermaid">flowchart TD
+    A[业务请求] --> B{数据和查询形态}
+    B --> C[关系行与事务]
+    B --> D[缓存或嵌入式 KV]
+    B --> E[聚合 JSON 文档]
+    B --> F[海量按键宽表]
+    B --> G[全文检索或列式分析]
+    B --> H[指标时间序列]
+    B --> I[关系遍历或语义召回]
+    C --> J[MySQL / PostgreSQL / Oracle / SQL Server]
+    C --> K[TiDB / CockroachDB / YugabyteDB]
+    D --> L[Redis / Memcached / RocksDB / SQLite]
+    E --> M[MongoDB / DynamoDB]
+    F --> N[HBase / Cassandra]
+    G --> O[Elasticsearch / OpenSearch]
+    G --> P[ClickHouse / Druid / Pinot]
+    H --> Q[OpenTSDB / Prometheus / InfluxDB]
+    H --> R[VictoriaMetrics / TimescaleDB / QuestDB]
+    I --> S[Neo4j / Milvus]</pre>
+
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>主要物理组织</th>
+<th>更新一条数据时的关键特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL InnoDB</td>
+<td>主键聚簇索引页保存整行，二级索引叶子保存二级键和主键</td>
+<td>更新会写 redo、undo、binlog；更新二级索引字段还要维护二级索引</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>Heap 表页存行版本；索引通常保存键值和 TID，再定位 Heap 行</td>
+<td><code>UPDATE</code> 常产生新行版本，旧版本由 VACUUM 清理；不是 InnoDB 聚簇表</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>数据常驻内存，按对象编码保存；RDB&#x2F;AOF 用于恢复</td>
+<td>单命令原子，避免大 Key 和长命令；持久化不是关系库事务的替代品</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>BSON 文档存入 collection；WiredTiger 负责页、压缩与缓存</td>
+<td>文档内嵌对象适合整体读写，频繁膨胀或跨文档更新需重新评估模型</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>表按 RowKey 字典序分 Region；列族最终形成 HFile，写入先到 WAL&#x2F;MemStore 再刷盘</td>
+<td>LSM 风格写路径适合高吞吐追加；读可能合并多个 HFile，依赖 compaction</td>
+</tr>
+<tr>
+<td>Elasticsearch</td>
+<td>文档写入 Lucene segment；segment 不可变，删除&#x2F;更新通过新增版本和标记删除实现</td>
+<td>写入先进入 buffer&#x2F;translog，refresh 后才可搜索；大量更新会带来 segment 合并压力</td>
+</tr>
+<tr>
+<td>OpenTSDB</td>
+<td>将 metric、tag、时间戳编码为 HBase RowKey，数据点写入 HBase 列</td>
+<td>高吞吐时间序列写入依赖合理 RowKey 与 Tag 基数控制</td>
+</tr>
+<tr>
+<td>Oracle &#x2F; SQL Server</td>
+<td>页式行存关系表、事务日志和缓冲池；具体实现由各自商业引擎管理</td>
+<td>适合以事务正确性和企业级高可用为优先级的核心业务，更新需同时维护日志与相关索引</td>
+</tr>
+<tr>
+<td>SQLite</td>
+<td>单个本地数据库文件，页式 B-tree、WAL 或回滚日志</td>
+<td>部署零运维；同一时刻写入并发能力受单文件锁和本地磁盘限制</td>
+</tr>
+<tr>
+<td>TiDB &#x2F; CockroachDB &#x2F; YugabyteDB</td>
+<td>数据按分片保存于多个节点，副本通过共识协议复制；TiDB 还可将分析副本放入列存 TiFlash</td>
+<td>一次写入会涉及网络复制和事务协调，换来容灾和横向扩展，也带来跨地域延迟和冲突成本</td>
+</tr>
+<tr>
+<td>Memcached</td>
+<td>内存 slab 分配器中的简单 Key-Value 对象</td>
+<td>只做易失缓存，淘汰后必须能从权威数据源重建</td>
+</tr>
+<tr>
+<td>RocksDB</td>
+<td>本地 WAL + MemTable + SST 文件组成 LSM 树</td>
+<td>顺序写入快；后台 compaction 会产生写放大和磁盘 IO 峰值</td>
+</tr>
+<tr>
+<td>Cassandra &#x2F; DynamoDB</td>
+<td>数据按分区键分布到节点或托管分区；Cassandra 使用 LSM&#x2F;SSTable，DynamoDB 屏蔽底层实现</td>
+<td>分区键决定数据分布和吞吐上限，热点分区会先成为瓶颈</td>
+</tr>
+<tr>
+<td>ClickHouse &#x2F; Druid &#x2F; Pinot</td>
+<td>列式数据按分区和数据段落盘，列压缩后批量扫描；实时数据通常先进入内存段或增量段</td>
+<td>追加、批量导入和聚合读取很强；ClickHouse 的更新&#x2F;删除多经 mutation 和合并完成，Druid&#x2F;Pinot 更常通过段替换、重摄入或压缩处理，不适合交易式逐行更新</td>
+</tr>
+<tr>
+<td>InfluxDB &#x2F; Prometheus &#x2F; VictoriaMetrics &#x2F; QuestDB</td>
+<td>按时间切块或分区保存序列，配套标签索引、压缩和保留策略</td>
+<td>写入主要是追加；标签组合和保留周期决定索引、磁盘与 compaction 压力</td>
+</tr>
+<tr>
+<td>Neo4j</td>
+<td>节点、关系和属性分别持久化，并维护关系邻接信息</td>
+<td>多跳遍历可直接沿关系访问；不适合把所有高频交易明细都建成图</td>
+</tr>
+<tr>
+<td>TimescaleDB</td>
+<td>PostgreSQL 表按时间自动拆成 Hypertable chunk</td>
+<td>继承 PostgreSQL 的行版本和 WAL，同时通过分块、压缩管理时序数据</td>
+</tr>
+<tr>
+<td>Milvus</td>
+<td>向量字段、标量元数据和 ANN 索引分别持久化，索引构建常异步完成</td>
+<td>写入后要经历索引构建或增量索引阶段；向量维度、索引参数直接影响容量和召回延迟</td>
+</tr>
+</tbody></table>
+<h2 id="一个容易混淆的区别：MySQL-与-PostgreSQL"><a href="#一个容易混淆的区别：MySQL-与-PostgreSQL" class="headerlink" title="一个容易混淆的区别：MySQL 与 PostgreSQL"></a>一个容易混淆的区别：MySQL 与 PostgreSQL</h2><p>两者都是关系型数据库，但表的物理组织不同：InnoDB 通常以主键为聚簇索引，按主键查找可以直接在主键叶子页取整行；PostgreSQL 默认表是 Heap，B-tree 索引先拿到 TID，再去表页取行并做 MVCC 可见性判断。</p>
+<p>这不是谁更好，而是不同实现。PostgreSQL 的 <code>Index Only Scan</code> 还需要可见性映射配合，才能真正不访问 Heap；InnoDB 的二级索引查询通常也要根据主键回到聚簇索引取整行。</p>
+<h1 id="索引类型与查询路径"><a href="#索引类型与查询路径" class="headerlink" title="索引类型与查询路径"></a>索引类型与查询路径</h1><p>“有没有索引”只是开始，更重要的是索引能否匹配你的查询谓词和排序方式。</p>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>核心索引或加速结构</th>
+<th>典型查询</th>
+<th>关键限制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL</td>
+<td>B+ 树主键&#x2F;二级索引、联合索引、全文索引</td>
+<td><code>WHERE</code> 等值&#x2F;范围、排序、覆盖索引</td>
+<td>联合索引受最左前缀影响；索引过多拖慢写入</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>B-tree、GIN、GiST、BRIN、Hash</td>
+<td>等值&#x2F;范围&#x2F;排序，JSONB&#x2F;数组，空间与范围类型</td>
+<td>B-tree 默认最通用；GIN 查询强但写入、维护成本较高</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>不存在“二级索引”这一通用能力</td>
+<td>通过 Key 精确定位，再用 Hash&#x2F;ZSet 等结构操作</td>
+<td>需要按访问模式设计 Key；复杂筛选不能靠遍历全库</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>单字段、复合、唯一、多键、文本、地理空间索引</td>
+<td>文档字段过滤、排序、数组条件</td>
+<td>每个索引消耗内存和写入成本；复合索引仍需匹配查询顺序</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>RowKey 有序索引、Bloom Filter、Block Cache</td>
+<td>单行 Get、RowKey 前缀&#x2F;范围 Scan</td>
+<td>原生没有任意列的通用二级索引；查询模式必须先设计 RowKey</td>
+</tr>
+<tr>
+<td>Elasticsearch</td>
+<td>倒排索引、BKD 树、Doc Values、词典与聚合结构</td>
+<td>关键词检索、过滤、数值范围、聚合、排序</td>
+<td>mapping 和分词器决定结果；深分页和高基数聚合成本高</td>
+</tr>
+<tr>
+<td>OpenTSDB</td>
+<td>基于 HBase RowKey 的时间范围扫描，常结合预聚合</td>
+<td>某指标、指定 Tag、某段时间的曲线</td>
+<td>Tag 不是关系库索引；高基数 Tag 会放大行数和查询扇出</td>
+</tr>
+<tr>
+<td>Oracle &#x2F; SQL Server &#x2F; SQLite</td>
+<td>B-tree 为主，并提供组合、唯一、全文或特定类型索引</td>
+<td>事务表等值、范围、排序查询</td>
+<td>索引设计仍遵循查询谓词与选择性；额外索引会增加写放大</td>
+</tr>
+<tr>
+<td>TiDB &#x2F; CockroachDB &#x2F; YugabyteDB</td>
+<td>分布式主键&#x2F;二级索引；二级索引通常也需要分布式回表</td>
+<td>按主键或索引过滤的 SQL</td>
+<td>索引命中不代表低延迟，跨 Region&#x2F;分片读取与分布式事务仍有网络代价</td>
+</tr>
+<tr>
+<td>Memcached &#x2F; RocksDB</td>
+<td>Memcached 仅精确 Key；RocksDB 以有序 LSM Key 和 Bloom Filter 加速</td>
+<td>Key 查找，RocksDB 支持 Key 范围迭代</td>
+<td>Memcached 没有通用二级索引；RocksDB 需由应用维护访问维度</td>
+</tr>
+<tr>
+<td>Cassandra &#x2F; DynamoDB</td>
+<td>分区键定位分区，聚簇列&#x2F;Sort Key 定义分区内顺序；可建立受限二级索引</td>
+<td>已知分区键后的范围读取</td>
+<td>不能把二级索引当任意查询能力；首要目标是避免跨分区扇出</td>
+</tr>
+<tr>
+<td>OpenSearch</td>
+<td>与 Elasticsearch 相同，使用倒排索引、BKD、Doc Values</td>
+<td>搜索、过滤、聚合</td>
+<td>同样需要治理 mapping、分片与高基数聚合</td>
+</tr>
+<tr>
+<td>ClickHouse &#x2F; Druid &#x2F; Pinot</td>
+<td>排序键、主键稀疏索引、分区裁剪、位图&#x2F;字典等列式加速结构</td>
+<td>时间范围内筛选、扫描和聚合</td>
+<td>不是行式 B+ 树点查模型；排序键和分区必须服务高频查询</td>
+</tr>
+<tr>
+<td>InfluxDB &#x2F; Prometheus &#x2F; VictoriaMetrics &#x2F; QuestDB</td>
+<td>时间索引加标签&#x2F;Label 索引，按时间窗口扫描</td>
+<td>指标 + 标签过滤 + 时间范围聚合</td>
+<td>标签基数失控会先耗尽索引和内存；不能将每个请求 ID 作为标签</td>
+</tr>
+<tr>
+<td>Neo4j</td>
+<td>节点属性索引、全文索引与关系邻接遍历</td>
+<td>从起点进行多跳图查询</td>
+<td>图遍历必须有明确起点和深度，超级节点会造成扇出爆炸</td>
+</tr>
+<tr>
+<td>TimescaleDB</td>
+<td>PostgreSQL 索引加时间 chunk 裁剪</td>
+<td>时间范围 SQL、按设备&#x2F;租户过滤</td>
+<td>每个 chunk 的索引与分区数都要受控</td>
+</tr>
+<tr>
+<td>Milvus</td>
+<td>IVF、HNSW、DiskANN 等 ANN 向量索引，配合标量过滤</td>
+<td>Top-K 相似向量召回</td>
+<td>近似召回存在精度、内存和延迟权衡，不能代替精确过滤和重排序</td>
+</tr>
+</tbody></table>
+<h2 id="各自怎样“查一条数据”"><a href="#各自怎样“查一条数据”" class="headerlink" title="各自怎样“查一条数据”"></a>各自怎样“查一条数据”</h2><ol>
+<li>MySQL：二级索引命中后，通常通过主键回到聚簇索引取整行；覆盖索引可减少回表。</li>
+<li>PostgreSQL：B-tree 叶子项给出 TID，执行器访问 Heap 页并做 MVCC 可见性判断；合适时可走 <code>Index Only Scan</code>。</li>
+<li>Redis：用精确 Key 做 <code>GET</code>、<code>HGET</code>、<code>ZSCORE</code> 等，时间复杂度很低；不要用 <code>KEYS *</code> 或未知规模的 <code>HGETALL</code> 做查询。</li>
+<li>MongoDB：用索引定位 BSON 文档；若查询字段和返回字段均可由索引提供，可使用覆盖查询。</li>
+<li>HBase：最优路径是已知完整 RowKey 的 <code>Get</code>，其次是连续 RowKey 范围 Scan；按非 RowKey 字段查会变成全表扫描或需要额外索引表。</li>
+<li>Elasticsearch：查询词经分析后到倒排表找到候选文档，再经过过滤、打分、排序和聚合；它不是逐行扫描 JSON。</li>
+<li>OpenTSDB：根据指标、Tag 和时间范围构造或筛选一批 HBase RowKey，再读取数据点并按需要聚合下采样。</li>
+<li>Oracle、SQL Server、SQLite：优化器依据统计信息选择 B-tree 等访问路径；前两者通常服务端执行 SQL，SQLite 则在进程内直接访问数据库文件。</li>
+<li>TiDB、CockroachDB、YugabyteDB：协调节点将 SQL 拆为分布式执行计划，向存有目标分片的节点发起读取；按主键命中单分片最稳定，跨分片 Join&#x2F;聚合需要交换数据。</li>
+<li>Memcached、RocksDB、Cassandra、DynamoDB：先由 Key 或分区键路由到目标节点&#x2F;本地文件，再用分区内排序键或 Value 返回结果；缺少分区键的查询往往意味着扫描或额外索引。</li>
+<li>ClickHouse、Druid、Pinot：先通过时间分区和排序键排除无关数据段，再只读取参与过滤和聚合的列；这正是它们适合报表、不适合逐行交易更新的原因。</li>
+<li>InfluxDB、Prometheus、VictoriaMetrics、QuestDB、TimescaleDB：先按指标名和标签定位时间序列或时间分区，再在时间窗口内解压、下采样和聚合。</li>
+<li>Neo4j：先用属性索引找到起始节点，再沿关系边按指定方向和深度遍历；Milvus 则在向量索引中做 Top-K 近似近邻召回，然后由业务元数据过滤和重排序。</li>
+</ol>
+<h1 id="事务、一致性与可见性"><a href="#事务、一致性与可见性" class="headerlink" title="事务、一致性与可见性"></a>事务、一致性与可见性</h1><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>原子性与事务能力</th>
+<th>一致性设计重点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL InnoDB</td>
+<td>完整 ACID，行锁、MVCC、redo&#x2F;undo&#x2F;binlog</td>
+<td>订单、支付、库存等核心状态用短事务、唯一约束和条件更新兜底</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>完整 ACID，MVCC、WAL、丰富隔离语义</td>
+<td>默认读写并发好；长事务会拖住旧版本回收，需监控 VACUUM 与事务年龄</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>单条命令原子；<code>MULTI/EXEC</code>、Lua 可组合原子操作</td>
+<td>缓存一致性、锁超时、故障切换都要由业务补足；不能假设每次复制都零丢失</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>单文档原子；支持多文档事务但有成本</td>
+<td>优先用文档聚合边界降低事务需求；多文档事务不是默认建模方式</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>单行原子；提供 Check-and-Mutate 等条件操作</td>
+<td>不提供关系库式多行事务；通过 RowKey 设计、幂等写和异步补偿保证业务正确性</td>
+</tr>
+<tr>
+<td>Elasticsearch</td>
+<td>单文档写入与乐观并发控制；近实时搜索</td>
+<td>写入成功到可搜索有 refresh 延迟；主库数据与 ES 索引应通过消息&#x2F;CDC 和重试补偿同步</td>
+</tr>
+<tr>
+<td>OpenTSDB</td>
+<td>底层依赖 HBase 的单行语义</td>
+<td>监控指标通常接受最终到达和补点；告警需要处理迟到数据与查询窗口</td>
+</tr>
+<tr>
+<td>Oracle &#x2F; SQL Server &#x2F; SQLite</td>
+<td>提供 ACID 事务与日志恢复；SQLite 更适合单机嵌入式事务</td>
+<td>核心约束、事务边界和连接并发模型仍需按业务设计，不能因为是关系库就省略幂等与重试</td>
+</tr>
+<tr>
+<td>TiDB &#x2F; CockroachDB &#x2F; YugabyteDB</td>
+<td>提供分布式 ACID 事务和一致性副本</td>
+<td>跨分片&#x2F;跨地域事务的延迟与冲突更高；应让强事务尽量收敛到同一业务键或地域</td>
+</tr>
+<tr>
+<td>Memcached &#x2F; RocksDB</td>
+<td>Memcached 不提供事务和持久化保证；RocksDB 提供本地原子写批和 WAL</td>
+<td>两者都不能替代分布式业务事务；RocksDB 的一致性边界只在单机实例内</td>
+</tr>
+<tr>
+<td>Cassandra &#x2F; DynamoDB</td>
+<td>Cassandra 提供可调一致性，DynamoDB 提供条件写和事务 API</td>
+<td>用条件写、幂等键和分区设计保护正确性；不要假设跨分区操作天然低成本</td>
+</tr>
+<tr>
+<td>OpenSearch</td>
+<td>单文档乐观并发、近实时可见</td>
+<td>与 Elasticsearch 一样应把它当派生搜索索引，通过 CDC、重放和对账恢复</td>
+</tr>
+<tr>
+<td>ClickHouse &#x2F; Druid &#x2F; Pinot</td>
+<td>主要面向分析摄入与查询，不是通用多行 ACID 事务库</td>
+<td>明细通常来自 Kafka&#x2F;对象存储&#x2F;主库，需容忍重复并用事件 ID 去重或离线校正</td>
+</tr>
+<tr>
+<td>InfluxDB &#x2F; Prometheus &#x2F; VictoriaMetrics &#x2F; QuestDB</td>
+<td>重点是时序写入和最终查询一致性，不承担业务事务</td>
+<td>告警、聚合要处理迟到点、重复点和采集失败；权威业务状态仍应在事务库</td>
+</tr>
+<tr>
+<td>Neo4j &#x2F; TimescaleDB</td>
+<td>Neo4j 支持图事务；TimescaleDB 继承 PostgreSQL ACID</td>
+<td>图更新或时序业务事务可以使用，但要控制长事务和跨大量数据分区的修改</td>
+</tr>
+<tr>
+<td>Milvus</td>
+<td>面向向量数据的插入、删除和索引构建，不是交易事务系统</td>
+<td>向量库只保存检索副本或知识数据，原始文档、权限和版本仍需由权威库维护</td>
+</tr>
+</tbody></table>
+<p>一个常见架构误区是把 Elasticsearch 或 Redis 当成订单状态的唯一真相来源。更稳妥的方式是：关系库保存权威交易数据，事务提交后用 Outbox、Binlog&#x2F;CDC 或可靠消息驱动缓存和检索索引更新；消费者必须幂等，并支持重放和校验。</p>
+<h1 id="扩展方式与容量边界"><a href="#扩展方式与容量边界" class="headerlink" title="扩展方式与容量边界"></a>扩展方式与容量边界</h1><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>主要扩展方式</th>
+<th>最先出现的瓶颈</th>
+<th>常见治理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL</td>
+<td>读写分离、分库分表、分区、归档</td>
+<td>单主写入、单表索引和存储容量</td>
+<td>优化 SQL&#x2F;索引后再分片；以业务键设计路由</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>读副本、分区、逻辑复制、分片方案&#x2F;扩展</td>
+<td>单实例写入与大表维护</td>
+<td>分区、归档、读扩展；跨分片查询成本要提前评估</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Cluster 分 slot、主从副本、本地缓存</td>
+<td>单节点内存、热 Key、大 Key、网络</td>
+<td>拆 Key、限制 Value、热点多级缓存、合理淘汰策略</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>Sharding、Replica Set</td>
+<td>分片键倾斜、跨分片查询、chunk 迁移</td>
+<td>选择高基数且分布均匀的 shard key，避免单调递增热点</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>Region 自动切分和分布式 RegionServer</td>
+<td>热 RowKey、compaction、Region 倾斜</td>
+<td>RowKey 加盐&#x2F;分桶、预分区、列族控制、容量规划</td>
+</tr>
+<tr>
+<td>Elasticsearch</td>
+<td>主分片 + 副本分片横向扩展</td>
+<td>分片过多、聚合内存、热点分片、segment 合并</td>
+<td>按索引生命周期管理，控制分片数，冷热分层和 rollover</td>
+</tr>
+<tr>
+<td>OpenTSDB</td>
+<td>跟随 HBase 扩展</td>
+<td>Tag 高基数、时间序列爆炸、热点写入</td>
+<td>规范 Tag，避免用户 ID 等无界维度，预聚合和保留策略</td>
+</tr>
+<tr>
+<td>Oracle &#x2F; SQL Server &#x2F; SQLite</td>
+<td>Oracle&#x2F;SQL Server 以高配单机、读副本、分区和成熟 HA 为主；SQLite 通常单机随应用发布</td>
+<td>商业许可、单实例写入或单文件并发写入</td>
+<td>核心库优先做容量、备份演练和读扩展；SQLite 超出单机边界时迁移到服务端数据库</td>
+</tr>
+<tr>
+<td>TiDB &#x2F; CockroachDB &#x2F; YugabyteDB</td>
+<td>增加计算&#x2F;存储节点并自动或半自动重均衡分片</td>
+<td>热点范围、跨地域复制延迟、分布式事务冲突</td>
+<td>以高基数主键分散写入，规划副本地域，监控重平衡、热点和事务重试</td>
+</tr>
+<tr>
+<td>Memcached &#x2F; RocksDB</td>
+<td>Memcached 客户端一致性哈希扩容；RocksDB 通过应用分片或上层系统扩展</td>
+<td>Memcached 内存淘汰；RocksDB compaction、磁盘和单机容量</td>
+<td>缓存可丢失可重建；RocksDB 管理好写缓冲、SST 和磁盘余量</td>
+</tr>
+<tr>
+<td>Cassandra &#x2F; DynamoDB</td>
+<td>Cassandra 增加节点并按 token 分布；DynamoDB 按托管分区自动扩缩</td>
+<td>热分区、超大分区、二级索引放大</td>
+<td>设计均匀分区键，拆分宽分区，限流并监控分区级吞吐</td>
+</tr>
+<tr>
+<td>OpenSearch</td>
+<td>与 Elasticsearch 相同，通过主分片和副本扩展</td>
+<td>分片、堆内存、聚合和写入合并</td>
+<td>采用生命周期、冷热分层和合理分片规格</td>
+</tr>
+<tr>
+<td>ClickHouse &#x2F; Druid &#x2F; Pinot</td>
+<td>按分片、时间分区和副本扩展计算与存储</td>
+<td>数据倾斜、查询并发、后台合并和实时摄入积压</td>
+<td>按时间&#x2F;租户分区，预聚合常用指标，隔离重查询和实时写入资源</td>
+</tr>
+<tr>
+<td>InfluxDB &#x2F; Prometheus &#x2F; VictoriaMetrics &#x2F; QuestDB &#x2F; TimescaleDB</td>
+<td>通过时间分区、保留策略、远端存储或集群形态扩展</td>
+<td>高基数、长期保留、压缩合并、告警查询峰值</td>
+<td>禁止无界标签，降采样，分层保留；Prometheus 长期存储使用远端方案</td>
+</tr>
+<tr>
+<td>Neo4j &#x2F; Milvus</td>
+<td>Neo4j 需按版本&#x2F;架构规划集群或分图；Milvus 可拆分计算、索引和对象存储</td>
+<td>Neo4j 超级节点和图扇出；Milvus 向量维度、索引内存和重建</td>
+<td>约束图遍历深度，按业务拆图；为 Milvus 选择 ANN 索引并预留重建与扩容容量</td>
+</tr>
+</tbody></table>
+<h2 id="HBase-与-OpenTSDB-的特殊约束"><a href="#HBase-与-OpenTSDB-的特殊约束" class="headerlink" title="HBase 与 OpenTSDB 的特殊约束"></a>HBase 与 OpenTSDB 的特殊约束</h2><p>HBase 不是“能装很多数据的 MySQL”。它要求先设计 RowKey，再写查询：例如按 <code>tenant + metric + time bucket + hash bucket</code> 组织数据，才能让同一类数据既能范围扫描，又不把所有写入打到同一个 Region。</p>
+<p>OpenTSDB 也不是“给任意业务表加一个时间字段”。指标 <code>cpu.usage</code> 的 <code>host</code>、<code>region</code> 等 Tag 应该是有限、可控的维度。把 <code>request_id</code>、用户 ID、随机 URL 参数当 Tag 会制造海量时间序列，导致 HBase 行数、索引&#x2F;元数据和查询扇出失控。</p>
+<h1 id="典型生产架构：不是选一个，而是明确数据主从关系"><a href="#典型生产架构：不是选一个，而是明确数据主从关系" class="headerlink" title="典型生产架构：不是选一个，而是明确数据主从关系"></a>典型生产架构：不是选一个，而是明确数据主从关系</h1><p>以电商商品搜索为例，比较合理的数据流如下：</p>
+<pre class="mermaid">flowchart LR
+    A[商品后台] --> B[(MySQL / PostgreSQL: 权威商品与库存)]
+    B --> C[Outbox 或 Binlog CDC]
+    C --> D[消息队列]
+    D --> E[(Elasticsearch: 检索索引)]
+    D --> F[(Redis: 商品详情和热点缓存)]
+    G[用户搜索] --> E
+    H[商品详情] --> F
+    F -->|未命中| B
+    I[监控采集] --> J[OpenTSDB on HBase]</pre>
+
+<p>这个架构里，MySQL&#x2F;PostgreSQL 是商品事实数据的权威源；Redis 是可失效、可重建的加速层；Elasticsearch 是可重建的检索投影；OpenTSDB&#x2F;HBase 存放监控时序数据。每一层都要有重试、幂等和重建能力，不能只依赖一次消息投递成功。</p>
+<h1 id="面试选型回答模板"><a href="#面试选型回答模板" class="headerlink" title="面试选型回答模板"></a>面试选型回答模板</h1><p>遇到选型题，可以按下面顺序作答：</p>
+<ol>
+<li>先给数据定性：是交易事实、聚合文档、缓存状态、搜索索引还是时序指标。</li>
+<li>说明主查询路径：按主键查、复杂 Join、全文检索、时间范围扫，还是排行榜&#x2F;计数。</li>
+<li>说明一致性边界：是否需要多行事务、能否接受秒级最终一致、是否允许丢失缓存。</li>
+<li>说明增长方式：数据量、QPS、写入是否热点、是否需要水平扩展。</li>
+<li>最后给出组合方案和故障补偿，而不是把某个中间件说成万能数据库。</li>
+</ol>
+<p>可以用一句话收束：</p>
+<blockquote>
+<p>MySQL、PostgreSQL、Oracle、SQL Server 适合需要事务的权威业务数据，SQLite 适合嵌入式本地数据；TiDB、CockroachDB、YugabyteDB 用于有明确横向扩展或多地域一致性需求的 SQL 场景。Redis、Memcached 是低延迟缓存，RocksDB 是嵌入式 KV 引擎；MongoDB 适合聚合文档，HBase、Cassandra、DynamoDB 适合围绕键或分区键访问的海量数据。Elasticsearch、OpenSearch 做搜索，ClickHouse、Druid、Pinot 做列式分析；OpenTSDB、InfluxDB、Prometheus、VictoriaMetrics、QuestDB、TimescaleDB 处理时序；Neo4j 做关系遍历，Milvus 做向量召回。真正的选型依据是数据模型、查询路径、一致性和增长方式，而不是产品热度。</p>
+</blockquote>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>没有一种数据库能同时以最低成本完成交易、缓存、全文检索、列式分析、海量宽表、时序分析、图遍历和向量召回。生产系统的关键是分清权威数据、派生数据和缓存数据：权威数据以事务和约束保证正确性，派生数据可以通过异步同步与重建保证最终一致，缓存数据必须允许失效和降级。新增数据库也应按这个边界组合使用，而不是因为某个产品支持多种能力就让它承担全部职责。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250718/">https://junly.top/posts/20250718/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a><a class="post-meta__tags" href="/tags/MongoDB/">MongoDB</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%80%89%E5%9E%8B/">数据库选型</a><a class="post-meta__tags" href="/tags/Redis/">Redis</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><a class="post-meta__tags" href="/tags/HBase/">HBase</a><a class="post-meta__tags" href="/tags/OpenTSDB/">OpenTSDB</a><a class="post-meta__tags" href="/tags/%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B/">技术选型</a><a class="post-meta__tags" href="/tags/PostgreSQL/">PostgreSQL</a><a class="post-meta__tags" href="/tags/Elasticsearch/">Elasticsearch</a><a class="post-meta__tags" href="/tags/ClickHouse/">ClickHouse</a><a class="post-meta__tags" href="/tags/TiDB/">TiDB</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250712/" title="发布后故障、灰度回滚、配置变更与快速止血"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">发布后故障、灰度回滚、配置变更与快速止血</div></div><div class="info-2"><div class="info-item-1">前言很多线上故障都发生在发布之后。面试官常问：上线后出问题怎么办？怎么判断是不是新版本导致的？什么时候回滚？配置变更、数据库变更和缓存兼容怎么排查？ 典型现象 发布后错误率升高。 只有灰度用户报错。 部分实例异常，部分实例正常。 新老版本同时运行时数据异常。 配置刷新后接口行为变化。 数据库字段变更导致兼容问题。  排查流程flowchart TD     A[发布后告警] --> B[确认影响范围]     B --> C[对比发布时间]     C --> D[查看灰度批次]     D --> E{是否新版本相关}     E -->|是| F[回滚或关闭开关]     E -->|否| G[继续排查依赖和流量]     F --> H[数据修复和补偿]     G --> H     H --> I[复盘和治理]  第一时间看什么 发布批次。 版本号。 灰度范围。 错误率和...</div></div></div></a><a class="pagination-related" href="/posts/20250722/" title="Java本地缓存：Caffeine、多级缓存、一致性与高并发治理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java本地缓存：Caffeine、多级缓存、一致性与高并发治理</div></div><div class="info-2"><div class="info-item-1">前言本地缓存是指数据保存在当前 Java 进程的堆内存中。它省去了网络访问 Redis 的开销，读延迟通常更低，但每个应用实例都有自己的副本。因此，本地缓存的核心不是“如何 put 和 get”，而是四个问题：缓存多大、何时过期、数据变更如何失效、多实例同时失效时如何避免集体回源。 面试中常见误区是把本地缓存和 Redis 当成替代品。实际上，生产系统更常见的组合是：本地缓存承担极热点读取，Redis 承担跨实例共享缓存，MySQL&#x2F;PostgreSQL 承担权威业务数据。 本地缓存是什么，适合什么场景flowchart LR     A[应用请求] --> L1{L1: 本地 Caffeine}     L1 -->|命中| R[直接返回]     L1 -->|未命中| L2{L2: Redis}     L2 -->|命中| U[回填 L1]     L2 -->|未命中| DB[(数据库或远程服务)]     DB --> W[回填 Redis 与 L1]     U --> R     W -->...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20200514/" title="MySQL与MongoDB对比：关系型与非关系型数据库的抉择"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-05-14</div><div class="info-item-2">MySQL与MongoDB对比：关系型与非关系型数据库的抉择</div></div><div class="info-2"><div class="info-item-1">前言在当今数据驱动的世界中，选择合适的数据库系统对于应用程序的成功至关重要。MySQL作为经典的关系型数据库代表，与MongoDB作为流行的非关系型数据库代表，各自具有显著的特点和应用场景。本文将深入对比这两种数据库系统的核心特性、性能表现、适用场景等方面，帮助开发者和架构师在项目中做出明智的技术选择。无论是传统的企业应用还是现代的Web服务，了解这两种数据库的优缺点将有助于构建更高效、更可靠的数据存储解决方案。 MySQL与MongoDB基础概念对比MySQL和MongoDB代表了两种截然不同的数据库设计理念和实现方式，下面从基本概念开始对比它们的异同： graph TB     subgraph MySQL     A[关系型数据库] --> B[表结构化存储]     B --> C[SQL查询语言]     C --> D[ACID事务]     D --> E[强一致性]     end          subgraph MongoDB     F[非关系型数据库] --> G[文档型存储]     G --> H[JSON/BSON格式]     H -->...</div></div></div></a><a class="pagination-related" href="/posts/20250116/" title="OpenTSDB：从时序模型、HBase存储到查询优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-16</div><div class="info-item-2">OpenTSDB：从时序模型、HBase存储到查询优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言OpenTSDB 面试通常围绕几个核心问题展开：它为什么依赖 HBase，时序数据怎么建模，Metric 和 Tag 有什么区别，UID 表有什么作用，写入链路如何走，查询为什么可能很慢，如何做聚合和降采样，Tag 设计不合理会带来什么问题。 如果只把 OpenTSDB 理解成“存监控指标的数据库”，回答很容易停留在应用层。更好的方式是把它理解成一条完整链路： 1采集指标 -&gt; 解析 metric/tags/timestamp/value -&gt; 转换 UID -&gt; 生成 HBase RowKey -&gt; 写入 HBase -&gt; 查询时按 RowKey 范围扫描 -&gt; 聚合、降采样、返回曲线  本文按面试中最常见的模块梳理 OpenTSDB 要点，适合作为面试前的复习清单。 OpenTSDB 整体定位OpenTSDB 是构建在 HBase 之上的分布式时间序列数据库，主要用于存储和查询大规模监控指标、设备指标、业务指标和 IoT 时序数据。 它的优势是借助 HBase 的水平扩展能力支撑海量时间序列写入和长期存储。它的查询方式以...</div></div></div></a><a class="pagination-related" href="/posts/20250102/" title="MySQL：从索引、事务到性能优化的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-02</div><div class="info-item-2">MySQL：从索引、事务到性能优化的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MySQL 面试题看起来很多，但真正绕不开的主线其实很清楚：一条 SQL 是怎么执行的，数据是怎么存的，索引为什么能加速查询，事务如何保证一致性，并发冲突如何处理，系统变慢时应该怎么定位。 如果只是背概念，很容易遇到追问就卡住；如果能把这些知识点串成一条链路，回答就会自然很多。本文按面试中最常见的模块梳理 MySQL 要点，适合作为面试前的复习清单。 MySQL 整体架构MySQL 可以粗略分为 Server 层和存储引擎层。 flowchart TD     A[客户端连接] --> B[连接器]     B --> C[解析器]     C --> D[优化器]     D --> E[执行器]     E --> F[存储引擎]     F --> G[(磁盘数据)]  Server 层负责连接管理、权限校验、SQL 解析、查询优化、执行调度等通用能力。 存储引擎层负责真正的数据读写。常见引擎包括 InnoDB、MyISAM、Memory 等。现在生产环境最常用的是 InnoDB，因为它支持事务、行级锁、外键、崩溃恢复和...</div></div></div></a><a class="pagination-related" href="/posts/20250109/" title="MongoDB：从文档模型、索引到副本集和分片的系统梳理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-09</div><div class="info-item-2">MongoDB：从文档模型、索引到副本集和分片的系统梳理</div></div><div class="info-2"><div class="info-item-1">前言MongoDB 面试题通常不会只问“它是不是 NoSQL 数据库”。更常见的问题是：为什么用文档模型，文档怎么设计，索引怎么建，聚合怎么优化，副本集如何保证高可用，分片如何扩展容量，事务和关系型数据库有什么差异，慢查询应该怎么排查。 如果只把 MongoDB 理解成“可以存 JSON 的数据库”，回答很容易停留在表面。更好的方式是把它理解成一条完整链路： 1应用写入文档 -&gt; BSON 编码存储 -&gt; WiredTiger 管理数据页和缓存 -&gt; 索引定位数据 -&gt; 副本集复制 oplog -&gt; 分片集群按 shard key 路由请求  本文按面试中最常见的模块梳理 MongoDB 要点，适合作为面试前的复习清单。 MongoDB 整体架构MongoDB 是一个面向文档的数据库，数据以集合和文档的形式组织。集合类似关系型数据库中的表，文档类似一行记录，但文档结构可以更灵活，字段可以嵌套对象和数组。 flowchart TD     A[客户端请求] --> B[mongod 实例]     B --> C[查询解析与执行]     C -->...</div></div></div></a><a class="pagination-related" href="/posts/20210108/" title="Redis入门：5分钟掌握内存数据库的魔力"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-08</div><div class="info-item-2">Redis入门：5分钟掌握内存数据库的魔力</div></div><div class="info-2"><div class="info-item-1">前言Redis（Remote Dictionary Server）是一个开源的、高性能的键值对数据库，它的数据存储在内存中，因此具有极高的读写速度。本文将带领初学者了解Redis的基本概念、安装方法以及常用命令，帮助你快速掌握这一强大工具的基础用法。 Redis基础概念什么是Redis？Redis是一种NoSQL（Not Only SQL）数据库，与传统关系型数据库相比，它具有以下特点：  内存存储：所有数据都保存在内存中，因此读写速度极快 持久化选项：支持将数据保存到磁盘，防止数据丢失 多种数据结构：支持字符串、哈希表、列表、集合、有序集合等数据类型 原子性操作：Redis的操作都是原子性的，保证数据一致性 单线程模型：核心是单线程处理，避免了多线程带来的竞争问题  123456789101112131415┌───────────────────────┐│      应用程序         │└──────────┬────────────┘           │           ▼┌──────────────────────────────────────┐│...</div></div></div></a><a class="pagination-related" href="/posts/20210205/" title="Redis核心原理详解：从数据结构到分布式实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-02-05</div><div class="info-item-2">Redis核心原理详解：从数据结构到分布式实践</div></div><div class="info-2"><div class="info-item-1">前言Redis作为当今最流行的开源内存数据库，以其卓越的性能、丰富的数据类型和灵活的功能，在互联网架构中扮演着至关重要的角色。本文将深入探讨Redis的核心原理，帮助读者全面理解Redis的内部工作机制。 基本概念Redis（Remote Dictionary Server）是一个基于内存的高性能键值数据库，由意大利程序员Salvatore Sanfilippo（antirez）开发。它支持多种数据结构，如字符串、哈希表、列表、集合、有序集合等，并具备以下特点：  高性能：基于内存操作，读写性能极高 持久化：支持数据持久化到磁盘 丰富的数据类型：支持多种复杂的数据结构 原子操作：所有操作都是原子性的，支持事务 高可用：支持主从复制和集群模式  Redis的应用场景12345678910111213141516171819┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐│                   │     │                   │     │     ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">264</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E6%80%BB%E8%A7%88%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">一张总览表</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E6%8C%89%E9%9C%80%E6%B1%82%E5%BF%AB%E9%80%9F%E5%AE%9A%E4%BD%8D"><span class="toc-number">2.1.</span> <span class="toc-text">先按需求快速定位</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E5%BA%93%E7%A7%91%E6%99%AE%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%94%A8%E9%80%94"><span class="toc-number">3.</span> <span class="toc-text">常见数据库科普与核心用途</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E7%B3%BB%E5%9E%8B%E4%B8%8E%E5%88%86%E5%B8%83%E5%BC%8F-SQL-%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">3.1.</span> <span class="toc-text">关系型与分布式 SQL 数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%BC%93%E5%AD%98%E4%B8%8E-KV-%E5%AD%98%E5%82%A8"><span class="toc-number">3.2.</span> <span class="toc-text">内存缓存与 KV 存储</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E6%A1%A3%E3%80%81%E5%AE%BD%E5%88%97%E4%B8%8E%E5%A4%A7%E8%A7%84%E6%A8%A1-KV-%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">3.3.</span> <span class="toc-text">文档、宽列与大规模 KV 数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%9C%E7%B4%A2%E3%80%81%E5%88%86%E6%9E%90%E4%B8%8E%E5%88%97%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">3.4.</span> <span class="toc-text">搜索、分析与列式数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">3.5.</span> <span class="toc-text">时序数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%BE%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%8E%E4%B8%93%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">3.6.</span> <span class="toc-text">图数据库与专用数据库</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%80%8E%E6%A0%B7%E8%90%BD%E7%9B%98"><span class="toc-number">4.</span> <span class="toc-text">数据怎样落盘</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9AMySQL-%E4%B8%8E-PostgreSQL"><span class="toc-number">4.1.</span> <span class="toc-text">一个容易混淆的区别：MySQL 与 PostgreSQL</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%B1%BB%E5%9E%8B%E4%B8%8E%E6%9F%A5%E8%AF%A2%E8%B7%AF%E5%BE%84"><span class="toc-number">5.</span> <span class="toc-text">索引类型与查询路径</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%84%E8%87%AA%E6%80%8E%E6%A0%B7%E2%80%9C%E6%9F%A5%E4%B8%80%E6%9D%A1%E6%95%B0%E6%8D%AE%E2%80%9D"><span class="toc-number">5.1.</span> <span class="toc-text">各自怎样“查一条数据”</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E3%80%81%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">6.</span> <span class="toc-text">事务、一致性与可见性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E6%96%B9%E5%BC%8F%E4%B8%8E%E5%AE%B9%E9%87%8F%E8%BE%B9%E7%95%8C"><span class="toc-number">7.</span> <span class="toc-text">扩展方式与容量边界</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#HBase-%E4%B8%8E-OpenTSDB-%E7%9A%84%E7%89%B9%E6%AE%8A%E7%BA%A6%E6%9D%9F"><span class="toc-number">7.1.</span> <span class="toc-text">HBase 与 OpenTSDB 的特殊约束</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E7%94%9F%E4%BA%A7%E6%9E%B6%E6%9E%84%EF%BC%9A%E4%B8%8D%E6%98%AF%E9%80%89%E4%B8%80%E4%B8%AA%EF%BC%8C%E8%80%8C%E6%98%AF%E6%98%8E%E7%A1%AE%E6%95%B0%E6%8D%AE%E4%B8%BB%E4%BB%8E%E5%85%B3%E7%B3%BB"><span class="toc-number">8.</span> <span class="toc-text">典型生产架构：不是选一个，而是明确数据主从关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%A2%E8%AF%95%E9%80%89%E5%9E%8B%E5%9B%9E%E7%AD%94%E6%A8%A1%E6%9D%BF"><span class="toc-number">9.</span> <span class="toc-text">面试选型回答模板</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250917/" title="分层架构、DDD、整洁代码与重构">分层架构、DDD、整洁代码与重构</a><time datetime="2025-09-17T02:00:00.000Z" title="发表于 2025-09-17 10:00:00">2025-09-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20250913/" title="Java：JDK8到21升级、兼容性与生产验证">Java：JDK8到21升级、兼容性与生产验证</a><time datetime="2025-09-13T02:00:00.000Z" title="发表于 2025-09-13 10:00:00">2025-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || '7953eb63deb4da606fcafc3135c60b1e'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
