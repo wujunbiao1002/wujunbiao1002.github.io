@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AI Image Studio Logo">
+  <defs>
+    <linearGradient id="bg" x1="65" y1="54" x2="446" y2="465" gradientUnits="userSpaceOnUse"><stop stop-color="#111A38"/><stop offset="1" stop-color="#080B1C"/></linearGradient>
+    <linearGradient id="spectrum" x1="119" y1="381" x2="397" y2="118" gradientUnits="userSpaceOnUse"><stop stop-color="#4BE7FF"/><stop offset=".35" stop-color="#6A8BFF"/><stop offset=".68" stop-color="#D26DFF"/><stop offset="1" stop-color="#FFB769"/></linearGradient>
+    <radialGradient id="lens"><stop stop-color="#C7FBFF"/><stop offset=".24" stop-color="#6BD9FF"/><stop offset=".6" stop-color="#776CFF"/><stop offset="1" stop-color="#321C75"/></radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#bg)"/>
+  <path d="M142 119h228c26 0 47 21 47 47v180c0 26-21 47-47 47H142c-26 0-47-21-47-47V166c0-26 21-47 47-47z" fill="#111B39" stroke="url(#spectrum)" stroke-width="10"/>
+  <path d="M112 334l79-82 61 57 45-43 103 96" fill="none" stroke="#6EEAFF" stroke-opacity=".27" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="255" r="96" fill="#090E29" stroke="#FFFFFF" stroke-opacity=".08" stroke-width="4"/>
+  <g transform="translate(256 255)">
+    <path d="M0-79A79 79 0 0 1 68-39L26-15A30 30 0 0 0 0-30z" fill="#FFB769"/>
+    <path d="M68-39A79 79 0 0 1 68 39L26 15A30 30 0 0 0 26-15z" fill="#E56AFF"/>
+    <path d="M68 39A79 79 0 0 1 0 79V30a30 30 0 0 0 26-15z" fill="#8A70FF"/>
+    <path d="M0 79A79 79 0 0 1-68 39l42-24A30 30 0 0 0 0 30z" fill="#598CFF"/>
+    <path d="M-68 39A79 79 0 0 1-68-39l42 24a30 30 0 0 0 0 30z" fill="#4BE7FF"/>
+    <path d="M-68-39A79 79 0 0 1 0-79v49a30 30 0 0 0-26 15z" fill="#4FE2BA"/>
+    <circle r="31" fill="url(#lens)" filter="url(#glow)"/>
+    <circle r="13" fill="#E8FCFF"/>
+  </g>
+  <path d="M388 80l10 28 28 10-28 10-10 28-10-28-28-10 28-10 10-28z" fill="#FFF4D1" filter="url(#glow)"/>
+  <path d="M113 365l5 14 14 5-14 5-5 14-5-14-14-5 14-5 5-14z" fill="#70EEFF"/>
+  <circle cx="141" cy="162" r="13" fill="#FFD27B"/>
+</svg>

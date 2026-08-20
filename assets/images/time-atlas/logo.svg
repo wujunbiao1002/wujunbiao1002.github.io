@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Time Atlas Logo">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientTransform="translate(169 136) rotate(50) scale(463)" gradientUnits="userSpaceOnUse"><stop stop-color="#24368F"/><stop offset=".52" stop-color="#111A56"/><stop offset="1" stop-color="#070C2A"/></radialGradient>
+    <linearGradient id="orbit" x1="87" y1="389" x2="420" y2="117" gradientUnits="userSpaceOnUse"><stop stop-color="#51D8FF"/><stop offset=".52" stop-color="#8B8CFF"/><stop offset="1" stop-color="#E3A8FF"/></linearGradient>
+    <radialGradient id="core"><stop stop-color="#DDFBFF"/><stop offset=".28" stop-color="#69DBFF"/><stop offset="1" stop-color="#5965E8"/></radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#bg)"/>
+  <g fill="#B9EFFF"><circle cx="118" cy="138" r="3"/><circle cx="396" cy="178" r="4"/><circle cx="372" cy="365" r="3"/><circle cx="145" cy="378" r="4"/><circle cx="329" cy="104" r="3"/><circle cx="88" cy="276" r="2.5"/></g>
+  <g fill="#B9EFFF" opacity=".38"><circle cx="191" cy="93" r="2"/><circle cx="432" cy="287" r="2"/><circle cx="285" cy="407" r="2"/><circle cx="94" cy="202" r="2"/><circle cx="407" cy="112" r="2"/></g>
+  <ellipse cx="256" cy="256" rx="170" ry="102" transform="rotate(-28 256 256)" fill="none" stroke="url(#orbit)" stroke-width="11"/>
+  <ellipse cx="256" cy="256" rx="116" ry="179" transform="rotate(38 256 256)" fill="none" stroke="#5CD8FF" stroke-opacity=".2" stroke-width="3" stroke-dasharray="5 13"/>
+  <circle cx="256" cy="256" r="103" fill="#0C1445" stroke="#7788FF" stroke-opacity=".38" stroke-width="3"/>
+  <circle cx="256" cy="256" r="82" fill="none" stroke="#91E8FF" stroke-opacity=".16" stroke-width="3" stroke-dasharray="8 10"/>
+  <path d="M256 196v65l47 29" fill="none" stroke="#E5F8FF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="14" fill="url(#core)" filter="url(#glow)"/>
+  <circle cx="116" cy="333" r="12" fill="#62E6FF" filter="url(#glow)"/>
+  <circle cx="402" cy="176" r="10" fill="#E2A6FF" filter="url(#glow)"/>
+  <path d="M361 94l6 16 16 6-16 6-6 16-6-16-16-6 16-6 6-16z" fill="#E8F9FF"/>
+</svg>

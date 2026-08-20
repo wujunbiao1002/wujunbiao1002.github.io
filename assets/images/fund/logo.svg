@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fund Valuation Logo">
+  <defs>
+    <linearGradient id="bg" x1="66" y1="44" x2="446" y2="468" gradientUnits="userSpaceOnUse"><stop stop-color="#063B46"/><stop offset="1" stop-color="#041F36"/></linearGradient>
+    <linearGradient id="line" x1="112" y1="349" x2="407" y2="155" gradientUnits="userSpaceOnUse"><stop stop-color="#2EE6AE"/><stop offset="1" stop-color="#8BFFD7"/></linearGradient>
+    <linearGradient id="coin" x1="173" y1="130" x2="343" y2="324" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF7B0"/><stop offset="1" stop-color="#E9B83E"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#00151D" flood-opacity=".42"/></filter>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#bg)"/>
+  <path d="M88 356.5H424" stroke="#C9FFF0" stroke-opacity=".13" stroke-width="2"/>
+  <path d="M88 278.5H424M88 200.5H424" stroke="#C9FFF0" stroke-opacity=".08" stroke-width="2" stroke-dasharray="8 14"/>
+  <circle cx="258" cy="229" r="113" fill="#0A5260" stroke="#7BFFE0" stroke-opacity=".22" stroke-width="3" filter="url(#shadow)"/>
+  <circle cx="258" cy="229" r="81" fill="url(#coin)"/>
+  <circle cx="258" cy="229" r="61" fill="none" stroke="#7D5B18" stroke-opacity=".28" stroke-width="4"/>
+  <path d="M232 184v90M284 184v90M216 205h84M216 230h84" fill="none" stroke="#143E46" stroke-width="14" stroke-linecap="round"/>
+  <path d="M209 184c18 22 31 34 49 34s31-12 49-34" fill="none" stroke="#143E46" stroke-width="14" stroke-linecap="round"/>
+  <path d="M105 358l78-65 59 34 105-105" fill="none" stroke="#052C3B" stroke-opacity=".7" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M105 346l78-65 59 34 105-105" fill="none" stroke="url(#line)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M323 210h36v36" fill="none" stroke="#8BFFD7" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#D9FFF3"><circle cx="105" cy="346" r="10"/><circle cx="183" cy="281" r="10"/><circle cx="242" cy="315" r="10"/></g>
+</svg>
