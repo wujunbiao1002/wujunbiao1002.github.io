@@ -233,6 +233,10 @@
       border-color: rgba(99, 196, 255, .46); transition: background .2s, border-color .2s;
     }
     .nav .mini-button:hover { background: rgba(74, 160, 255, .2); border-color: var(--aqua); }
+    .nav .model-plaza {
+      color: #9af5ed; background: rgba(76, 229, 223, .08);
+      border-color: rgba(76, 229, 223, .34);
+    }
     .hero-layout {
       width: min(1140px, calc(100% - 48px)); margin: 0 auto; padding: 96px 0 146px;
       position: relative; z-index: 2; display: grid; grid-template-columns: 1.05fr .95fr; gap: 58px; align-items: center;
@@ -366,6 +370,7 @@
       .topbar { height: 62px; }
       .brand-logo { width: 36px; height: 36px; }
       .brand small { display: none; }
+      .nav { gap: 5px; }
       .nav .mini-button { padding: 8px 11px; font-size: 11px; }
       .hero-layout { gap: 38px; padding: 52px 0 100px; }
       h1 { margin: 20px 0 16px; font-size: 42px; line-height: 1.12; letter-spacing: -3px; }
@@ -406,6 +411,7 @@
           <a href="#features">服务特点</a>
           <a href="#getting-started">开始使用</a>
           <a href="#purchase">购买服务</a>
+          <a class="mini-button model-plaza" href="https://tokenhub.junly.top/model-plaza" target="_blank" rel="noopener">模型广场 ↗</a>
           <a class="mini-button" href="https://tokenhub.junly.top/dashboard" target="_blank" rel="noopener">进入控制台 ↗</a>
         </nav>
       </header>
