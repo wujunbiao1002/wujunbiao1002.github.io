@@ -109,25 +109,8 @@
     .step span { display: block; color: #52c6c8; font: 700 34px/1 "Trebuchet MS", sans-serif; }
     .step h3 { margin: 20px 0 8px; font-size: 19px; }
     .step p { margin: 0; color: #5a7192; font-size: 14px; line-height: 1.65; }
-    .purchase {
-      display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 50px; padding: 65px;
-      color: #fff; background: linear-gradient(120deg, #073267, #075a86); border-radius: 22px; overflow: hidden;
-    }
-    .purchase h2 { margin: 15px 0; color: #fff; }
-    .purchase p { color: #c9e9ff; line-height: 1.8; }
-    .purchase-card { justify-self: end; width: min(100%, 260px); padding: 15px; background: #fff; border-radius: 13px; color: var(--ink); text-align: center; }
-    .purchase-card img { display: block; width: 100%; border-radius: 8px; }
-    .purchase-card strong { display: block; margin-top: 11px; font-family: "Microsoft YaHei", sans-serif; font-size: 14px; }
     footer { padding: 42px 0; background: #04162f; color: #9db6d6; }
     .footer-inner { display: flex; justify-content: space-between; gap: 20px; font: 14px/1.7 "Microsoft YaHei", sans-serif; }
-    .qq { color: #60e6df; font-weight: 700; }
-    .modal { position: fixed; inset: 0; z-index: 10; display: none; place-items: center; padding: 20px; background: rgba(1, 15, 39, .72); backdrop-filter: blur(7px); }
-    .modal.open { display: grid; }
-    .modal-box { position: relative; width: min(390px, 100%); padding: 27px; border-radius: 16px; background: #fff; text-align: center; box-shadow: 0 26px 80px rgba(0, 0, 0, .38); }
-    .modal-box h3 { margin: 2px 0 8px; font-size: 23px; }
-    .modal-box p { margin: 0 0 18px; color: #5a7192; font-size: 14px; }
-    .modal-box img { width: 100%; border-radius: 9px; }
-    .close { position: absolute; top: 10px; right: 14px; border: 0; background: none; color: #5a7192; font-size: 28px; cursor: pointer; }
     @keyframes float { 50% { transform: translateY(-14px) rotate(2deg); } }
     @keyframes pulse { 70% { transform: scale(1.24); opacity: 0; } 100% { opacity: 0; } }
     @media (max-width: 820px) {
@@ -143,14 +126,12 @@
       .orbit { width: 245px; height: 245px; right: -57px; top: 375px; opacity: .68; }
       .core { width: 112px; height: 112px; border-radius: 28px; }
       .core::before { font-size: 66px; }
-      .feature-grid, .steps, .purchase { grid-template-columns: 1fr; }
+      .feature-grid, .steps { grid-template-columns: 1fr; }
       .feature { min-height: 0; padding: 24px; }
       .feature h3 { margin: 20px 0 8px; }
       .step { min-height: auto; padding: 22px 24px; border-right: 0; border-bottom: 1px solid #d6e8fa; }
       .step h3 { margin: 13px 0 5px; }
       .step:last-child { border-bottom: 0; }
-      .purchase { gap: 30px; padding: 38px 28px; }
-      .purchase-card { justify-self: start; }
       .footer-inner { display: block; }
     }
     @media (max-width: 480px) {
@@ -181,10 +162,6 @@
       .feature p, .step p { font-size: 13px; }
       .step { padding: 18px 21px; }
       .step span { font-size: 28px; }
-      .purchase { padding: 30px 22px; border-radius: 15px; }
-      .purchase h2 { font-size: 30px; }
-      .purchase .actions { grid-template-columns: 1fr; }
-      .purchase-card { width: 190px; }
       footer { padding: 28px 0; }
       .footer-inner { font-size: 12px; }
     }
@@ -334,23 +311,6 @@
     .step span { color: rgba(25, 118, 223, .22); font-size: 42px; }
     .step::after { content: "→"; position: absolute; right: -10px; top: 35px; z-index: 2; color: #52c6c8; font-size: 18px; }
     .step:last-child::after { display: none; }
-    .purchase {
-      position: relative; grid-template-columns: .9fr 1.1fr;
-      background: linear-gradient(120deg, #03172f 0%, #07477a 100%);
-    }
-    .purchase::before {
-      content: ""; position: absolute; width: 380px; height: 380px; right: -150px; top: -170px;
-      border: 1px solid rgba(92,231,225,.18); border-radius: 50%;
-    }
-    .purchase > * { position: relative; z-index: 1; }
-    .purchase-card {
-      width: min(100%, 480px); padding: 10px;
-      box-shadow: 0 25px 60px rgba(0,0,0,.3); transform: none;
-    }
-    .purchase-card img { aspect-ratio: 1024 / 307; object-fit: cover; }
-    .purchase-card strong { margin: 9px 0 2px; }
-    .modal-box { width: min(680px, 100%); }
-    .modal-box img { aspect-ratio: 1024 / 307; object-fit: contain; }
     @media (prefers-reduced-motion: no-preference) {
       .console { animation: console-float 7s ease-in-out infinite; }
     }
@@ -363,7 +323,6 @@
       .section-intro { display: block; }
       .section-intro p { margin-top: 18px; }
       .step::after { display: none; }
-      .purchase { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       .topbar, .hero-layout, .section, .footer-inner { width: calc(100% - 28px); }
@@ -396,8 +355,6 @@
       .feature h3 { margin: 24px 0 8px; }
       .steps { border-radius: 14px; }
       .step { min-height: 0; }
-      .purchase { padding: 27px 20px; }
-      .purchase-card { width: 100%; justify-self: center; transform: none; }
     }
   </style>
 </head>
@@ -410,7 +367,6 @@
         <nav class="nav">
           <a href="#features">服务特点</a>
           <a href="#getting-started">开始使用</a>
-          <a href="#purchase">购买服务</a>
           <a class="mini-button model-plaza" href="https://tokenhub.junly.top/model-plaza" target="_blank" rel="noopener">模型广场 ↗</a>
           <a class="mini-button" href="https://tokenhub.junly.top/dashboard" target="_blank" rel="noopener">进入控制台 ↗</a>
         </nav>
@@ -422,7 +378,7 @@
           <p class="intro">TokenHub 为开发者提供简洁统一的 AI API 中转入口，让接入更轻，让每一次调用都专注于真正重要的创意。</p>
           <div class="actions">
             <a class="button button-primary" href="https://tokenhub.junly.top/dashboard" target="_blank" rel="noopener">进入控制台&nbsp; →</a>
-            <a class="button button-ghost" href="#purchase">获取服务</a>
+            <a class="button button-ghost" href="https://tokenhub.junly.top/model-plaza" target="_blank" rel="noopener">探索模型广场</a>
           </div>
           <div class="hero-note"><span>统一入口</span><span>快速配置</span><span>开发者友好</span></div>
         </div>
@@ -471,45 +427,12 @@
       </div>
     </section>
 
-    <section class="section" id="purchase">
-      <div class="purchase">
-        <div>
-          <div class="section-label" style="color:#68ebe6">ACCESS TOKENHUB</div>
-          <h2>准备好连接了吗？</h2>
-          <p>可前往闲鱼购买服务，或保存二维码后使用闲鱼 App 扫一扫。</p>
-          <div class="actions">
-            <a class="button button-primary" href="https://m.tb.cn/h.89T5Pz5?tk=ivBJTcENB1U" target="_blank" rel="noopener">前往闲鱼购买&nbsp; →</a>
-            <button class="button button-ghost" type="button" id="show-qr">查看购买二维码</button>
-          </div>
-        </div>
-        <div class="purchase-card">
-          <img src="/assets/images/tokenhub/xianyu-buy.jpg" alt="TokenHub 闲鱼购买二维码">
-          <strong>闲鱼扫码购买</strong>
-        </div>
-      </div>
-    </section>
   </main>
   <footer>
     <div class="footer-inner">
-      <div>© 2026 TokenHub · 令牌枢纽</div>
-      <div>购买咨询与使用支持：QQ <span class="qq">1919332476</span></div>
+      <div>© <span id="current-year"></span> TokenHub · 令牌枢纽</div>
     </div>
   </footer>
-
-  <div class="modal" id="qr-modal" role="dialog" aria-modal="true" aria-labelledby="qr-title">
-    <div class="modal-box">
-      <button class="close" type="button" aria-label="关闭">×</button>
-      <h3 id="qr-title">扫码前往闲鱼购买</h3>
-      <p>保存图片至相册后，打开闲鱼 App 扫一扫。</p>
-      <img src="/assets/images/tokenhub/xianyu-buy.jpg" alt="TokenHub 闲鱼购买二维码">
-    </div>
-  </div>
-  <script>
-    const modal = document.getElementById("qr-modal");
-    const closeModal = () => modal.classList.remove("open");
-    document.getElementById("show-qr").addEventListener("click", () => modal.classList.add("open"));
-    modal.addEventListener("click", (event) => { if (event.target === modal || event.target.classList.contains("close")) closeModal(); });
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeModal(); });
-  </script>
+  <script>document.getElementById("current-year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
