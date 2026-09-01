@@ -1,27 +1,29 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java：NIO、网络编程、零拷贝与 Netty | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从 TCP、BIO&#x2F;NIO、Buffer、Channel、Selector、零拷贝、Netty 线程模型、粘包拆包、心跳与生产连接治理梳理 Java 网络编程面试要点。">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java网络编程：从Socket连接到NIO与Netty线程模型 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="通过物联网设备长连接项目，讲清端口、TCP连接、Socket、Channel与线程的关系，对比BIO、虚拟线程、NIO和Netty的实现方式，并说明Pipeline、业务线程隔离、心跳与背压等生产实践。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Java：NIO、网络编程、零拷贝与 Netty">
+<meta property="og:title" content="Java网络编程：从Socket连接到NIO与Netty线程模型">
 <meta property="og:url" content="https://junly.top/posts/20250830/index.html">
 <meta property="og:site_name" content="Junly博客">
-<meta property="og:description" content="从 TCP、BIO&#x2F;NIO、Buffer、Channel、Selector、零拷贝、Netty 线程模型、粘包拆包、心跳与生产连接治理梳理 Java 网络编程面试要点。">
+<meta property="og:description" content="通过物联网设备长连接项目，讲清端口、TCP连接、Socket、Channel与线程的关系，对比BIO、虚拟线程、NIO和Netty的实现方式，并说明Pipeline、业务线程隔离、心跳与背压等生产实践。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
 <meta property="article:published_time" content="2025-08-30T02:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-13T10:32:40.833Z">
+<meta property="article:modified_time" content="2026-09-01T03:36:19.907Z">
 <meta property="article:author" content="Junly">
 <meta property="article:tag" content="Java">
+<meta property="article:tag" content="Socket">
+<meta property="article:tag" content="网络编程">
+<meta property="article:tag" content="虚拟线程">
 <meta property="article:tag" content="NIO">
 <meta property="article:tag" content="Netty">
-<meta property="article:tag" content="网络编程">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Java：NIO、网络编程、零拷贝与 Netty",
+  "headline": "Java网络编程：从Socket连接到NIO与Netty线程模型",
   "url": "https://junly.top/posts/20250830/",
   "image": "https://junly.top/assets/images/profile-photo.jpg",
   "datePublished": "2025-08-30T02:00:00.000Z",
-  "dateModified": "2026-08-13T10:32:40.833Z",
+  "dateModified": "2026-09-01T03:36:19.907Z",
   "author": [
     {
       "@type": "Person",
@@ -158,146 +160,518 @@
   },
   autoDarkmode: false
 }</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
-  title: 'Java：NIO、网络编程、零拷贝与 Netty',
+  title: 'Java网络编程：从Socket连接到NIO与Netty线程模型',
   isHighlightShrink: false,
   isToc: true,
   pageType: 'post'
-}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">140</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">271</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Java：NIO、网络编程、零拷贝与 Netty</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Java：NIO、网络编程、零拷贝与 Netty</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-30T02:00:00.000Z" title="发表于 2025-08-30 10:00:00">2025-08-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-13T10:32:40.833Z" title="更新于 2026-08-13 18:32:40">2026-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>网络服务的性能和稳定性不仅取决于协议，也取决于 I&#x2F;O 模型、事件循环、缓冲管理和连接治理。本文区分 TCP、HTTP、BIO&#x2F;NIO 与 Netty 的职责，进一步说明粘包拆包、零拷贝、背压和连接异常等生产问题的处理思路。</p>
-<h1 id="先区分网络协议、IO-模型和框架"><a href="#先区分网络协议、IO-模型和框架" class="headerlink" title="先区分网络协议、IO 模型和框架"></a>先区分网络协议、IO 模型和框架</h1><p>TCP 解决可靠字节流传输，HTTP 定义应用层请求响应语义，BIO&#x2F;NIO 描述 Java 的 IO 编程模型，Netty 是基于 NIO 的网络应用框架。面试中不要把“非阻塞”误说成“没有线程”或“没有等待”。</p>
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">142</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">278</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Java网络编程：从Socket连接到NIO与Netty线程模型</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Java网络编程：从Socket连接到NIO与Netty线程模型</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-30T02:00:00.000Z" title="发表于 2025-08-30 10:00:00">2025-08-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-01T03:36:19.907Z" title="更新于 2026-09-01 11:36:19">2026-09-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>学习 Java 网络编程时，最容易混淆的不是某个 API，而是几个看起来相关、实际属于不同层次的概念：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">一个连接是否占用一个端口？</span><br><span class="line">服务端 accept 之后得到的 Socket 是否对应一个线程？</span><br><span class="line">NIO 为什么能用少量线程处理很多连接？</span><br><span class="line">Netty 中 Channel、EventLoop 和 Pipeline 是什么关系？</span><br><span class="line">Java 21 有虚拟线程后，是否还需要 Netty？</span><br></pre></td></tr></table></figure>
+
+<p>本文不从 API 清单开始，而是围绕一个物联网设备接入项目，对比 BIO、虚拟线程、原生 NIO 和 Netty 如何完成同一件事。</p>
+<p>读完后应该形成一个核心认识：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">一条 TCP 连接通常对应一个 Socket 或 Channel，</span><br><span class="line">但一条连接是否对应一个线程，取决于程序采用的 I/O 模型。</span><br></pre></td></tr></table></figure>
+
+<h1 id="先建立完整的网络分层"><a href="#先建立完整的网络分层" class="headerlink" title="先建立完整的网络分层"></a>先建立完整的网络分层</h1><p>TCP、Socket、NIO 和 Netty 不是互相替代的同类技术。它们分别解决不同层次的问题。</p>
 <table>
 <thead>
 <tr>
 <th>层次</th>
-<th>关注点</th>
+<th>代表技术</th>
+<th>解决的问题</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>TCP</td>
-<td>连接、可靠传输、流控、拥塞控制、字节流无消息边界</td>
+<td>传输协议</td>
+<td>TCP、UDP</td>
+<td>数据怎样在两台主机之间传输</td>
 </tr>
 <tr>
-<td>HTTP</td>
-<td>方法、Header、状态码、Body、Keep-Alive&#x2F;HTTP2 等语义</td>
+<td>编程接口</td>
+<td>Socket、ServerSocket</td>
+<td>Java 程序怎样使用操作系统网络能力</td>
 </tr>
 <tr>
-<td>Java IO</td>
-<td>阻塞&#x2F;非阻塞读写、内核事件通知、缓冲区与通道</td>
+<td>I&#x2F;O 模型</td>
+<td>BIO、NIO、虚拟线程</td>
+<td>线程怎样等待和处理网络事件</td>
+</tr>
+<tr>
+<td>网络框架</td>
+<td>Netty</td>
+<td>怎样工程化管理连接、编解码、事件和背压</td>
+</tr>
+<tr>
+<td>应用协议</td>
+<td>HTTP、MQTT、自定义协议</td>
+<td>字节代表什么，消息从哪里开始和结束</td>
+</tr>
+<tr>
+<td>业务处理</td>
+<td>Service、数据库、消息队列</td>
+<td>收到消息后执行什么业务</td>
+</tr>
+</tbody></table>
+<p>它们在一个系统中的位置是：</p>
+<pre class="mermaid">flowchart TD
+    A[设备业务数据] --> B[JSON / Protobuf]
+    B --> C[HTTP / MQTT / 自定义协议]
+    C --> D[Netty 或 Java Socket API]
+    D --> E[BIO / NIO / 虚拟线程]
+    E --> F[TCP]
+    F --> G[操作系统与网络]</pre>
+
+<p>例如 MQTT 是应用层协议，通常通过 TCP Socket 传输；Netty 可以用来实现 MQTT Broker，但 MQTT、Socket 和 Netty 本身不是同一个概念。</p>
+<h1 id="一条连接在服务端到底对应什么"><a href="#一条连接在服务端到底对应什么" class="headerlink" title="一条连接在服务端到底对应什么"></a>一条连接在服务端到底对应什么</h1><h2 id="一个端口可以承载很多连接"><a href="#一个端口可以承载很多连接" class="headerlink" title="一个端口可以承载很多连接"></a>一个端口可以承载很多连接</h2><p>服务端进程可以只监听一个端口，例如 <code>9000</code>，同时接收许多客户端连接。TCP 使用四元组区分连接：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">客户端 IP + 客户端端口 + 服务端 IP + 服务端端口</span><br></pre></td></tr></table></figure>
+
+<p>例如三台设备都连接服务端的 <code>9000</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">192.168.1.10:50001 -&gt; 10.0.0.1:9000</span><br><span class="line">192.168.1.11:50002 -&gt; 10.0.0.1:9000</span><br><span class="line">192.168.1.12:50003 -&gt; 10.0.0.1:9000</span><br></pre></td></tr></table></figure>
+
+<p>服务端端口相同，但四元组不同，因此这是三条独立的 TCP 连接。</p>
+<h2 id="accept-之后会得到连接对象"><a href="#accept-之后会得到连接对象" class="headerlink" title="accept 之后会得到连接对象"></a>accept 之后会得到连接对象</h2><p>传统 BIO 服务端通过 <code>ServerSocket</code> 监听端口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ServerSocket</span> <span class="variable">serverSocket</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerSocket</span>(<span class="number">9000</span>);</span><br><span class="line"><span class="type">Socket</span> <span class="variable">socket</span> <span class="operator">=</span> serverSocket.accept();</span><br></pre></td></tr></table></figure>
+
+<p>这里有两种不同对象：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServerSocket：监听 9000 端口</span><br><span class="line">Socket：代表 accept 得到的一条已建立连接</span><br></pre></td></tr></table></figure>
+
+<p>NIO 和 Netty 中名称不同，但关系相同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServerSocketChannel / ServerChannel：监听端口</span><br><span class="line">SocketChannel / Channel：代表一条已建立连接</span><br></pre></td></tr></table></figure>
+
+<p>一个 JVM 进程可以持有一个监听 Socket 和成千上万个连接 Socket。新连接不会自动创建新进程，也不会强制创建新线程。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>是否通常一条连接一个</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务端监听端口</td>
+<td>否</td>
+<td>一个端口可以承载许多连接</td>
+</tr>
+<tr>
+<td>Socket &#x2F; Channel</td>
+<td>是</td>
+<td>每条已建立连接有独立的连接状态</td>
+</tr>
+<tr>
+<td>进程</td>
+<td>否</td>
+<td>一个 JVM 可以管理大量连接</td>
+</tr>
+<tr>
+<td>线程</td>
+<td>不一定</td>
+<td>由 BIO、NIO、Netty 等线程模型决定</td>
+</tr>
+</tbody></table>
+<h1 id="用同一个实际项目对比四种模型"><a href="#用同一个实际项目对比四种模型" class="headerlink" title="用同一个实际项目对比四种模型"></a>用同一个实际项目对比四种模型</h1><p>假设要开发一个工厂设备接入服务：</p>
+<ul>
+<li>3000 台温度传感器通过 TCP 长连接连接 <code>9000</code> 端口。</li>
+<li>设备连接后先发送认证消息。</li>
+<li>每 5 秒发送一次温度数据。</li>
+<li>服务端保存数据并回复 ACK。</li>
+<li>设备每 30 秒发送心跳，90 秒无消息则断开。</li>
+</ul>
+<p>为了处理 TCP 没有消息边界的问题，项目采用“4 字节长度 + JSON 正文”：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+------------------+------------------------+</span><br><span class="line">| 4 字节正文长度    | UTF-8 JSON 正文         |</span><br><span class="line">+------------------+------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>示例消息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;TELEMETRY&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;requestId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;req-1001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;deviceId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;sensor-1001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;temperature&quot;</span><span class="punctuation">:</span> <span class="number">26.5</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>本文只保留理解线程模型所需的协议内容。完整协议头、粘包拆包和 JSON 长度处理可以参考：<a href="/posts/20260901/">Java Socket通信：核心原理、使用场景与协议设计</a>。</p>
+<p>无论采用什么模型，业务流程都一样：</p>
+<pre class="mermaid">flowchart LR
+    A[设备建立连接] --> B[认证设备]
+    B --> C[读取完整消息]
+    C --> D[解析 JSON]
+    D --> E[保存遥测数据]
+    E --> F[回复 ACK]
+    B --> G[维护心跳与在线状态]</pre>
+
+<p>真正发生变化的是：线程在哪里等待、一个线程管理几条连接、半包状态由谁维护。</p>
+<h1 id="BIO：一个连接由一个线程阻塞等待"><a href="#BIO：一个连接由一个线程阻塞等待" class="headerlink" title="BIO：一个连接由一个线程阻塞等待"></a>BIO：一个连接由一个线程阻塞等待</h1><p>BIO 的 <code>accept()</code> 和 <code>read()</code> 都是阻塞操作。传统实现通常在接受连接后创建一个平台线程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ServerSocket</span> <span class="variable">server</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerSocket</span>(<span class="number">9000</span>)) &#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="type">Socket</span> <span class="variable">socket</span> <span class="operator">=</span> server.accept();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; handleConnection(socket)).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行关系是：</p>
+<pre class="mermaid">flowchart LR
+    A[监听线程 accept] --> S1[Socket 1]
+    A --> S2[Socket 2]
+    A --> S3[Socket 3]
+    S1 --> T1[平台线程 1]
+    S2 --> T2[平台线程 2]
+    S3 --> T3[平台线程 3]</pre>
+
+<p>每个连接线程循环读取消息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">handleConnection</span><span class="params">(Socket socket)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> (</span><br><span class="line">        socket;</span><br><span class="line">        <span class="type">DataInputStream</span> <span class="variable">input</span> <span class="operator">=</span></span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">DataInputStream</span>(socket.getInputStream());</span><br><span class="line">        <span class="type">DataOutputStream</span> <span class="variable">output</span> <span class="operator">=</span></span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">DataOutputStream</span>(socket.getOutputStream())</span><br><span class="line">    ) &#123;</span><br><span class="line">        socket.setSoTimeout(<span class="number">90_000</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> readFrame(input);</span><br><span class="line">            <span class="type">String</span> <span class="variable">response</span> <span class="operator">=</span> processMessage(json);</span><br><span class="line">            writeFrame(output, response);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SocketTimeoutException e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;设备心跳超时&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (EOFException e) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;设备主动断开&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        System.err.println(<span class="string">&quot;连接异常：&quot;</span> + e.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读取长度帧的关键代码是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">readFrame</span><span class="params">(DataInputStream input)</span></span><br><span class="line">        <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">length</span> <span class="operator">=</span> input.readInt();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (length &lt;= <span class="number">0</span> || length &gt; <span class="number">64</span> * <span class="number">1024</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IOException</span>(<span class="string">&quot;非法消息长度：&quot;</span> + length);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">byte</span>[] body = <span class="keyword">new</span> <span class="title class_">byte</span>[length];</span><br><span class="line">    input.readFully(body);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">String</span>(body, StandardCharsets.UTF_8);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>设备没有数据时，线程会阻塞在 <code>readInt()</code>。这种写法直观，但 3000 条长期连接通常意味着约 3000 个长期存在的平台线程，会带来线程栈内存和上下文切换成本。</p>
+<h2 id="Java-21-虚拟线程改变了什么"><a href="#Java-21-虚拟线程改变了什么" class="headerlink" title="Java 21 虚拟线程改变了什么"></a>Java 21 虚拟线程改变了什么</h2><p>把平台线程替换为虚拟线程，代码仍然可以保持阻塞式写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (</span><br><span class="line">    <span class="type">ServerSocket</span> <span class="variable">server</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerSocket</span>(<span class="number">9000</span>);</span><br><span class="line">    <span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="type">Socket</span> <span class="variable">socket</span> <span class="operator">=</span> server.accept();</span><br><span class="line">        executor.submit(() -&gt; handleConnection(socket));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>逻辑关系仍然是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Socket 1 -&gt; 虚拟线程 1</span><br><span class="line">Socket 2 -&gt; 虚拟线程 2</span><br><span class="line">Socket 3 -&gt; 虚拟线程 3</span><br></pre></td></tr></table></figure>
+
+<p>区别是大量虚拟线程可以复用较少的平台载体线程。设备等待网络数据时，虚拟线程可以挂起，不必长期占用一个平台线程。</p>
+<p>虚拟线程解决的是“阻塞等待的线程成本”，不会自动解决下面的问题：</p>
+<ul>
+<li>TCP 粘包和拆包。</li>
+<li>心跳和断线重连。</li>
+<li>慢客户端导致的写入积压。</li>
+<li>3000 台设备同时写数据库造成的下游压力。</li>
+<li>TLS、认证、连接限流和协议版本管理。</li>
+</ul>
+<p>因此，协议简单、连接规模可控的 Java 21 项目可以优先评估虚拟线程；连接治理复杂时，Netty 仍然更成熟。</p>
+<h1 id="NIO：一个线程只处理已经就绪的连接"><a href="#NIO：一个线程只处理已经就绪的连接" class="headerlink" title="NIO：一个线程只处理已经就绪的连接"></a>NIO：一个线程只处理已经就绪的连接</h1><p>NIO 的核心变化是：不让线程阻塞等待某一条连接，而是让多个 <code>SocketChannel</code> 注册到 <code>Selector</code>。线程调用 <code>select()</code> 获取当前已经就绪的连接。</p>
+<pre class="mermaid">flowchart LR
+    C1[SocketChannel 1] --> S[Selector]
+    C2[SocketChannel 2] --> S
+    C3[SocketChannel 3] --> S
+    S --> T[Selector 线程]
+    T --> R[只处理已就绪事件]</pre>
+
+<p>基本结构如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Selector</span> <span class="variable">selector</span> <span class="operator">=</span> Selector.open();</span><br><span class="line"></span><br><span class="line"><span class="type">ServerSocketChannel</span> <span class="variable">server</span> <span class="operator">=</span> ServerSocketChannel.open();</span><br><span class="line">server.configureBlocking(<span class="literal">false</span>);</span><br><span class="line">server.bind(<span class="keyword">new</span> <span class="title class_">InetSocketAddress</span>(<span class="number">9000</span>));</span><br><span class="line">server.register(selector, SelectionKey.OP_ACCEPT);</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    selector.select();</span><br><span class="line">    Iterator&lt;SelectionKey&gt; iterator =</span><br><span class="line">        selector.selectedKeys().iterator();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (iterator.hasNext()) &#123;</span><br><span class="line">        <span class="type">SelectionKey</span> <span class="variable">key</span> <span class="operator">=</span> iterator.next();</span><br><span class="line">        iterator.remove();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (key.isAcceptable()) &#123;</span><br><span class="line">            <span class="type">SocketChannel</span> <span class="variable">channel</span> <span class="operator">=</span> server.accept();</span><br><span class="line">            <span class="keyword">if</span> (channel != <span class="literal">null</span>) &#123;</span><br><span class="line">                channel.configureBlocking(<span class="literal">false</span>);</span><br><span class="line">                channel.register(</span><br><span class="line">                    selector,</span><br><span class="line">                    SelectionKey.OP_READ,</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">ConnectionState</span>()</span><br><span class="line">                );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (key.isReadable()) &#123;</span><br><span class="line">            readFromChannel(key);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>ConnectionState</code> 用来保存每条连接独立的解析状态。因为一次 <code>read()</code> 可能只得到半条消息，也可能一次得到多条消息，所以每条连接至少要记录：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">读取缓冲区</span><br><span class="line">是否已读取完整长度头</span><br><span class="line">期望的正文长度</span><br><span class="line">已经收到的正文字节数</span><br><span class="line">设备认证状态</span><br><span class="line">最后活跃时间</span><br><span class="line">等待发送的数据</span><br></pre></td></tr></table></figure>
+
+<p>这就是原生 NIO 难度较高的地方。少量线程能够管理很多连接，但应用必须自己实现半包累计、写半包、<code>OP_WRITE</code> 开关、连接超时和异常清理。</p>
+<p>需要掌握几个关键返回值：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>返回结果</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>channel.read(buffer)</code></td>
+<td>大于 0</td>
+<td>本次读到的字节数</td>
+</tr>
+<tr>
+<td><code>channel.read(buffer)</code></td>
+<td><code>0</code></td>
+<td>当前没有更多数据，不表示断开</td>
+</tr>
+<tr>
+<td><code>channel.read(buffer)</code></td>
+<td><code>-1</code></td>
+<td>对端已经关闭连接</td>
+</tr>
+<tr>
+<td><code>channel.write(buffer)</code></td>
+<td>小于剩余长度</td>
+<td>只写出一部分，需要稍后继续写</td>
+</tr>
+</tbody></table>
+<p>原生 NIO 很适合理解网络事件模型，但生产项目通常使用 Netty，避免重复实现这些基础状态机。</p>
+<h1 id="Netty-的线程模型和-Pipeline"><a href="#Netty-的线程模型和-Pipeline" class="headerlink" title="Netty 的线程模型和 Pipeline"></a>Netty 的线程模型和 Pipeline</h1><p>Netty 没有改变 TCP，也没有让连接消失。它仍然是一条连接对应一个 Channel，只是把原生 NIO 的 Selector、连接状态、拆包和事件传播封装成更容易维护的结构。</p>
+<h2 id="Boss、Worker、Channel-和-EventLoop"><a href="#Boss、Worker、Channel-和-EventLoop" class="headerlink" title="Boss、Worker、Channel 和 EventLoop"></a>Boss、Worker、Channel 和 EventLoop</h2><p>Netty 服务端通常使用两组 EventLoop：</p>
+<ul>
+<li><code>BossGroup</code> 监听端口并接受新连接。</li>
+<li><code>WorkerGroup</code> 负责已建立连接的读写事件。</li>
+<li>一条 Channel 会绑定到一个固定的 Worker EventLoop。</li>
+<li>一个 Worker EventLoop 可以同时管理许多 Channel。</li>
+</ul>
+<pre class="mermaid">flowchart LR
+    A[BossGroup：accept] --> E1[Worker EventLoop 1]
+    A --> E2[Worker EventLoop 2]
+    E1 --> C1[Channel 1]
+    E1 --> C2[Channel 2]
+    E1 --> C3[Channel 3]
+    E2 --> C4[Channel 4]
+    E2 --> C5[Channel 5]
+    E2 --> C6[Channel 6]</pre>
+
+<p>这两个结论需要同时记住：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">一个 Channel 只绑定一个 EventLoop</span><br><span class="line">一个 EventLoop 可以管理多个 Channel</span><br></pre></td></tr></table></figure>
+
+<p>假设有 4 个 Worker EventLoop 和 3000 条设备连接，每个 EventLoop 可能管理数百条 Channel。空闲设备不会独占线程；只有 Channel 出现读写事件时，EventLoop 才处理它。</p>
+<h2 id="用-Pipeline-实现设备协议"><a href="#用-Pipeline-实现设备协议" class="headerlink" title="用 Pipeline 实现设备协议"></a>用 Pipeline 实现设备协议</h2><p>下面的 Pipeline 完成设备项目需要的长度拆包、JSON 编解码、认证、心跳和业务处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">EventLoopGroup</span> <span class="variable">bossGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>(<span class="number">1</span>);</span><br><span class="line"><span class="type">EventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line"><span class="type">DefaultEventExecutorGroup</span> <span class="variable">businessGroup</span> <span class="operator">=</span></span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">DefaultEventExecutorGroup</span>(<span class="number">16</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">ServerBootstrap</span> <span class="variable">bootstrap</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServerBootstrap</span>();</span><br><span class="line"></span><br><span class="line">bootstrap.group(bossGroup, workerGroup)</span><br><span class="line">    .channel(NioServerSocketChannel.class)</span><br><span class="line">    .childOption(ChannelOption.SO_KEEPALIVE, <span class="literal">true</span>)</span><br><span class="line">    .childHandler(<span class="keyword">new</span> <span class="title class_">ChannelInitializer</span>&lt;SocketChannel&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initChannel</span><span class="params">(SocketChannel channel)</span> &#123;</span><br><span class="line">            <span class="type">ChannelPipeline</span> <span class="variable">pipeline</span> <span class="operator">=</span> channel.pipeline();</span><br><span class="line"></span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;idle&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">IdleStateHandler</span>(<span class="number">90</span>, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;idleClose&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">IdleDisconnectHandler</span>()</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;frameDecoder&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LengthFieldBasedFrameDecoder</span>(</span><br><span class="line">                    <span class="number">64</span> * <span class="number">1024</span>,</span><br><span class="line">                    <span class="number">0</span>,</span><br><span class="line">                    <span class="number">4</span>,</span><br><span class="line">                    <span class="number">0</span>,</span><br><span class="line">                    <span class="number">4</span></span><br><span class="line">                )</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;frameEncoder&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LengthFieldPrepender</span>(<span class="number">4</span>)</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;jsonDecoder&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">StringDecoder</span>(StandardCharsets.UTF_8)</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;jsonEncoder&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">StringEncoder</span>(StandardCharsets.UTF_8)</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                <span class="string">&quot;auth&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">DeviceAuthHandler</span>()</span><br><span class="line">            );</span><br><span class="line">            pipeline.addLast(</span><br><span class="line">                businessGroup,</span><br><span class="line">                <span class="string">&quot;telemetry&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">TelemetryHandler</span>()</span><br><span class="line">            );</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line"><span class="type">Channel</span> <span class="variable">serverChannel</span> <span class="operator">=</span> bootstrap.bind(<span class="number">9000</span>).sync().channel();</span><br><span class="line">serverChannel.closeFuture().sync();</span><br></pre></td></tr></table></figure>
+
+<p>这些 Handler 各自只做一件事：</p>
+<table>
+<thead>
+<tr>
+<th>Handler</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>IdleStateHandler</code></td>
+<td>90 秒没有读取到数据时产生空闲事件</td>
+</tr>
+<tr>
+<td><code>IdleDisconnectHandler</code></td>
+<td>收到空闲事件后关闭失活连接</td>
+</tr>
+<tr>
+<td><code>LengthFieldBasedFrameDecoder</code></td>
+<td>根据前 4 字节长度累计完整 JSON，解决粘包拆包</td>
+</tr>
+<tr>
+<td><code>LengthFieldPrepender</code></td>
+<td>发送响应前增加 4 字节长度头</td>
+</tr>
+<tr>
+<td><code>StringDecoder</code> &#x2F; <code>StringEncoder</code></td>
+<td>在 UTF-8 字节和字符串之间转换</td>
+</tr>
+<tr>
+<td><code>DeviceAuthHandler</code></td>
+<td>校验设备身份并绑定设备 ID</td>
+</tr>
+<tr>
+<td><code>TelemetryHandler</code></td>
+<td>执行遥测数据业务并回复 ACK</td>
+</tr>
+</tbody></table>
+<p><code>LengthFieldBasedFrameDecoder(64 * 1024, 0, 4, 0, 4)</code> 的含义是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">最大帧长度：64 KB</span><br><span class="line">长度字段起始位置：0</span><br><span class="line">长度字段宽度：4 字节</span><br><span class="line">长度调整值：0</span><br><span class="line">解码后跳过：4 字节长度头</span><br></pre></td></tr></table></figure>
+
+<p>因此后续 Handler 每次收到的都是一条完整 JSON，不需要自己处理半包。</p>
+<h2 id="一条消息在-Pipeline-中如何流动"><a href="#一条消息在-Pipeline-中如何流动" class="headerlink" title="一条消息在 Pipeline 中如何流动"></a>一条消息在 Pipeline 中如何流动</h2><p>设备上报温度时，一条消息会经过下面的路径：</p>
+<pre class="mermaid">flowchart LR
+    A[Socket 收到字节] --> B[Worker EventLoop]
+    B --> C[长度帧 Decoder]
+    C --> D[JSON Decoder]
+    D --> E[设备认证 Handler]
+    E --> F[BusinessExecutor]
+    F --> G[保存遥测数据]
+    G --> H[生成 ACK]
+    H --> I[JSON Encoder]
+    I --> J[长度帧 Encoder]
+    J --> K[Socket 写出]</pre>
+
+<p>Inbound 事件通常从 Pipeline 前向后传播，Outbound 写事件从当前位置反向经过 Encoder，最后写入 Socket。</p>
+<h2 id="为什么业务逻辑不能阻塞-EventLoop"><a href="#为什么业务逻辑不能阻塞-EventLoop" class="headerlink" title="为什么业务逻辑不能阻塞 EventLoop"></a>为什么业务逻辑不能阻塞 EventLoop</h2><p>一个 EventLoop 管理多条 Channel。假设 Channel 1 的 Handler 在 EventLoop 中同步执行了 2 秒 SQL，那么同一个 EventLoop 管理的 Channel 2、Channel 3 也无法及时处理消息和心跳。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">错误路径：</span><br><span class="line">EventLoop -&gt; JSON解析 -&gt; 慢SQL -&gt; 写响应</span><br><span class="line">                         ↑</span><br><span class="line">                 其他连接一起等待</span><br><span class="line"></span><br><span class="line">推荐路径：</span><br><span class="line">EventLoop -&gt; JSON解析 -&gt; BusinessExecutor / 消息队列</span><br><span class="line">EventLoop &lt;- 编码响应 &lt;- 业务处理完成</span><br></pre></td></tr></table></figure>
+
+<p>示例中把 <code>TelemetryHandler</code> 注册到 <code>businessGroup</code>，就是为了让阻塞式数据库操作离开 Worker EventLoop。业务并发仍然必须有上限，不能因为线程池独立就使用无界队列。</p>
+<p>更高吞吐的设备平台通常会采用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Netty EventLoop</span><br><span class="line">  ↓ 快速校验和解码</span><br><span class="line">有界业务执行器</span><br><span class="line">  ↓</span><br><span class="line">Kafka / RocketMQ</span><br><span class="line">  ↓</span><br><span class="line">批量写入时序数据库</span><br></pre></td></tr></table></figure>
+
+<h2 id="设备身份应该绑定-Channel，而不是线程"><a href="#设备身份应该绑定-Channel，而不是线程" class="headerlink" title="设备身份应该绑定 Channel，而不是线程"></a>设备身份应该绑定 Channel，而不是线程</h2><p>Netty 中一个 EventLoop 线程会轮流处理多个 Channel，因此不能使用 <code>ThreadLocal</code> 保存当前设备 ID。设备身份属于连接，应该保存在 Channel Attribute 中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> AttributeKey&lt;String&gt; DEVICE_ID =</span><br><span class="line">    AttributeKey.valueOf(<span class="string">&quot;deviceId&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 认证成功后保存到当前连接。</span></span><br><span class="line">context.channel().attr(DEVICE_ID).set(deviceId);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 业务 Handler 从当前连接读取。</span></span><br><span class="line"><span class="type">String</span> <span class="variable">currentDeviceId</span> <span class="operator">=</span> context.channel()</span><br><span class="line">    .attr(DEVICE_ID)</span><br><span class="line">    .get();</span><br></pre></td></tr></table></figure>
+
+<p>如果需要从设备 ID 找到在线连接并下发命令，可以额外维护：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deviceId -&gt; Channel</span><br></pre></td></tr></table></figure>
+
+<p>设备重连时要原子替换旧 Channel，连接断开时只删除仍指向当前 Channel 的映射，避免旧连接的 <code>channelInactive</code> 误删新连接。</p>
+<h1 id="四种模型放在同一个场景中比较"><a href="#四种模型放在同一个场景中比较" class="headerlink" title="四种模型放在同一个场景中比较"></a>四种模型放在同一个场景中比较</h1><p>假设设备 1 空闲、设备 2 只发送了半条消息、设备 3 正在写数据库：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>设备 1 空闲</th>
+<th>设备 2 半包</th>
+<th>设备 3 写数据库</th>
+<th>核心特征</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BIO + 平台线程</td>
+<td>线程 1 阻塞等待</td>
+<td>线程 2 阻塞等剩余数据</td>
+<td>线程 3 阻塞</td>
+<td>模型简单，但平台线程多</td>
+</tr>
+<tr>
+<td>BIO + 虚拟线程</td>
+<td>虚拟线程 1 挂起</td>
+<td>虚拟线程 2 挂起</td>
+<td>虚拟线程 3 等待</td>
+<td>写法简单，I&#x2F;O 等待成本低</td>
+</tr>
+<tr>
+<td>原生 NIO</td>
+<td>不占用独立等待线程</td>
+<td><code>ConnectionState</code> 保存半包</td>
+<td>提交业务线程池</td>
+<td>少量线程管理多连接，但状态机复杂</td>
 </tr>
 <tr>
 <td>Netty</td>
-<td>EventLoop、Pipeline、编解码、连接管理、背压和业务线程隔离</td>
+<td>EventLoop 忽略空闲连接</td>
+<td>Decoder 自动累计</td>
+<td>BusinessExecutor 处理</td>
+<td>NIO 的工程化封装</td>
 </tr>
 </tbody></table>
-<h1 id="BIO、NIO-与-Selector"><a href="#BIO、NIO-与-Selector" class="headerlink" title="BIO、NIO 与 Selector"></a>BIO、NIO 与 Selector</h1><p>BIO 的 <code>accept()</code>、<code>read()</code> 通常阻塞线程。传统“一连接一线程”在连接数上升时会带来大量线程、栈内存和上下文切换；它适合连接数小、代码简单的内部服务。</p>
-<p>NIO 的核心对象是 <code>Buffer</code>、<code>Channel</code>、<code>Selector</code>。Channel 可配置非阻塞，一个 Selector 可以注册多个 Channel，单个 EventLoop 通过 <code>select()</code> 获取就绪的连接事件，再分发读取和写入逻辑。它解决的是“少量线程管理大量空闲连接”，不是让 CPU 密集计算更快。</p>
+<p>再从对象关系看一次：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>一条连接对应什么</th>
+<th>线程怎样工作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BIO</td>
+<td>一个 <code>Socket</code></td>
+<td>通常一个连接线程循环阻塞读取</td>
+</tr>
+<tr>
+<td>虚拟线程</td>
+<td>一个 <code>Socket</code></td>
+<td>通常一个连接对应一个轻量虚拟线程</td>
+</tr>
+<tr>
+<td>NIO</td>
+<td>一个 <code>SocketChannel</code></td>
+<td>Selector 线程轮询许多 Channel</td>
+</tr>
+<tr>
+<td>Netty</td>
+<td>一个 <code>Channel</code></td>
+<td>一个 EventLoop 管理许多 Channel</td>
+</tr>
+</tbody></table>
+<p>所以它们的本质区别不是“有没有 Socket”，而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">BIO：线程等待连接的数据</span><br><span class="line">虚拟线程：仍然阻塞等待，但等待成本更低</span><br><span class="line">NIO：连接注册事件，线程处理已经就绪的数据</span><br><span class="line">Netty：在 NIO 之上提供可维护的连接与事件模型</span><br></pre></td></tr></table></figure>
+
+<h1 id="生产环境还要解决什么"><a href="#生产环境还要解决什么" class="headerlink" title="生产环境还要解决什么"></a>生产环境还要解决什么</h1><p>线程模型只是网络服务的一部分。真正上线时还需要完整的连接治理。</p>
+<h2 id="心跳和半开连接"><a href="#心跳和半开连接" class="headerlink" title="心跳和半开连接"></a>心跳和半开连接</h2><p>客户端断电、网络切换或中间设备丢失状态时，服务端不一定立即收到断开通知。应用层应定义 PING&#x2F;PONG，或根据业务消息刷新最后活跃时间，并在超时后关闭连接。</p>
+<p>TCP Keepalive 可以作为补充，但操作系统默认探测周期往往较长，不能替代需要快速发现离线的应用心跳。</p>
+<h2 id="写入背压"><a href="#写入背压" class="headerlink" title="写入背压"></a>写入背压</h2><p>客户端读取速度慢时，服务端发送缓冲会不断积压。Netty 可以通过 <code>Channel.isWritable()</code> 和写缓冲高低水位控制继续生产消息。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Channel 不可写</span><br><span class="line">  ↓</span><br><span class="line">暂停推送 / 降级非关键消息 / 限制队列</span><br><span class="line">  ↓</span><br><span class="line">超过单连接上限</span><br><span class="line">  ↓</span><br><span class="line">关闭慢连接或执行保护策略</span><br></pre></td></tr></table></figure>
+
+<p>不能为每个客户端创建无界发送队列，否则少数慢连接就可能耗尽 JVM 内存。</p>
+<h2 id="报文、认证和-TLS"><a href="#报文、认证和-TLS" class="headerlink" title="报文、认证和 TLS"></a>报文、认证和 TLS</h2><p>必须限制最大帧长度，并在进入 JSON 解析器前拒绝异常报文。公网连接还需要：</p>
+<ul>
+<li>TLS 或 mTLS 加密。</li>
+<li>设备唯一凭证和权限校验。</li>
+<li>单 IP、单租户和单设备连接限制。</li>
+<li>认证失败限速。</li>
+<li>请求 ID、幂等和重放防护。</li>
+<li>协议版本与兼容策略。</li>
+</ul>
+<h2 id="ByteBuf-生命周期"><a href="#ByteBuf-生命周期" class="headerlink" title="ByteBuf 生命周期"></a>ByteBuf 生命周期</h2><p>Netty <code>ByteBuf</code> 支持池化和引用计数。业务代码应尽快把数据转换为不可变业务对象，不要长期持有 ByteBuf。</p>
+<p>如果引用计数对象被异步传递到其他线程，需要明确执行 <code>retain()</code> 和 <code>release()</code> 的责任，否则可能出现内存泄漏或访问已释放内存的问题。</p>
+<h1 id="零拷贝放在什么位置理解"><a href="#零拷贝放在什么位置理解" class="headerlink" title="零拷贝放在什么位置理解"></a>零拷贝放在什么位置理解</h1><p>零拷贝解决的是数据复制成本，不是连接线程模型。它更适合文件下载、日志转发等大块数据传输。</p>
+<p>Java 的 <code>FileChannel.transferTo()</code> 可以利用 <code>sendfile</code> 等内核能力，减少用户态和内核态之间的额外复制：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (</span><br><span class="line">    <span class="type">FileChannel</span> <span class="variable">file</span> <span class="operator">=</span> FileChannel.open(path, StandardOpenOption.READ);</span><br><span class="line">    <span class="type">SocketChannel</span> <span class="variable">socket</span> <span class="operator">=</span> SocketChannel.open(remoteAddress)</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">position</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (position &lt; file.size()) &#123;</span><br><span class="line">        position += file.transferTo(</span><br><span class="line">            position,</span><br><span class="line">            file.size() - position,</span><br><span class="line">            socket</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果数据还需要加密、压缩、反序列化或修改，就可能仍要进入用户态处理。优化前应先确认瓶颈是内存复制、磁盘、网络还是下游消费速度。</p>
+<h1 id="实际项目如何选择"><a href="#实际项目如何选择" class="headerlink" title="实际项目如何选择"></a>实际项目如何选择</h1><table>
+<thead>
+<tr>
+<th>项目场景</th>
+<th>建议选择</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通 HTTP 接口</td>
+<td>Spring MVC &#x2F; WebFlux</td>
+<td>使用成熟应用协议，不要直接开发 TCP</td>
+</tr>
+<tr>
+<td>少量内部 TCP 客户端</td>
+<td>BIO</td>
+<td>实现简单，维护成本低</td>
+</tr>
+<tr>
+<td>Java 21、协议简单的长连接</td>
+<td>Socket + 虚拟线程</td>
+<td>保留直观的阻塞式代码</td>
+</tr>
+<tr>
+<td>学习事件驱动原理</td>
+<td>原生 NIO</td>
+<td>能直接理解 Selector、Buffer 和半包状态</td>
+</tr>
+<tr>
+<td>大量设备、聊天或游戏长连接</td>
+<td>Netty</td>
+<td>编解码、心跳、TLS、背压和连接治理成熟</td>
+</tr>
+<tr>
+<td>浏览器双向通信</td>
+<td>WebSocket，服务端可使用 Netty</td>
+<td>浏览器不能直接使用普通 TCP Socket</td>
+</tr>
+<tr>
+<td>MQTT 设备接入</td>
+<td>EMQX、ThingsBoard、HiveMQ 等成熟 Broker</td>
+<td>不要重复实现完整 MQTT Broker</td>
+</tr>
+<tr>
+<td>大文件传输</td>
+<td>NIO &#x2F; Netty + 零拷贝能力</td>
+<td>减少不必要的数据复制</td>
+</tr>
+</tbody></table>
+<p>Java 21 虚拟线程并没有让 Netty 失去价值。两者关注点不同：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">虚拟线程：让阻塞式并发更轻量、更容易编写</span><br><span class="line">Netty：提供完整的事件驱动网络工程能力</span><br></pre></td></tr></table></figure>
+
+<p>如果系统只是维持连接、读取简单消息并调用普通业务服务，虚拟线程可能更容易维护。如果需要复杂协议、多阶段 Pipeline、精细背压和大量连接治理，Netty 仍然更合适。</p>
+<h1 id="常见误解"><a href="#常见误解" class="headerlink" title="常见误解"></a>常见误解</h1><table>
+<thead>
+<tr>
+<th>误解</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一个连接占用一个服务端端口</td>
+<td>多条连接可以共享同一个服务端监听端口，由 TCP 四元组区分</td>
+</tr>
+<tr>
+<td>一个 Socket 必须对应一个进程</td>
+<td>一个 JVM 进程可以持有大量 Socket</td>
+</tr>
+<tr>
+<td>一个连接必然对应一个线程</td>
+<td>只有某些 BIO 实现采用这种映射，NIO 和 Netty不是</td>
+</tr>
+<tr>
+<td>一个 Netty Channel 对应一个 EventLoop 线程</td>
+<td>Channel 只绑定一个 EventLoop，但一个 EventLoop 管理多个 Channel</td>
+</tr>
+<tr>
+<td>NIO 没有阻塞</td>
+<td>Selector 线程仍会等待事件，只是不为每条连接单独阻塞线程</td>
+</tr>
+<tr>
+<td>Netty Handler 可以直接执行慢 SQL</td>
+<td>EventLoop 被阻塞会影响它管理的其他 Channel</td>
+</tr>
+<tr>
+<td>TCP 一次 write 对应一次 read</td>
+<td>TCP 没有应用消息边界，必须设计分帧协议</td>
+</tr>
+<tr>
+<td>虚拟线程可以解决所有高并发问题</td>
+<td>它不能消除数据库、内存、带宽和业务并发上限</td>
+</tr>
+</tbody></table>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Java 网络编程可以沿着下面这条主线理解：</p>
 <pre class="mermaid">flowchart LR
-    A[多个 SocketChannel] --> B[Selector]
-    B --> C[EventLoop]
-    C --> D[Read/Decode]
-    D --> E[业务任务]
-    E --> F[Encode/Write]</pre>
+    A[一个监听端口] --> B[许多 TCP 连接]
+    B --> C[每条连接一个 Socket / Channel]
+    C --> D{怎样调度连接}
+    D --> E[BIO：连接线程阻塞等待]
+    D --> F[虚拟线程：轻量阻塞等待]
+    D --> G[NIO：Selector 处理就绪事件]
+    D --> H[Netty：EventLoop + Pipeline]
+    H --> I[BusinessExecutor / 消息队列]</pre>
 
-<table>
-<thead>
-<tr>
-<th>概念</th>
-<th>说明</th>
-<th>常见坑</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Buffer</td>
-<td><code>position</code>、<code>limit</code>、<code>capacity</code> 描述读写位置</td>
-<td>写入后 <code>flip()</code> 再读，读完 <code>clear()</code>&#x2F;<code>compact()</code>；忘记切换会读到空数据</td>
-</tr>
-<tr>
-<td>Channel</td>
-<td>数据读写通道，如 <code>SocketChannel</code></td>
-<td>非阻塞 <code>read</code> 返回 0 不表示连接关闭，返回 -1 才是 EOF</td>
-</tr>
-<tr>
-<td>Selector</td>
-<td>监听注册 Channel 的就绪事件</td>
-<td>只处理 selectedKeys 后要移除，避免重复处理</td>
-</tr>
-<tr>
-<td>OP_ACCEPT&#x2F;READ&#x2F;WRITE</td>
-<td>接受连接、可读、可写事件</td>
-<td>不要长期注册 OP_WRITE，socket 缓冲区通常一直可写，会造成空转</td>
-</tr>
-</tbody></table>
-<h1 id="TCP-字节流、粘包拆包与协议设计"><a href="#TCP-字节流、粘包拆包与协议设计" class="headerlink" title="TCP 字节流、粘包拆包与协议设计"></a>TCP 字节流、粘包拆包与协议设计</h1><p>TCP 只保证字节顺序，不保留发送端的消息边界。一次 <code>write</code> 可能被拆为多次 <code>read</code>，多次 write 也可能合并为一次 read。因此业务协议必须自己定义边界，不能假设“一次 read 就是一条完整 JSON”。</p>
-<p>常用方案是定长头部加长度字段：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+--------+--------+---------+------------+---------+</span><br><span class="line">| magic  | version| length  | requestId  | payload |</span><br><span class="line">+--------+--------+---------+------------+---------+</span><br></pre></td></tr></table></figure>
+<p>最关键的结论是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">端口用于监听，四元组用于区分连接；</span><br><span class="line">连接对应 Socket 或 Channel，但不必对应线程；</span><br><span class="line">BIO、NIO 和 Netty 的主要区别，是线程怎样等待和调度连接；</span><br><span class="line">业务逻辑必须与网络 EventLoop 隔离；</span><br><span class="line">生产系统还要同时处理协议边界、心跳、背压、认证和资源上限。</span><br></pre></td></tr></table></figure>
 
-<p>接收端先累计头部字节，再验证 <code>magic</code>、版本和 <code>length</code> 上限，只有拿到完整 payload 才交给反序列化器。长度字段必须设置最大值，防止恶意客户端声明数 GB Body 导致内存分配攻击。HTTP、WebSocket、Protobuf 等成熟协议已经定义了边界和编解码，不要为普通内部 HTTP 服务手写 TCP 协议。</p>
-<h1 id="零拷贝是什么"><a href="#零拷贝是什么" class="headerlink" title="零拷贝是什么"></a>零拷贝是什么</h1><p>“零拷贝”不是数据完全不移动，而是减少用户态&#x2F;内核态之间的额外复制和上下文切换。文件下载中 <code>FileChannel.transferTo()</code> 可利用 <code>sendfile</code> 等内核能力，让文件页缓存数据更直接地发送到 socket；DMA 由设备与内存传输数据，减少 CPU 参与。</p>
-<p>它适合大文件、日志或静态资源转发。若还需要加密、压缩、内容改写或复杂业务解析，数据仍可能进入用户态。生产优化前先确认瓶颈是 CPU copy、磁盘、网络还是下游限速，不要把零拷贝当作通用性能开关。</p>
-<h1 id="Netty-的线程模型和-Pipeline"><a href="#Netty-的线程模型和-Pipeline" class="headerlink" title="Netty 的线程模型和 Pipeline"></a>Netty 的线程模型和 Pipeline</h1><p>Netty 将 Channel 绑定到一个 EventLoop，EventLoop 既处理该连接的 IO 事件，也顺序执行该 Channel Pipeline 的 Handler。这样可减少同一连接的锁竞争，但有一个硬约束：<strong>不要在 EventLoop 上执行慢 SQL、阻塞 HTTP、文件压缩或长循环</strong>，否则同一 EventLoop 管理的其他连接都会延迟。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">BossGroup: accept 新连接</span><br><span class="line">WorkerGroup/EventLoop: read -&gt; decode -&gt; inbound handlers -&gt; write</span><br><span class="line">BusinessExecutor: 慢业务、阻塞调用、CPU 重计算</span><br></pre></td></tr></table></figure>
-
-<p>Pipeline 中 inbound 事件通常从头到尾传播，outbound 写事件反向传播。Decoder 负责字节到消息，Encoder 负责消息到字节，业务 Handler 专注协议语义。Handler 若有实例字段且被多个 Channel 共享，必须线程安全；否则每个 Channel 创建独立 Handler，或使用 <code>@Sharable</code> 前明确无状态。</p>
-<p><code>ByteBuf</code> 比 <code>ByteBuffer</code> 更适合网络框架，支持读写索引、池化和引用计数。引用计数对象在异步传递后必须正确 <code>retain</code>&#x2F;<code>release</code>；泄漏检测只用于发现问题，不能替代资源所有权设计。业务代码不要长期保存 ByteBuf，应尽快拷贝为不可变业务对象或在约定范围内释放。</p>
-<h1 id="连接治理、心跳和背压"><a href="#连接治理、心跳和背压" class="headerlink" title="连接治理、心跳和背压"></a>连接治理、心跳和背压</h1><p>长连接服务必须处理半开连接、空闲连接、客户端断网和慢消费者。应用心跳不是为了替代 TCP，而是更快发现业务层失活；使用 Netty <code>IdleStateHandler</code> 检测读&#x2F;写空闲后发送 ping 或关闭连接。服务端不能只依赖客户端心跳，需设置空闲超时和最大连接数。</p>
-<p>写入也会背压：当客户端读取慢时，Channel 出站缓冲积压。Netty 的 <code>Channel.isWritable()</code> 和高低水位线可用于限制继续写入；达到高水位后暂停上游生产或丢弃允许丢失的实时推送，恢复可写再继续。无界队列缓存每个客户端消息会让少数慢连接拖垮 JVM。</p>
-<table>
-<thead>
-<tr>
-<th>现象</th>
-<th>常见原因</th>
-<th>优先处理</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>大量 CLOSE_WAIT</td>
-<td>本端未关闭 socket&#x2F;response body</td>
-<td>检查异常路径 <code>close</code>、HTTP 客户端资源释放</td>
-</tr>
-<tr>
-<td>大量 TIME_WAIT</td>
-<td>主动关闭方连接频繁短连</td>
-<td>优先连接复用和 Keep-Alive，而非盲调内核参数</td>
-</tr>
-<tr>
-<td>EventLoop CPU 高</td>
-<td>Handler 阻塞、空转 OP_WRITE、编解码死循环</td>
-<td>线程 dump 定位 Handler，移交业务线程池</td>
-</tr>
-<tr>
-<td>内存上涨</td>
-<td>ByteBuf 泄漏、慢客户端出站积压、超大包</td>
-<td>LeakDetector、写水位、包大小上限和连接限额</td>
-</tr>
-</tbody></table>
-<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><table>
-<thead>
-<tr>
-<th>问题</th>
-<th>回答要点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>NIO 为什么能用少量线程处理大量连接？</td>
-<td>非阻塞 Channel 注册到 Selector，线程只处理就绪事件，不为每个空闲连接阻塞等待。</td>
-</tr>
-<tr>
-<td>TCP 为什么有粘包拆包？</td>
-<td>TCP 是连续字节流，没有应用消息边界；由协议长度字段、分隔符或固定长度解决。</td>
-</tr>
-<tr>
-<td>Netty 为什么不能阻塞 EventLoop？</td>
-<td>一个 EventLoop 管理多条连接，阻塞会让这些连接的读写和心跳都延迟。</td>
-</tr>
-<tr>
-<td>零拷贝有什么收益？</td>
-<td>减少额外内存复制和上下文切换，适合大文件传输，但不等于完全无复制。</td>
-</tr>
-<tr>
-<td>如何治理慢客户端？</td>
-<td>写水位和 <code>isWritable</code> 做背压，限制每连接缓冲和消息大小，必要时断开或降级。</td>
-</tr>
-</tbody></table>
-</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250830/">https://junly.top/posts/20250830/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/NIO/">NIO</a><a class="post-meta__tags" href="/tags/Netty/">Netty</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250827/" title="Java：集合框架、HashMap与数据结构选型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java：集合框架、HashMap与数据结构选型</div></div><div class="info-2"><div class="info-item-1">前言Java 集合的选型应服务于访问模式、数据规模、内存约束和并发边界，而不是只比较时间复杂度。本文从 List、Set、Map 到 HashMap 和并发容器，说明底层机制、常见误区以及如何把源码知识落到实际业务代码中。 集合题要回答“为什么这样选”集合面试不应只背 ArrayList、HashMap 的源码细节。实际需要根据访问模式回答：是否按下标访问、是否大量头尾插入、是否要去重或排序、是否并发、元素规模和内存上限是什么。集合是进程内数据结构，不能替代数据库索引、缓存或跨实例协调。    需求 常见选择 原因与边界    顺序遍历、尾部追加、按下标读取 ArrayList 连续数组，随机访问快；中间插入&#x2F;删除要移动元素   双端队列 ArrayDeque 数组环形队列，通常优于旧 Stack&#x2F;LinkedList   去重且不要求顺序 HashSet 底层通常是 HashMap 的 Key 集合   Key 精确查找 HashMap 平均 O(1)，依赖正确 hashCode&#x2F;equals   按 Key 排序或范围查询 TreeMap...</div></div></div></a><a class="pagination-related" href="/posts/20250902/" title="Java：类加载、反射、SPI、动态代理与模块化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java：类加载、反射、SPI、动态代理与模块化</div></div><div class="info-2"><div class="info-item-1">前言类加载、反射和动态代理常在框架集成、插件隔离和线上兼容故障中同时出现。本文从类的生命周期和 ClassLoader 边界出发，解释 SPI、代理和模块化的运行原理，并提供定位类冲突与访问限制问题的思路。 类加载问题本质是“哪个类、由谁加载”同名类被不同 ClassLoader 加载后，在 JVM 看来是不同类型。排查 ClassCastException、NoSuchMethodError、SPI 实现找不到、容器插件隔离问题时，必须同时看类全名和 ClassLoader，不能只看 Maven 依赖树。 类的完整生命周期可概括为：加载、连接（验证、准备、解析）、初始化、使用、卸载。准备阶段给静态字段分配内存并赋默认值；初始化阶段才执行静态变量赋值和静态代码块。new、访问非编译期常量静态字段、反射主动使用、启动类等会触发初始化。 双亲委派与自定义加载常规类加载器按“先委派父加载器，父找不到再自己尝试”的方式加载。它的主要价值是保证核心类唯一，例如避免业务 jar 自己定义 java.lang.String 替代 JDK...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20190413/" title="Java开发环境搭建完全指南：从零开始构建Java开发平台"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-13</div><div class="info-item-2">Java开发环境搭建完全指南：从零开始构建Java开发平台</div></div><div class="info-2"><div class="info-item-1">前言工欲善其事，必先利其器。Java开发环境的搭建是每个Java开发者必须掌握的基础技能。本文将详细介绍如何在不同操作系统上安装和配置Java开发环境，包括JDK的安装、环境变量配置、IDE的选择与安装，以及创建第一个Java程序的完整过程。 JDK的下载与安装JDK版本选择策略在开始安装之前，我们需要了解如何选择合适的JDK版本： graph TD     A[选择JDK版本] --> B{项目需求}     B --> C[企业级长期项目]     B --> D[学习/个人项目]     B --> E[特定功能需求]          C --> F[LTS版本Java 8/11/17/21]     D --> G[最新稳定版本]     E --> H[特定版本特性]          F --> I[Oracle JDKOpenJDKAdoptOpenJDK]     G --> I     H --> I  JDK发行版选择 Oracle JDK：官方发行版，企业级支持 OpenJDK：开源免费版本 AdoptOpenJDK&#x2F;Eclipse...</div></div></div></a><a class="pagination-related" href="/posts/20190424/" title="Java基础语法详解：构建坚实的编程基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-24</div><div class="info-item-2">Java基础语法详解：构建坚实的编程基础</div></div><div class="info-2"><div class="info-item-1">前言Java基础语法是每个Java开发者必须掌握的核心知识。良好的语法基础不仅能够帮助我们编写出正确的程序，还能让代码更加规范、易读和易维护。本文将详细讲解Java的基础语法，包括标识符、关键字、注释、程序结构和包的概念，为后续深入学习Java奠定坚实基础。 标识符与命名规则标识符的定义标识符是程序员为变量、方法、类、接口等程序元素起的名字。在Java中，标识符必须遵循特定的命名规则。 标识符命名规则基本规则 字符组成：只能包含字母、数字、下划线(_)和美元符号($) 首字符限制：不能以数字开头 大小写敏感：Java区分大小写 长度限制：理论上没有长度限制，但建议控制在合理范围内 关键字禁用：不能使用Java关键字作为标识符  graph TD     A[标识符命名规则] --> B[字符限制]     A --> C[首字符限制]     A --> D[大小写敏感]     A --> E[避免关键字]          B --> F[字母: a-z, A-Z]     B --> G[数字: 0-9]     B --> H[特殊字符: _, $]         ...</div></div></div></a><a class="pagination-related" href="/posts/20190505/" title="Java数据类型与变量深入解析：掌握Java的数据基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-05-05</div><div class="info-item-2">Java数据类型与变量深入解析：掌握Java的数据基础</div></div><div class="info-2"><div class="info-item-1">前言数据类型和变量是程序设计语言的基础要素，它们决定了程序如何存储和操作数据。Java作为强类型语言，对数据类型有着严格的定义和规范。本文将深入探讨Java的数据类型系统、变量的声明与使用、常量的定义以及类型转换机制，帮助读者构建扎实的Java编程基础。 Java数据类型概览Java的数据类型分为两大类：基本数据类型（原始类型）和引用数据类型。理解这两类数据类型的区别和特点是掌握Java编程的重要基础。 graph TD     A[Java数据类型] --> B[基本数据类型Primitive Types]     A --> C[引用数据类型Reference Types]          B --> D[整数类型]     B --> E[浮点类型]     B --> F[字符类型]     B --> G[布尔类型]          D --> H[byte 8位]     D --> I[short 16位]     D --> J[int 32位]     D --> K[long 64位]          E --> L[float 32位]     E...</div></div></div></a><a class="pagination-related" href="/posts/20190516/" title="Java运算符详解与应用：掌握程序逻辑的基础工具"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-05-16</div><div class="info-item-2">Java运算符详解与应用：掌握程序逻辑的基础工具</div></div><div class="info-2"><div class="info-item-1">前言运算符是编程语言中执行特定数学、关系或逻辑运算的符号。Java提供了丰富的运算符集合，从基本的算术运算到复杂的位运算，这些运算符是构建程序逻辑的基础工具。本文将详细介绍Java中的各类运算符，包括它们的用法、优先级和在实际编程中的应用场景。 Java运算符分类概览Java运算符可以根据功能分为多个类别，每个类别都有其特定的用途和应用场景： mindmap   root((Java运算符))     算术运算符       +加法       -减法       *乘法       /除法       %取模       ++自增       --自减     赋值运算符       =简单赋值       +=加法赋值       -=减法赋值       *=乘法赋值       /=除法赋值       %=取模赋值     比较运算符       ==等于       !=不等于       >大于       =大于等于       >>无符号右移     三元运算符       ?:条件表达式     其他运算符       instanceof类型检查     ...</div></div></div></a><a class="pagination-related" href="/posts/20190402/" title="Java简介与发展：从起源到现代的编程语言演进"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-02</div><div class="info-item-2">Java简介与发展：从起源到现代的编程语言演进</div></div><div class="info-2"><div class="info-item-1">前言Java作为世界上最流行的编程语言之一，自1995年诞生以来就以其”一次编写，到处运行”的理念改变了软件开发的格局。本文将深入探讨Java语言的起源、发展历程、核心特性以及JDK、JRE、JVM之间的关系，带领读者全面了解Java技术生态。 Java语言的起源与发展历史诞生背景Java语言诞生于1990年代初期，当时Sun Microsystems公司的工程师James Gosling带领团队开发一种用于消费电子设备的编程语言。最初这个项目被称为”Green Project”，目标是创建一种平台无关的编程语言来解决不同硬件平台之间的兼容性问题。 timeline     title Java发展历程     1990 : Green Project启动     1991 : Oak语言诞生     1995 : Java 1.0正式发布     1997 : Java 1.1发布     1998 : Java 2 (J2SE 1.2)发布     2004 : Java 5.0重大更新     2014 : Java 8 LTS版本     2017 : Java...</div></div></div></a><a class="pagination-related" href="/posts/20190527/" title="Java流程控制语句详解：掌握程序执行流程的艺术"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-05-27</div><div class="info-item-2">Java流程控制语句详解：掌握程序执行流程的艺术</div></div><div class="info-2"><div class="info-item-1">前言流程控制是程序设计的核心概念之一，它决定了程序的执行路径和逻辑结构。Java提供了丰富的流程控制语句，包括条件语句、循环语句和跳转语句，这些语句让程序能够根据不同的条件执行不同的操作，实现复杂的业务逻辑。本文将深入探讨Java中的各种流程控制语句，帮助读者掌握程序控制的精髓。 流程控制概述程序的执行流程通常分为三种基本结构：顺序结构、选择结构和循环结构。Java的流程控制语句正是实现这些结构的工具。 graph TD     A[程序流程控制] --> B[顺序结构]     A --> C[选择结构]     A --> D[循环结构]     A --> E[跳转控制]          B --> F[语句按顺序执行]          C --> G[条件语句]     G --> H[if-else]     G --> I[switch-case]          D --> J[循环语句]     J --> K[for循环]     J --> L[while循环]     J --> M[do-while循环]     J --> N[增强for循环] ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">140</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">271</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%88%E5%8C%BA%E5%88%86%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE%E3%80%81IO-%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%A1%86%E6%9E%B6"><span class="toc-number">2.</span> <span class="toc-text">先区分网络协议、IO 模型和框架</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#BIO%E3%80%81NIO-%E4%B8%8E-Selector"><span class="toc-number">3.</span> <span class="toc-text">BIO、NIO 与 Selector</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TCP-%E5%AD%97%E8%8A%82%E6%B5%81%E3%80%81%E7%B2%98%E5%8C%85%E6%8B%86%E5%8C%85%E4%B8%8E%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.</span> <span class="toc-text">TCP 字节流、粘包拆包与协议设计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">5.</span> <span class="toc-text">零拷贝是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Netty-%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B%E5%92%8C-Pipeline"><span class="toc-number">6.</span> <span class="toc-text">Netty 的线程模型和 Pipeline</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%B2%BB%E7%90%86%E3%80%81%E5%BF%83%E8%B7%B3%E5%92%8C%E8%83%8C%E5%8E%8B"><span class="toc-number">7.</span> <span class="toc-text">连接治理、心跳和背压</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">8.</span> <span class="toc-text">高频面试题</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260831/" title="双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南">双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南</a><time datetime="2026-08-30T16:00:00.000Z" title="发表于 2026-08-31 00:00:00">2026-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/tokenhub-home/" title="TokenHub —— 简洁易用的 AI API 中转站">TokenHub —— 简洁易用的 AI API 中转站</a><time datetime="2026-08-19T02:00:00.000Z" title="发表于 2026-08-19 10:00:00">2026-08-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具">估值君 —— 一个帮你实时追踪基金估值的小工具</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+<p>理解这组关系后，再阅读 Netty 的 EventLoop、Pipeline、Decoder 和 Handler，就不会把它们看成零散 API，而能看到它们各自在整条连接处理链路中的位置。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250830/">https://junly.top/posts/20250830/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/Socket/">Socket</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a><a class="post-meta__tags" href="/tags/%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B/">虚拟线程</a><a class="post-meta__tags" href="/tags/NIO/">NIO</a><a class="post-meta__tags" href="/tags/Netty/">Netty</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250827/" title="Java：集合框架、HashMap与数据结构选型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java：集合框架、HashMap与数据结构选型</div></div><div class="info-2"><div class="info-item-1">前言Java 集合的选型应服务于访问模式、数据规模、内存约束和并发边界，而不是只比较时间复杂度。本文从 List、Set、Map 到 HashMap 和并发容器，说明底层机制、常见误区以及如何把源码知识落到实际业务代码中。 集合题要回答“为什么这样选”集合面试不应只背 ArrayList、HashMap 的源码细节。实际需要根据访问模式回答：是否按下标访问、是否大量头尾插入、是否要去重或排序、是否并发、元素规模和内存上限是什么。集合是进程内数据结构，不能替代数据库索引、缓存或跨实例协调。    需求 常见选择 原因与边界    顺序遍历、尾部追加、按下标读取 ArrayList 连续数组，随机访问快；中间插入&#x2F;删除要移动元素   双端队列 ArrayDeque 数组环形队列，通常优于旧 Stack&#x2F;LinkedList   去重且不要求顺序 HashSet 底层通常是 HashMap 的 Key 集合   Key 精确查找 HashMap 平均 O(1)，依赖正确 hashCode&#x2F;equals   按 Key 排序或范围查询 TreeMap...</div></div></div></a><a class="pagination-related" href="/posts/20250902/" title="Java：类加载、反射、SPI、动态代理与模块化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java：类加载、反射、SPI、动态代理与模块化</div></div><div class="info-2"><div class="info-item-1">前言类加载、反射和动态代理常在框架集成、插件隔离和线上兼容故障中同时出现。本文从类的生命周期和 ClassLoader 边界出发，解释 SPI、代理和模块化的运行原理，并提供定位类冲突与访问限制问题的思路。 类加载问题本质是“哪个类、由谁加载”同名类被不同 ClassLoader 加载后，在 JVM 看来是不同类型。排查 ClassCastException、NoSuchMethodError、SPI 实现找不到、容器插件隔离问题时，必须同时看类全名和 ClassLoader，不能只看 Maven 依赖树。 类的完整生命周期可概括为：加载、连接（验证、准备、解析）、初始化、使用、卸载。准备阶段给静态字段分配内存并赋默认值；初始化阶段才执行静态变量赋值和静态代码块。new、访问非编译期常量静态字段、反射主动使用、启动类等会触发初始化。 双亲委派与自定义加载常规类加载器按“先委派父加载器，父找不到再自己尝试”的方式加载。它的主要价值是保证核心类唯一，例如避免业务 jar 自己定义 java.lang.String 替代 JDK...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20260901/" title="Java Socket通信：核心原理、使用场景与协议设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-01</div><div class="info-item-2">Java Socket通信：核心原理、使用场景与协议设计</div></div><div class="info-2"><div class="info-item-1">前言在日常业务开发中，我们更多使用 HTTP、WebSocket、RPC 或消息队列，很少直接操作 Socket。但这些上层协议和框架最终都要通过操作系统提供的网络能力传输数据，Socket 就是应用程序使用这些能力的重要接口。 直接使用 Socket 时，建立连接只是第一步。真正困难的部分通常在连接之后：如何区分多条消息、如何传输 JSON、如何关联请求和响应、如何检测断线、如何限制恶意数据，以及什么时候应该放弃自定义协议，改用成熟的 HTTP、WebSocket 或 Netty。 本文以 Java TCP Socket 为主线，从基本通信讲到一套可以继续扩展的协议设计。 Socket 是什么Socket 可以理解为应用程序与网络协议栈之间的通信端点。一条 TCP 连接由以下信息共同标识： 1客户端 IP + 客户端端口 + 服务端 IP + 服务端端口  Java 中常见的 Socket API 有：    类型 协议 作用    Socket TCP 发起连接，或表示服务端已经接收的一条连接   ServerSocket TCP 绑定并监听端口，通过 accept()...</div></div></div></a><a class="pagination-related" href="/posts/20250815/" title="Java并发：JDK21虚拟线程、结构化并发与生产排查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-15</div><div class="info-item-2">Java并发：JDK21虚拟线程、结构化并发与生产排查</div></div><div class="info-2"><div class="info-item-1">前言JDK 21 虚拟线程降低的是阻塞式 I&#x2F;O 的线程占用成本，并不会凭空增加 CPU、连接池或下游服务容量。本文说明虚拟线程和结构化并发的适用边界，并给出 pinning、线程 Dump、JFR 与依赖指标结合的生产排查路径。 虚拟线程解决什么问题平台线程直接映射操作系统线程，创建和阻塞的成本较高。虚拟线程由 JVM 调度到少量载体（carrier）平台线程上，遇到大多数 JDK 可感知的阻塞 IO 时可卸载，让载体线程继续运行其他虚拟线程。 flowchart LR     V1[虚拟线程 1: HTTP 等待] --> C[少量载体平台线程]     V2[虚拟线程 2: DB 等待] --> C     V3[虚拟线程 3: CPU 计算] --> C     C --> OS[操作系统线程]  它的价值是让大量阻塞型、每请求一线程的任务不再需要为等待占用等量 OS 线程。它不是让 CPU、数据库连接、远程服务 QPS 或内存无限增长。 123try (var executor =...</div></div></div></a><a class="pagination-related" href="/posts/20200612/" title="MySQL编程与开发实践：数据库应用开发指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-12</div><div class="info-item-2">MySQL编程与开发实践：数据库应用开发指南</div></div><div class="info-2"><div class="info-item-1">前言在现代软件开发中，数据库是几乎所有应用程序的核心组件，而MySQL作为全球最受欢迎的开源关系型数据库，被广泛应用于各类项目中。对于开发人员而言，掌握MySQL的编程与开发技巧不仅能提高应用程序的性能和稳定性，还能降低开发和维护成本。本文将从多种主流编程语言出发，深入探讨MySQL的应用开发实践，包括数据库连接、CRUD操作、事务管理、ORM框架应用等方面，并结合实际案例分享最佳实践和常见陷阱。无论你是使用Python、Java、PHP还是其他语言，本文都将为你提供实用的MySQL开发指南，帮助你构建高效、安全、可靠的数据库应用。 MySQL编程基础概念在深入特定语言的MySQL开发实践前，首先需要了解一些通用的编程概念和模式。 数据库应用架构模式现代应用程序与MySQL交互通常采用以下几种架构模式： graph TD     A[应用程序] --> B[数据访问层/ORM]     B --> C[数据库驱动]     C --> D[MySQL数据库]          E[客户端] --> F[API服务]     F --> G[业务逻辑层]     G -->...</div></div></div></a><a class="pagination-related" href="/posts/20201210/" title="Kafka编程实践与开发：多语言客户端实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-10</div><div class="info-item-2">Kafka编程实践与开发：多语言客户端实战指南</div></div><div class="info-2"><div class="info-item-1">前言Apache Kafka作为一个高性能的分布式流处理平台，已经成为现代数据架构中不可或缺的组件。要充分发挥Kafka的强大功能，开发人员需要掌握如何通过不同编程语言与Kafka进行交互。本文将深入探讨Kafka的编程实践与开发，涵盖Java、Python和Spring Boot等主流技术栈，提供从基础概念到高级应用的全面指南，帮助开发人员快速构建可靠、高效的Kafka应用程序。 Kafka客户端编程基础Kafka客户端开发模型在开始具体编程之前，了解Kafka客户端的核心开发模型至关重要。Kafka客户端主要分为生产者(Producer)和消费者(Consumer)两种角色，它们遵循不同的设计模式和交互方式。 graph LR     A[应用程序] --> B[Producer API]     B --> C[Kafka集群]     C --> D[Consumer API]     D --> E[应用程序]          F[Admin API]  C     G[Streams API]  C          style B...</div></div></div></a><a class="pagination-related" href="/posts/20190402/" title="Java简介与发展：从起源到现代的编程语言演进"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-02</div><div class="info-item-2">Java简介与发展：从起源到现代的编程语言演进</div></div><div class="info-2"><div class="info-item-1">前言Java作为世界上最流行的编程语言之一，自1995年诞生以来就以其”一次编写，到处运行”的理念改变了软件开发的格局。本文将深入探讨Java语言的起源、发展历程、核心特性以及JDK、JRE、JVM之间的关系，带领读者全面了解Java技术生态。 Java语言的起源与发展历史诞生背景Java语言诞生于1990年代初期，当时Sun Microsystems公司的工程师James Gosling带领团队开发一种用于消费电子设备的编程语言。最初这个项目被称为”Green Project”，目标是创建一种平台无关的编程语言来解决不同硬件平台之间的兼容性问题。 timeline     title Java发展历程     1990 : Green Project启动     1991 : Oak语言诞生     1995 : Java 1.0正式发布     1997 : Java 1.1发布     1998 : Java 2 (J2SE 1.2)发布     2004 : Java 5.0重大更新     2014 : Java 8 LTS版本     2017 : Java...</div></div></div></a><a class="pagination-related" href="/posts/20190413/" title="Java开发环境搭建完全指南：从零开始构建Java开发平台"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2019-04-13</div><div class="info-item-2">Java开发环境搭建完全指南：从零开始构建Java开发平台</div></div><div class="info-2"><div class="info-item-1">前言工欲善其事，必先利其器。Java开发环境的搭建是每个Java开发者必须掌握的基础技能。本文将详细介绍如何在不同操作系统上安装和配置Java开发环境，包括JDK的安装、环境变量配置、IDE的选择与安装，以及创建第一个Java程序的完整过程。 JDK的下载与安装JDK版本选择策略在开始安装之前，我们需要了解如何选择合适的JDK版本： graph TD     A[选择JDK版本] --> B{项目需求}     B --> C[企业级长期项目]     B --> D[学习/个人项目]     B --> E[特定功能需求]          C --> F[LTS版本Java 8/11/17/21]     D --> G[最新稳定版本]     E --> H[特定版本特性]          F --> I[Oracle JDKOpenJDKAdoptOpenJDK]     G --> I     H --> I  JDK发行版选择 Oracle JDK：官方发行版，企业级支持 OpenJDK：开源免费版本 AdoptOpenJDK&#x2F;Eclipse...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">142</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">278</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%88%E5%BB%BA%E7%AB%8B%E5%AE%8C%E6%95%B4%E7%9A%84%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82"><span class="toc-number">2.</span> <span class="toc-text">先建立完整的网络分层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E6%9D%A1%E8%BF%9E%E6%8E%A5%E5%9C%A8%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%88%B0%E5%BA%95%E5%AF%B9%E5%BA%94%E4%BB%80%E4%B9%88"><span class="toc-number">3.</span> <span class="toc-text">一条连接在服务端到底对应什么</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E7%AB%AF%E5%8F%A3%E5%8F%AF%E4%BB%A5%E6%89%BF%E8%BD%BD%E5%BE%88%E5%A4%9A%E8%BF%9E%E6%8E%A5"><span class="toc-number">3.1.</span> <span class="toc-text">一个端口可以承载很多连接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#accept-%E4%B9%8B%E5%90%8E%E4%BC%9A%E5%BE%97%E5%88%B0%E8%BF%9E%E6%8E%A5%E5%AF%B9%E8%B1%A1"><span class="toc-number">3.2.</span> <span class="toc-text">accept 之后会得到连接对象</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%A8%E5%90%8C%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E5%AF%B9%E6%AF%94%E5%9B%9B%E7%A7%8D%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.</span> <span class="toc-text">用同一个实际项目对比四种模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#BIO%EF%BC%9A%E4%B8%80%E4%B8%AA%E8%BF%9E%E6%8E%A5%E7%94%B1%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9E%E7%AD%89%E5%BE%85"><span class="toc-number">5.</span> <span class="toc-text">BIO：一个连接由一个线程阻塞等待</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-21-%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">5.1.</span> <span class="toc-text">Java 21 虚拟线程改变了什么</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NIO%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E5%8F%AA%E5%A4%84%E7%90%86%E5%B7%B2%E7%BB%8F%E5%B0%B1%E7%BB%AA%E7%9A%84%E8%BF%9E%E6%8E%A5"><span class="toc-number">6.</span> <span class="toc-text">NIO：一个线程只处理已经就绪的连接</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Netty-%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B%E5%92%8C-Pipeline"><span class="toc-number">7.</span> <span class="toc-text">Netty 的线程模型和 Pipeline</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Boss%E3%80%81Worker%E3%80%81Channel-%E5%92%8C-EventLoop"><span class="toc-number">7.1.</span> <span class="toc-text">Boss、Worker、Channel 和 EventLoop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8-Pipeline-%E5%AE%9E%E7%8E%B0%E8%AE%BE%E5%A4%87%E5%8D%8F%E8%AE%AE"><span class="toc-number">7.2.</span> <span class="toc-text">用 Pipeline 实现设备协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%9D%A1%E6%B6%88%E6%81%AF%E5%9C%A8-Pipeline-%E4%B8%AD%E5%A6%82%E4%BD%95%E6%B5%81%E5%8A%A8"><span class="toc-number">7.3.</span> <span class="toc-text">一条消息在 Pipeline 中如何流动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E4%B8%8D%E8%83%BD%E9%98%BB%E5%A1%9E-EventLoop"><span class="toc-number">7.4.</span> <span class="toc-text">为什么业务逻辑不能阻塞 EventLoop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E8%BA%AB%E4%BB%BD%E5%BA%94%E8%AF%A5%E7%BB%91%E5%AE%9A-Channel%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E7%BA%BF%E7%A8%8B"><span class="toc-number">7.5.</span> <span class="toc-text">设备身份应该绑定 Channel，而不是线程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E7%A7%8D%E6%A8%A1%E5%9E%8B%E6%94%BE%E5%9C%A8%E5%90%8C%E4%B8%80%E4%B8%AA%E5%9C%BA%E6%99%AF%E4%B8%AD%E6%AF%94%E8%BE%83"><span class="toc-number">8.</span> <span class="toc-text">四种模型放在同一个场景中比较</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%BF%98%E8%A6%81%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-number">9.</span> <span class="toc-text">生产环境还要解决什么</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%83%E8%B7%B3%E5%92%8C%E5%8D%8A%E5%BC%80%E8%BF%9E%E6%8E%A5"><span class="toc-number">9.1.</span> <span class="toc-text">心跳和半开连接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%85%A5%E8%83%8C%E5%8E%8B"><span class="toc-number">9.2.</span> <span class="toc-text">写入背压</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%A5%E6%96%87%E3%80%81%E8%AE%A4%E8%AF%81%E5%92%8C-TLS"><span class="toc-number">9.3.</span> <span class="toc-text">报文、认证和 TLS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ByteBuf-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">9.4.</span> <span class="toc-text">ByteBuf 生命周期</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%94%BE%E5%9C%A8%E4%BB%80%E4%B9%88%E4%BD%8D%E7%BD%AE%E7%90%86%E8%A7%A3"><span class="toc-number">10.</span> <span class="toc-text">零拷贝放在什么位置理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="toc-number">11.</span> <span class="toc-text">实际项目如何选择</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%AF%AF%E8%A7%A3"><span class="toc-number">12.</span> <span class="toc-text">常见误解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260901/" title="Java Socket通信：核心原理、使用场景与协议设计">Java Socket通信：核心原理、使用场景与协议设计</a><time datetime="2026-08-31T16:00:00.000Z" title="发表于 2026-09-01 00:00:00">2026-09-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260831/" title="双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南">双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南</a><time datetime="2026-08-30T16:00:00.000Z" title="发表于 2026-08-31 00:00:00">2026-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/tokenhub-home/" title="TokenHub —— 简洁易用的 AI API 中转站">TokenHub —— 简洁易用的 AI API 中转站</a><time datetime="2026-08-19T02:00:00.000Z" title="发表于 2026-08-19 10:00:00">2026-08-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
   const runMermaid = ele => {
     window.loadMermaid = true
     const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'

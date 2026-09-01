@@ -1,0 +1,635 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践 | Junly博客</title><meta name="author" content="Junly"><meta name="copyright" content="Junly"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从列式存储、MergeTree、分区、排序键、稀疏索引、数据跳过索引、写入合并、分布式表到查询调优，系统梳理 ClickHouse 的原理、选型边界与生产实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践">
+<meta property="og:url" content="https://junly.top/posts/20250920/index.html">
+<meta property="og:site_name" content="Junly博客">
+<meta property="og:description" content="从列式存储、MergeTree、分区、排序键、稀疏索引、数据跳过索引、写入合并、分布式表到查询调优，系统梳理 ClickHouse 的原理、选型边界与生产实践。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://junly.top/assets/images/profile-photo.jpg">
+<meta property="article:published_time" content="2025-09-20T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-01T03:50:02.387Z">
+<meta property="article:author" content="Junly">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="ClickHouse">
+<meta property="article:tag" content="OLAP">
+<meta property="article:tag" content="列式存储">
+<meta property="article:tag" content="数据仓库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://junly.top/assets/images/profile-photo.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践",
+  "url": "https://junly.top/posts/20250920/",
+  "image": "https://junly.top/assets/images/profile-photo.jpg",
+  "datePublished": "2025-09-20T02:00:00.000Z",
+  "dateModified": "2026-09-01T03:50:02.387Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Junly",
+      "url": "https://junly.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/assets/images/profile-photo.jpg"><link rel="canonical" href="https://junly.top/posts/20250920/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":true,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Junly","link":"链接: ","source":"来源: Junly博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="baidu-site-verification" content="codeva-k0d9ZIw7DO" /><meta name="google-site-verification" content="9jnsxUENtiLH24T-HrkqgEhI0w4Q60Aiev---QPXpoA" /><meta name="msvalidate.01" content="DBE48F0A8E8F0237EFF7A607846D2413" /><link rel="stylesheet" href="/assets/css/movies.css?1"><link rel="stylesheet" href="/assets/css/home.css?28"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">142</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">278</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Junly博客</span></a><a class="nav-page-title" href="/"><span class="site-name">ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/%E9%A1%B9%E7%9B%AE/"><i class="fa-fw fas fa-code"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/interview/"><i class="fa-fw fas fa-clipboard-list"></i><span> 面试</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 检索</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/charts/"><i class="fa-fw fas fa-chart-line"></i><span> 统计</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">ClickHouse：列式存储、MergeTree、索引与 OLAP 生产实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-09-20T02:00:00.000Z" title="发表于 2025-09-20 10:00:00">2025-09-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-01T03:50:02.387Z" title="更新于 2026-09-01 11:50:02">2026-09-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>ClickHouse 适合在海量明细上快速做过滤、聚合和报表分析，例如订单经营看板、行为日志、监控明细和风控分析。它并不是“查询很快的 MySQL”：其高性能建立在列式扫描、批量写入、预聚合和允许一定延迟可见的基础上。</p>
+<p>本文从数据如何落盘、查询如何跳过无关数据讲起，解释 <code>MergeTree</code> 家族、分区、排序键和索引的职责，并给出集群建模、写入治理、查询调优和故障处理方法。核心目标是建立正确的 OLAP 边界：ClickHouse 负责分析型派生数据，交易事实仍由事务型主库承担。</p>
+<h1 id="ClickHouse-解决什么问题"><a href="#ClickHouse-解决什么问题" class="headerlink" title="ClickHouse 解决什么问题"></a>ClickHouse 解决什么问题</h1><p>先区分 OLTP 和 OLAP：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>OLTP，例如 MySQL&#x2F;PostgreSQL</th>
+<th>OLAP，例如 ClickHouse</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主要目标</td>
+<td>单笔交易的正确写入和点查</td>
+<td>大量明细的筛选、聚合、报表</td>
+</tr>
+<tr>
+<td>数据修改</td>
+<td>高频小事务更新、删除</td>
+<td>批量追加，尽量少做逐行更新</td>
+</tr>
+<tr>
+<td>查询形态</td>
+<td>主键点查、少量行 Join</td>
+<td>扫描大量行后 <code>GROUP BY</code>、时间范围聚合</td>
+</tr>
+<tr>
+<td>存储组织</td>
+<td>通常按行存储</td>
+<td>按列存储、按列压缩</td>
+</tr>
+<tr>
+<td>一致性</td>
+<td>强事务、约束、锁</td>
+<td>分析数据通常允许秒级到分钟级同步延迟</td>
+</tr>
+</tbody></table>
+<p>例如运营需要统计“过去 30 天各区域、渠道、品类的支付金额与退款率”，一次查询可能扫描数亿订单明细，但只读取 <code>pay_time</code>、<code>region</code>、<code>channel</code>、<code>amount</code>、<code>refund_flag</code> 五列。列式存储避免读取订单地址、备注、扩展 JSON 等无关列，配合压缩和向量化执行，才能让这类分析在可接受时间内完成。</p>
+<pre class="mermaid">flowchart LR
+    A[(MySQL 订单主库)] --> B[Binlog CDC / Outbox]
+    B --> C[消息队列或同步任务]
+    C --> D[(ClickHouse 明细与汇总表)]
+    E[运营报表] --> D
+    F[BI / 风控分析] --> D
+    G[订单创建与支付] --> A</pre>
+
+<p>主库是权威事实源，ClickHouse 是可重放、可校验、可重建的分析投影。不要把扣库存、账户余额或订单状态机的唯一事实只放到 ClickHouse 中。</p>
+<h1 id="列式存储为什么快"><a href="#列式存储为什么快" class="headerlink" title="列式存储为什么快"></a>列式存储为什么快</h1><p>行式存储把一行字段放在一起，读取一条完整订单很方便；列式存储把同一列连续存放，适合只读取少数列并对整批数据做计算。连续的同类型值具有更高压缩率，也更容易被 CPU 批量处理。</p>
+<p>以订单事实表为例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> order_event</span><br><span class="line">(</span><br><span class="line">    event_time DateTime,</span><br><span class="line">    order_id UInt64,</span><br><span class="line">    tenant_id UInt32,</span><br><span class="line">    region LowCardinality(String),</span><br><span class="line">    channel LowCardinality(String),</span><br><span class="line">    amount <span class="type">Decimal</span>(<span class="number">18</span>, <span class="number">2</span>),</span><br><span class="line">    status Enum8(<span class="string">&#x27;created&#x27;</span> <span class="operator">=</span> <span class="number">1</span>, <span class="string">&#x27;paid&#x27;</span> <span class="operator">=</span> <span class="number">2</span>, <span class="string">&#x27;refunded&#x27;</span> <span class="operator">=</span> <span class="number">3</span>),</span><br><span class="line">    ext_json String</span><br><span class="line">)</span><br><span class="line">ENGINE <span class="operator">=</span> MergeTree</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toYYYYMM(event_time)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> (tenant_id, event_time, order_id);</span><br></pre></td></tr></table></figure>
+
+<p>执行下面的聚合时，通常不需要读取 <code>order_id</code> 和 <code>ext_json</code>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> region, <span class="built_in">sum</span>(amount) <span class="keyword">AS</span> paid_amount</span><br><span class="line"><span class="keyword">FROM</span> order_event</span><br><span class="line"><span class="keyword">WHERE</span> tenant_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> event_time <span class="operator">&gt;=</span> <span class="string">&#x27;2025-09-01&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> event_time <span class="operator">&lt;</span> <span class="string">&#x27;2025-10-01&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;paid&#x27;</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> region;</span><br></pre></td></tr></table></figure>
+
+<p>高性能来自组合，而不只是“列存”：只读必要列、压缩后减少磁盘 I&#x2F;O、向量化计算、按排序键裁剪数据块，以及分布式并行扫描。若查询每次都 <code>SELECT *</code>、过滤条件无法命中排序键，或者在超高基数字段上做无约束聚合，列存也会被拖慢。</p>
+<h2 id="ClickHouse-的真实存储结构：分区、Part、列文件、Granule-与-Mark"><a href="#ClickHouse-的真实存储结构：分区、Part、列文件、Granule-与-Mark" class="headerlink" title="ClickHouse 的真实存储结构：分区、Part、列文件、Granule 与 Mark"></a>ClickHouse 的真实存储结构：分区、Part、列文件、Granule 与 Mark</h2><p>以 <code>MergeTree</code> 表为例，ClickHouse 不是把所有数据写进一个连续的“表文件”。一次或一批 <code>INSERT</code> 会生成一个不可变的 <strong>data part</strong>；后台再将多个小 part 合并成更大的 part。一个按月分区的订单表，磁盘逻辑可以理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">order_event</span><br><span class="line">├── 202509/                         # 2025-09 分区</span><br><span class="line">│   ├── 202509_1_20_3/              # 一个已合并的数据 part</span><br><span class="line">│   │   ├── event_time.bin           # event_time 列压缩数据</span><br><span class="line">│   │   ├── event_time.mrk*          # event_time 列的 mark 偏移</span><br><span class="line">│   │   ├── tenant_id.bin</span><br><span class="line">│   │   ├── tenant_id.mrk*</span><br><span class="line">│   │   ├── amount.bin</span><br><span class="line">│   │   ├── amount.mrk*</span><br><span class="line">│   │   ├── primary.idx              # 稀疏主键索引</span><br><span class="line">│   │   └── checksums.txt / metadata # 校验与 part 元信息</span><br><span class="line">│   └── 202509_21_21_0/             # 新写入、尚未合并的 part</span><br><span class="line">└── 202510/</span><br></pre></td></tr></table></figure>
+
+<p>实际文件会因宽 part、紧凑 part、版本和存储策略而变化，不能依赖文件名编写业务程序；但上述层级说明了核心事实：<strong>分区下面有多个 part，part 内每列独立压缩保存，索引和 mark 负责告诉查询从哪一段列文件开始读取。</strong></p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>含义</th>
+<th>对性能的影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Partition</td>
+<td>按 <code>PARTITION BY</code> 划分的逻辑片段</td>
+<td>用于 TTL、删除分区、归档和粗粒度裁剪</td>
+</tr>
+<tr>
+<td>Part</td>
+<td>一次写入或后台合并形成的不可变数据文件集合</td>
+<td>part 太多会增加查询和 merge 开销</td>
+</tr>
+<tr>
+<td>Column file</td>
+<td>一个列对应一组压缩数据与 mark 文件</td>
+<td>查询只读实际需要的列</td>
+</tr>
+<tr>
+<td>Granule</td>
+<td>part 内连续的一小段行，默认最大行数通常为 8192，且可按数据大小自适应</td>
+<td>是主键索引和跳过索引裁剪的最小读取单位</td>
+</tr>
+<tr>
+<td>Mark</td>
+<td>一个 granule 在各列压缩流中的位置</td>
+<td>让引擎能够跳到目标 granule，而不从列文件开头顺序扫描</td>
+</tr>
+</tbody></table>
+<p>这里的 granule 不是“索引命中一行”。即使条件精确命中某个 <code>order_id</code>，ClickHouse 也通常读取所在 granule 的一批行，再在内存中过滤。这正是它适合批量扫描和聚合、不擅长大量随机单行读写的原因。</p>
+<h2 id="与-MySQL-B-树、PostgreSQL-堆表的差异"><a href="#与-MySQL-B-树、PostgreSQL-堆表的差异" class="headerlink" title="与 MySQL B+ 树、PostgreSQL 堆表的差异"></a>与 MySQL B+ 树、PostgreSQL 堆表的差异</h2><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>主要数据组织</th>
+<th>索引定位方式</th>
+<th>更擅长的负载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL InnoDB</td>
+<td>聚簇索引叶子节点保存整行，二级索引保存二级键和主键</td>
+<td>B+ 树逐层定位到具体记录或主键，再回表</td>
+<td>高并发单行事务、主键点查、范围更新</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>表数据主要放在 heap page；B-tree 等索引保存键到 heap tuple 的引用</td>
+<td>先走索引，再访问 heap tuple 并结合 MVCC 可见性判断</td>
+<td>事务型读写、复杂 SQL、行级更新</td>
+</tr>
+<tr>
+<td>ClickHouse MergeTree</td>
+<td>一个 part 内按 <code>ORDER BY</code> 排序；同一列连续压缩存储</td>
+<td>稀疏主键索引先裁剪 granule，再按 mark 读取列块</td>
+<td>海量范围过滤、批量聚合、报表和分析</td>
+</tr>
+</tbody></table>
+<p>因此“ClickHouse 有主键”不等于“与 MySQL 主键相同”。ClickHouse 的主键通常由 <code>ORDER BY</code> 推导而来，用于按数据块裁剪；它默认不保证唯一，不提供逐行事务锁，也不会像 B+ 树那样把一次等值查询直接定位到唯一记录。MySQL&#x2F;PostgreSQL 的索引首先服务于记录定位和并发事务，ClickHouse 的索引首先服务于减少列式扫描量。</p>
+<h2 id="一条查询如何使用这些结构"><a href="#一条查询如何使用这些结构" class="headerlink" title="一条查询如何使用这些结构"></a>一条查询如何使用这些结构</h2><p>继续以 <code>ORDER BY (tenant_id, event_time, order_id)</code> 的表为例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">sum</span>(amount)</span><br><span class="line"><span class="keyword">FROM</span> order_event</span><br><span class="line"><span class="keyword">WHERE</span> tenant_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> event_time <span class="operator">&gt;=</span> <span class="string">&#x27;2025-09-01&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> event_time <span class="operator">&lt;</span> <span class="string">&#x27;2025-10-01&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;paid&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>执行过程可以概括为：</p>
+<ol>
+<li><strong>分区裁剪</strong>：根据时间条件排除 <code>202508</code>、<code>202510</code> 等分区，只保留可能包含 9 月数据的 part。</li>
+<li><strong>主键稀疏索引裁剪</strong>：各 part 的 <code>primary.idx</code> 保存每个 granule 在 <code>(tenant_id, event_time, order_id)</code> 上的边界值。引擎据此排除 tenant 不为 <code>1001</code> 或时间不在范围内的 granule。</li>
+<li><strong>通过 mark 定位列偏移</strong>：对留下的 granule，读取 <code>status</code> 和 <code>amount</code> 的 mark，跳到相应压缩块，而不扫描整列文件。</li>
+<li><strong>解压、向量化过滤与聚合</strong>：批量解压 <code>status</code>，过滤出 <code>paid</code>；再读取并聚合命中行对应的 <code>amount</code>。如果查询不返回其他列，它们不会被读取。</li>
+</ol>
+<p>若 SQL 改成 <code>WHERE toDate(event_time) = &#39;2025-09-01&#39;</code>，或者只按 <code>order_id</code> 查而没有 <code>tenant_id</code>、时间条件，优化器可能无法充分使用排序键前缀，扫描 granule 会明显增多。应使用 <code>EXPLAIN indexes = 1</code> 查看分区和主键索引到底裁剪了多少 part、granule，而不是凭“建了索引”判断性能。</p>
+<h2 id="三类索引各自解决什么问题"><a href="#三类索引各自解决什么问题" class="headerlink" title="三类索引各自解决什么问题"></a>三类索引各自解决什么问题</h2><p>ClickHouse 中常被都叫作“索引”的机制，实际层级不同：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>保存内容</th>
+<th>能否定位单行</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Partition pruning</td>
+<td>分区表达式的范围</td>
+<td>不能</td>
+<td>快速排除无关月份、日期等分区</td>
+</tr>
+<tr>
+<td>Primary key sparse index</td>
+<td>每个 granule 的排序键边界</td>
+<td>不能，只缩小 granule 范围</td>
+<td>高频条件与 <code>ORDER BY</code> 前缀一致的范围查询</td>
+</tr>
+<tr>
+<td>Data skipping index</td>
+<td>每个 granule 的 min&#x2F;max、集合摘要或 Bloom Filter</td>
+<td>不能，只判断是否可能命中</td>
+<td>排序键之外的高价值过滤列</td>
+</tr>
+</tbody></table>
+<p>跳过索引的本质是“可以证明某个 granule 一定不命中，因此不读它”，不是“可以证明一行一定命中”。例如 <code>minmax</code> 适用于按时间或有序数值过滤；<code>set</code> 适用于每个 granule 内不同值数量较少的枚举列；Bloom Filter 可以降低字符串、数组包含类条件的无效扫描，但存在假阳性，仍需回表读取后验证。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> order_event</span><br><span class="line"><span class="keyword">ADD</span> INDEX idx_status status TYPE <span class="keyword">set</span>(<span class="number">100</span>) GRANULARITY <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">ALTER TABLE</span> order_event</span><br><span class="line"><span class="keyword">ADD</span> INDEX idx_error_message error_message TYPE bloom_filter(<span class="number">0.01</span>) GRANULARITY <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<p>上述 SQL 不是通用模板。<code>status</code> 若在每个 granule 中都同时存在 <code>paid</code>、<code>refunded</code> 等所有状态，<code>set</code> 无法跳过数据；字符串搜索若本身很少出现，也应先评估排序、物化列或专用检索引擎是否更合适。索引是否有效必须用真实查询、扫描行数和压测结果验证。</p>
+<h2 id="数据类型和编码选择"><a href="#数据类型和编码选择" class="headerlink" title="数据类型和编码选择"></a>数据类型和编码选择</h2><ul>
+<li>时间使用 <code>Date</code>、<code>DateTime</code> 或 <code>DateTime64</code>，不要把时间保存为字符串。</li>
+<li>金额使用 <code>Decimal</code>，避免 <code>Float64</code> 的精度误差。</li>
+<li>固定枚举值使用 <code>Enum</code>；低基数字符串如区域、渠道、状态可评估 <code>LowCardinality(String)</code>。</li>
+<li>用户输入的扩展字段可以保留 JSON&#x2F;String，但高频查询字段应在写入时提取为独立列或物化列。</li>
+<li>不要把 <code>Nullable</code> 当成默认选择。它会额外维护空值标记；能用业务默认值、枚举状态或明确的未知值表达时，通常更容易优化。</li>
+</ul>
+<h1 id="MergeTree、分区、排序键和索引"><a href="#MergeTree、分区、排序键和索引" class="headerlink" title="MergeTree、分区、排序键和索引"></a>MergeTree、分区、排序键和索引</h1><p><code>MergeTree</code> 是最常用的表引擎。每次插入会产生数据 part，后台异步把多个小 part 合并为更大的 part；每个 part 内部按 <code>ORDER BY</code> 排序，并按固定粒度形成 mark。查询先通过分区和主键稀疏索引定位可能命中的 mark，再只读取对应列的数据块。</p>
+<pre class="mermaid">flowchart LR
+    A[批量 INSERT] --> B[新数据 Part]
+    B --> C[按 ORDER BY 排序]
+    C --> D[列文件与 Mark]
+    D --> E[后台 Merge]
+    F[查询条件] --> G[分区裁剪]
+    G --> H[稀疏主键索引裁剪 Mark]
+    H --> I[读取命中列并向量化聚合]</pre>
+
+<h2 id="四个概念不能混淆"><a href="#四个概念不能混淆" class="headerlink" title="四个概念不能混淆"></a>四个概念不能混淆</h2><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>解决的问题</th>
+<th>常见误解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PARTITION BY</code></td>
+<td>生命周期、删除历史数据、减少跨时间范围扫描</td>
+<td>不是越细越好，按用户或每天分区常产生大量 part</td>
+</tr>
+<tr>
+<td><code>ORDER BY</code></td>
+<td>数据在 part 内的物理排序，决定稀疏主键能否裁剪</td>
+<td>它不是传统 B+ 树唯一索引</td>
+</tr>
+<tr>
+<td>主键稀疏索引</td>
+<td>基于排序键按粒度记录边界，跳过不可能命中的 granule</td>
+<td>不能高效定位任意一行</td>
+</tr>
+<tr>
+<td>data skipping index</td>
+<td>根据列的 minmax、集合或 Bloom Filter 跳过数据块</td>
+<td>只有数据分布和查询谓词匹配时有效</td>
+</tr>
+</tbody></table>
+<h2 id="如何设计分区"><a href="#如何设计分区" class="headerlink" title="如何设计分区"></a>如何设计分区</h2><p>分区首要服务于数据生命周期。例如行为日志保留 180 天，可以使用 <code>PARTITION BY toYYYYMM(event_time)</code>，按月执行 TTL 清理；每日数据量特别大且清理、迁移需要更细粒度时才考虑按天分区。</p>
+<p>避免把 <code>tenant_id</code>、<code>user_id</code>、<code>order_id</code> 这类高基数字段作为分区键。它们会制造海量小分区和 part，增加元数据、合并和查询计划开销。多租户隔离通常应放在排序键前缀，或者在确有物理隔离要求时采用独立库、独立表或集群策略。</p>
+<h2 id="如何设计-ORDER-BY"><a href="#如何设计-ORDER-BY" class="headerlink" title="如何设计 ORDER BY"></a>如何设计 ORDER BY</h2><p>排序键应从最常见、选择性较高且能限制扫描范围的过滤条件出发。对于“租户内按时间看报表”的表，<code>(tenant_id, event_time, order_id)</code> 通常比 <code>(order_id)</code> 更适合；对于全局按时间做监控统计，<code>(metric, event_time, host)</code> 可能更自然。</p>
+<p>设计步骤：</p>
+<ol>
+<li>收集真实 SQL，确定最常用的 <code>WHERE</code>、时间范围和聚合维度。</li>
+<li>将高频且低到中等基数的业务隔离字段放在前面，例如租户、业务类型、区域。</li>
+<li>将时间字段放在可帮助范围裁剪的位置。</li>
+<li>用唯一 ID 放在后面维持同一对象的局部顺序，不要期待它替代事务型点查索引。</li>
+<li>用 <code>EXPLAIN indexes = 1</code>、实际扫描行数和 part 数验证，而不是只根据字段基数猜测。</li>
+</ol>
+<p>排序键一旦确定，历史数据重排的代价很高。上线前应使用接近真实分布的数据压测主要报表，而不是只验证单条 SQL 可以执行。</p>
+<h2 id="跳过索引何时有用"><a href="#跳过索引何时有用" class="headerlink" title="跳过索引何时有用"></a>跳过索引何时有用</h2><p>常见类型包括：时间或数值范围用 <code>minmax</code>，小集合值可评估 <code>set</code>，字符串或数组包含查询可评估 <code>bloom_filter</code>。例如日志按时间排序，但经常按错误码过滤，可为 <code>error_code</code> 添加合适的跳过索引。</p>
+<p>它不是“给每列加索引”。若同一错误码随机分散在所有 granule 中，索引无法跳过多少数据，只会增加写入、合并和存储成本。应先通过排序和分区解决大部分扫描范围，再针对明确的高价值谓词补充跳过索引。</p>
+<h1 id="表引擎与去重语义"><a href="#表引擎与去重语义" class="headerlink" title="表引擎与去重语义"></a>表引擎与去重语义</h1><table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>典型用途</th>
+<th>关键注意点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>MergeTree</code></td>
+<td>追加型明细、日志、事件</td>
+<td>默认不去重、不做更新</td>
+</tr>
+<tr>
+<td><code>ReplacingMergeTree</code></td>
+<td>CDC 快照或可能重复的版本记录</td>
+<td>去重发生在后台 merge，查询最新视图需明确策略</td>
+</tr>
+<tr>
+<td><code>SummingMergeTree</code></td>
+<td>可直接相加的预汇总指标</td>
+<td>不适合复杂状态、去重计数等语义</td>
+</tr>
+<tr>
+<td><code>AggregatingMergeTree</code></td>
+<td>保存聚合函数状态</td>
+<td>查询时使用 <code>...Merge</code> 函数合并状态</td>
+</tr>
+<tr>
+<td><code>CollapsingMergeTree</code> &#x2F; <code>VersionedCollapsingMergeTree</code></td>
+<td>成对正负记录抵消</td>
+<td>建模和查询复杂，优先评估 CDC 快照方案</td>
+</tr>
+</tbody></table>
+<p><code>ReplacingMergeTree</code> 常被误认为“唯一键表”。它会在合并时保留同一排序键的一条版本，但合并是异步的，多个 part 在一段时间内可能仍有旧版本。<code>FINAL</code> 可以强制合并视图，但代价高，不适合高并发报表的默认写法。</p>
+<p>生产上通常有三种方案：保留 append-only 事件并在查询中按版本聚合；通过物化视图维护最新状态表；在离线或低频任务中做最终去重。选择取决于数据时效、查询频率和可接受的一致性延迟。</p>
+<h1 id="写入、合并与物化视图"><a href="#写入、合并与物化视图" class="headerlink" title="写入、合并与物化视图"></a>写入、合并与物化视图</h1><h2 id="批量写入而不是逐行-INSERT"><a href="#批量写入而不是逐行-INSERT" class="headerlink" title="批量写入而不是逐行 INSERT"></a>批量写入而不是逐行 INSERT</h2><p>ClickHouse 更适合批量写入。逐条 <code>INSERT</code> 会生成大量小 part，导致后台合并追不上，进而增加查询需要访问的 part 数、磁盘放大和延迟。应用侧应按条数或时间窗口缓冲，例如每批数千到数万行，再根据行大小、写入并发和延迟目标压测确定。</p>
+<p>CDC 写入需要处理至少一次投递：消费者应有可恢复位点、失败重试和死信处理；表模型应利用事件 ID、版本号或下游去重逻辑避免重复统计。不要只因为消息发送成功就假设 ClickHouse 已经可靠落盘并可查询。</p>
+<h2 id="合并压力如何判断"><a href="#合并压力如何判断" class="headerlink" title="合并压力如何判断"></a>合并压力如何判断</h2><p>小 part 堆积、磁盘空间持续上涨、查询变慢时，要检查：写入批次是否过小、分区是否过细、分片是否倾斜、后台 merge 是否受 CPU&#x2F;磁盘 I&#x2F;O 限制，以及 TTL 删除和 mutation 是否同时大量执行。不能用频繁 <code>OPTIMIZE TABLE ... FINAL</code> 当作日常治理手段，它会强制重写数据并抢占资源。</p>
+<p><code>system.parts</code>、<code>system.merges</code>、<code>system.mutations</code>、<code>system.query_log</code> 是排查的重要系统表。应持续观察活跃 part 数、合并队列、读写字节、查询扫描行数、内存峰值和慢查询分位数。</p>
+<h2 id="物化视图与预聚合"><a href="#物化视图与预聚合" class="headerlink" title="物化视图与预聚合"></a>物化视图与预聚合</h2><p>物化视图适合把明细写入时同步转换为面向查询的汇总表，例如按“天、租户、渠道、商品类目”累计金额和订单数。它能减少报表扫描量，但代价是写入链路更复杂，以及维度变更、迟到数据和回补需要明确方案。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> MATERIALIZED <span class="keyword">VIEW</span> mv_daily_channel</span><br><span class="line"><span class="keyword">TO</span> daily_channel_amount</span><br><span class="line"><span class="keyword">AS</span> <span class="keyword">SELECT</span></span><br><span class="line">    toDate(event_time) <span class="keyword">AS</span> <span class="keyword">day</span>,</span><br><span class="line">    tenant_id,</span><br><span class="line">    channel,</span><br><span class="line">    sumState(amount) <span class="keyword">AS</span> amount_state,</span><br><span class="line">    countState() <span class="keyword">AS</span> order_count_state</span><br><span class="line"><span class="keyword">FROM</span> order_event</span><br><span class="line"><span class="keyword">WHERE</span> status <span class="operator">=</span> <span class="string">&#x27;paid&#x27;</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">day</span>, tenant_id, channel;</span><br></pre></td></tr></table></figure>
+
+<p>汇总表使用 <code>AggregatingMergeTree</code> 时保存的是聚合状态，读取时要使用 <code>sumMerge</code>、<code>countMerge</code>。物化视图只处理创建之后流入源表的数据，历史数据需单独回灌；回灌任务应可重试、可校验，并避免和实时数据重复计算。</p>
+<h1 id="分布式部署与数据建模"><a href="#分布式部署与数据建模" class="headerlink" title="分布式部署与数据建模"></a>分布式部署与数据建模</h1><p>常见集群结构由分片和副本组成：一个 shard 保存全量数据的一个子集，replica 保存同一 shard 的副本以提高可用性。<code>Distributed</code> 表负责将查询或写入路由到多个本地表；协调节点聚合结果，但真正的数据仍在各分片的 <code>ReplicatedMergeTree</code> 本地表中。</p>
+<pre class="mermaid">flowchart TB
+    Q[BI / 查询服务] --> D[Distributed 表]
+    D --> S1A[Shard 1 Replica A]
+    D --> S1B[Shard 1 Replica B]
+    D --> S2A[Shard 2 Replica A]
+    D --> S2B[Shard 2 Replica B]
+    S1A --> Z[ClickHouse Keeper]
+    S1B --> Z
+    S2A --> Z
+    S2B --> Z</pre>
+
+<p>分片键要让数据和计算尽量均匀。按 <code>cityHash64(tenant_id)</code> 分片适合租户内聚合和租户隔离查询；纯时间分片容易形成当前时间段热点；单一超级租户会造成分片倾斜，可能需要单独分片、限流或在模型上拆分。</p>
+<p>副本解决的是可用性，不是自动解决逻辑重复和跨分片聚合成本。跨分片 <code>JOIN</code>、高基数 <code>GROUP BY</code> 和全局精确去重会放大网络、内存和协调节点压力，应尽量通过预聚合、字典、局部 Join 或查询约束降低代价。</p>
+<h1 id="查询调优与常见陷阱"><a href="#查询调优与常见陷阱" class="headerlink" title="查询调优与常见陷阱"></a>查询调优与常见陷阱</h1><h2 id="优先缩小扫描范围"><a href="#优先缩小扫描范围" class="headerlink" title="优先缩小扫描范围"></a>优先缩小扫描范围</h2><ol>
+<li>所有大表查询都应带明确时间范围，避免无界扫描。</li>
+<li>在 <code>WHERE</code> 中使用与排序键前缀匹配的条件，避免对过滤列套函数导致裁剪失效。</li>
+<li>只选择需要的列，避免 <code>SELECT *</code> 和无必要的大字段。</li>
+<li>先过滤、再 Join、再聚合；大表与大表 Join 前要明确其中一侧是否能收敛。</li>
+<li>对固定口径的高频看板采用物化视图或预计算，而不是每次从明细重算。</li>
+</ol>
+<h2 id="JOIN-的边界"><a href="#JOIN-的边界" class="headerlink" title="JOIN 的边界"></a>JOIN 的边界</h2><p>ClickHouse 可以做 Join，但不是替代事务库中任意复杂 Join 的理由。大表 Join 通常需要构建右表哈希结构，可能消耗大量内存。小维表可以用字典、预加载维表或合理的 Join；两个超大明细表应优先在数据模型或离线链路中预关联，或限制时间范围和数据规模。</p>
+<p>维度变更也需明确语义：报表是按“当前维度”展示，还是按“事件发生时维度”展示。前者可在查询时关联当前维表，后者要在事件写入时冗余快照字段，两种结果不能混用。</p>
+<h2 id="去重与近似计算"><a href="#去重与近似计算" class="headerlink" title="去重与近似计算"></a>去重与近似计算</h2><p>精确 <code>uniqExact</code>、全局 <code>ORDER BY</code>、大范围 <code>DISTINCT</code> 会显著增加内存和网络开销。若业务是趋势看板、漏斗分析或容量统计，可评估 <code>uniqCombined64</code>、<code>uniqHLL12</code> 等近似算法，并向产品和数据使用方明确误差边界。财务结算、对账和对外账单则不能为了性能随意使用近似值。</p>
+<h1 id="生命周期、权限与运维治理"><a href="#生命周期、权限与运维治理" class="headerlink" title="生命周期、权限与运维治理"></a>生命周期、权限与运维治理</h1><h2 id="TTL-与冷热分层"><a href="#TTL-与冷热分层" class="headerlink" title="TTL 与冷热分层"></a>TTL 与冷热分层</h2><p>时间序列和日志数据应从建表时明确保留周期。例如明细保留 180 天、日汇总保留三年，过期数据通过 TTL 自动删除或迁移到冷存储。TTL 会触发后台数据重写，执行节奏必须结合磁盘和合并能力规划，不能在资源紧张时一次性对海量历史数据进行 mutation。</p>
+<h2 id="权限与资源隔离"><a href="#权限与资源隔离" class="headerlink" title="权限与资源隔离"></a>权限与资源隔离</h2><p>生产环境不应让所有 BI 用户直接使用管理员账户扫描明细。至少需要区分写入账号、在线查询账号、离线任务账号和运维账号；通过用户 profile 或 quota 限制并发、内存、执行时间和读取量。对多租户场景，还要在网关、语义层或视图中强制租户条件，不能只依赖前端传参。</p>
+<h2 id="备份与恢复"><a href="#备份与恢复" class="headerlink" title="备份与恢复"></a>备份与恢复</h2><p>副本不是备份：错误的 <code>DROP</code>、错误回灌或逻辑污染会同步到副本。需要定期验证可恢复备份、对象存储生命周期、元数据和 Keeper 配置，并演练单分片不可用、误删分区和历史回灌。对于可由 Kafka、主库或数据湖重建的派生数据，应明确重建顺序、预计时长和业务降级策略。</p>
+<h1 id="高频面试题"><a href="#高频面试题" class="headerlink" title="高频面试题"></a>高频面试题</h1><h2 id="ClickHouse-为什么快？"><a href="#ClickHouse-为什么快？" class="headerlink" title="ClickHouse 为什么快？"></a>ClickHouse 为什么快？</h2><p>核心是列式存储减少无关列 I&#x2F;O、同类型数据压缩率高、向量化执行提升批量计算效率，以及 <code>MergeTree</code> 按排序键和稀疏索引跳过无关 granule。实际效果还依赖查询是否有时间范围、是否命中排序键、part 数量和集群分片是否均衡；不能只回答“因为列存”。</p>
+<h2 id="ClickHouse-的主键为什么不是-MySQL-的-B-树主键？"><a href="#ClickHouse-的主键为什么不是-MySQL-的-B-树主键？" class="headerlink" title="ClickHouse 的主键为什么不是 MySQL 的 B+ 树主键？"></a>ClickHouse 的主键为什么不是 MySQL 的 B+ 树主键？</h2><p><code>MergeTree</code> 主键基于 <code>ORDER BY</code> 的稀疏索引，记录的是数据块边界，用于跳过不可能命中的 granule，而非为每行建立指针。它没有唯一约束，也不适合把任意 ID 点查当成 OLTP 主键查询。因此业务唯一性仍应由主库、写入链路或明确的去重模型保障。</p>
+<h2 id="一条数据在-ClickHouse-中怎样存储和被索引？"><a href="#一条数据在-ClickHouse-中怎样存储和被索引？" class="headerlink" title="一条数据在 ClickHouse 中怎样存储和被索引？"></a>一条数据在 ClickHouse 中怎样存储和被索引？</h2><p>数据先按 <code>PARTITION BY</code> 进入一个分区，再以每批写入或后台合并后的 data part 形式保存。part 内按 <code>ORDER BY</code> 排序，同一列分别压缩为列文件；每约 8192 行形成一个 granule，并保存 mark 偏移和排序键边界。查询先裁剪分区，再用 <code>primary.idx</code> 排除不可能命中的 granule，最后通过 mark 跳到所需列的压缩块读取和过滤。它定位的是一批可能命中的行，不是像 B+ 树一样直接定位一条记录。</p>
+<h2 id="分区键和排序键怎么选？"><a href="#分区键和排序键怎么选？" class="headerlink" title="分区键和排序键怎么选？"></a>分区键和排序键怎么选？</h2><p>分区键服务于数据生命周期和粗粒度裁剪，通常使用月或天等低基数时间维度；排序键服务于 part 内数据排列和高频查询裁剪，应从真实 <code>WHERE</code> 条件设计，例如 <code>(tenant_id, event_time, order_id)</code>。不要使用高基数用户 ID、订单 ID 作为分区键，也不要把所有字段塞进排序键。</p>
+<h2 id="ReplacingMergeTree-能保证实时去重吗？"><a href="#ReplacingMergeTree-能保证实时去重吗？" class="headerlink" title="ReplacingMergeTree 能保证实时去重吗？"></a>ReplacingMergeTree 能保证实时去重吗？</h2><p>不能。去重发生在后台 part merge，旧版本在合并前可能仍可见；<code>FINAL</code> 虽能得到合并视图，却会增加查询成本。需要按业务选择版本聚合、物化视图维护最新状态、离线去重或 CDC 幂等策略，并明确查询对实时性的要求。</p>
+<h2 id="为什么-ClickHouse-不适合做订单主库？"><a href="#为什么-ClickHouse-不适合做订单主库？" class="headerlink" title="为什么 ClickHouse 不适合做订单主库？"></a>为什么 ClickHouse 不适合做订单主库？</h2><p>订单创建、支付、退款和库存扣减需要强事务、唯一约束、行级并发控制和明确的更新语义。ClickHouse 针对批量追加和分析查询优化，逐行更新、删除和高频小事务成本高，且副本和 merge 机制无法替代交易一致性。应由 MySQL&#x2F;PostgreSQL 保存权威订单，ClickHouse 承担报表和分析。</p>
+<h2 id="小-part-太多会造成什么问题，怎么处理？"><a href="#小-part-太多会造成什么问题，怎么处理？" class="headerlink" title="小 part 太多会造成什么问题，怎么处理？"></a>小 part 太多会造成什么问题，怎么处理？</h2><p>大量小 part 会增加文件、元数据、查询打开 part 的成本，后台合并也可能持续积压，最终表现为写入变慢、查询抖动和磁盘放大。先检查逐行写入、过细分区、写入并发和分片倾斜；通过增大批次、优化分区、控制写入并发和保障 merge 资源治理。频繁执行 <code>OPTIMIZE FINAL</code> 只能临时缓解，不能替代根因修复。</p>
+<h2 id="如何处理分析数据与主库不一致？"><a href="#如何处理分析数据与主库不一致？" class="headerlink" title="如何处理分析数据与主库不一致？"></a>如何处理分析数据与主库不一致？</h2><p>使用 CDC 或 Outbox 保证主库提交后的变更可可靠投递，消费者保存位点并支持幂等重试，针对迟到、乱序和失败设置补偿与重放。建立主库与 ClickHouse 的行数、金额、最大事件时间和抽样明细校验；当分析链路延迟或失败时，在看板展示数据截止时间，而不是把过期数据伪装为实时数据。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>ClickHouse 的正确使用方式是围绕分析查询建模：以批量写入、合理分区、面向查询的排序键和可重建的派生数据换取高吞吐聚合能力。生产落地时，要把 OLTP 主库、CDC 同步、明细表、预聚合表、权限配额和备份重建视为一个整体，而不是只部署一张“查询很快”的表。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://junly.top">Junly</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://junly.top/posts/20250920/">https://junly.top/posts/20250920/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://junly.top" target="_blank">Junly博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">性能优化</a><a class="post-meta__tags" href="/tags/ClickHouse/">ClickHouse</a><a class="post-meta__tags" href="/tags/OLAP/">OLAP</a><a class="post-meta__tags" href="/tags/%E5%88%97%E5%BC%8F%E5%AD%98%E5%82%A8/">列式存储</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/">数据仓库</a></div><div class="post-share"><div class="social-share" data-image="/assets/images/profile-photo.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/assets/images/pay/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/assets/images/pay/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/pay/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/20250917/" title="分层架构、DDD、整洁代码与重构"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">分层架构、DDD、整洁代码与重构</div></div><div class="info-2"><div class="info-item-1">前言架构设计的价值不在于堆砌分层和模式，而在于让业务规则、外部依赖和团队协作能够随需求演进保持清晰。本文从分层、DDD、依赖倒置到渐进式重构，讨论企业 Java 服务在复杂业务中保持可维护性的实践方法。 架构题考察长期演进能力企业 Java 服务的难点往往不在第一次实现功能，而在规则增加、团队扩张、依赖变多后如何保持可修改性。面试回答分层、DDD 或整洁架构时，应结合真实边界：Controller 不承载交易规则，Service 不直接散落 SQL 和第三方 SDK，领域规则不依赖 HTTP&#x2F;ORM 框架，跨系统事件要可追踪和可补偿。 分层的目的与边界一个实用的分层可以是：接口层负责协议与输入校验，应用层编排用例和事务边界，领域层表达核心规则，基础设施层实现数据库、MQ、Redis、第三方渠道。不是每个小项目都必须有四层目录，而是依赖方向应清晰：业务规则不应依赖外部细节。    层 应承担的职责 不应承担的职责    Interface&#x2F;Controller DTO、协议转换、输入校验、HTTP 状态 核心状态机、复杂事务和直接拼...</div></div></div></a><a class="pagination-related" href="/posts/fund/" title="估值君 —— 一个帮你实时追踪基金估值的小工具"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">估值君 —— 一个帮你实时追踪基金估值的小工具</div></div><div class="info-2"><div class="info-item-1">前言作为一名基金投资者，你是否也有过这样的困扰：交易日盘中想看看自己持有的基金大概涨了多少，却只能反复刷新各种 App，而且大多数行情软件只展示基金的上一日净值，盘中的实时估值要东找西找。 为了解决这个痛点，我利用业余时间开发了 估值君 —— 一个专注于基金盘中实时估值追踪的 Web 工具。输入基金代码即可添加，盘中自动刷新估算净值，让你对自己的持仓盈亏一目了然。  访问地址：https://junly.top/fund/ 或 https://fund.junly.top/fund/   功能介绍实时估值追踪估值君的核心功能就是盘中实时估值。在交易日的 9:30-15:00 期间，系统会自动刷新每只基金的估算净值，并记录为时间序列数据，生成盘中走势折线图。收市后，你可以在估值走势图上清晰地看到当天估值的变化轨迹。 添加基金也非常简单，只需要输入基金代码（如...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/20200305/" title="MySQL核心功能与技术特性：深入理解数据库引擎"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-03-05</div><div class="info-item-2">MySQL核心功能与技术特性：深入理解数据库引擎</div></div><div class="info-2"><div class="info-item-1">前言MySQL作为世界上最受欢迎的开源关系型数据库之一，凭借其强大的功能和灵活的架构在各类应用场景中广泛应用。从小型网站到大型企业级应用，MySQL都展现出卓越的性能和可靠性。要充分利用MySQL的强大功能，深入理解其核心技术特性至关重要。本文将深入探讨MySQL的存储引擎、事务处理、索引机制等核心功能，帮助开发者和数据库管理员更好地优化和管理MySQL数据库。 MySQL核心架构MySQL采用了客户端&#x2F;服务器架构，其核心架构可以分为以下几个主要组件： graph TD     A[客户端] --> B[连接池]     B --> C[查询缓存]     B --> D[解析器]     D --> E[优化器]     E --> F[执行器]     F --> G[存储引擎]     G -->...</div></div></div></a><a class="pagination-related" href="/posts/20200403/" title="MySQL性能优化与调优：提升数据库效率的完全指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-03</div><div class="info-item-2">MySQL性能优化与调优：提升数据库效率的完全指南</div></div><div class="info-2"><div class="info-item-1">前言在如今的高并发、大数据量应用环境下，数据库性能已成为系统整体表现的关键瓶颈之一。MySQL作为全球最流行的开源关系型数据库，广泛应用于各类互联网应用和企业系统中。然而，默认配置下的MySQL往往无法满足生产环境的性能需求，需要通过专业的性能优化与调优来充分发挥其潜力。本文将全面介绍MySQL性能优化的各个方面，从硬件选择、系统配置到SQL查询优化，帮助读者构建高效、稳定的MySQL数据库系统。 MySQL性能的关键影响因素影响MySQL性能的因素可以分为以下几个层面： graph TD     A[MySQL性能影响因素] --> B[硬件因素]     A --> C[系统配置]     A --> D[数据库设计]     A --> E[查询优化]     A --> F[业务应用层]          B --> B1[CPU]     B --> B2[内存]     B --> B3[磁盘I/O]     B --> B4[网络]          C --> C1[MySQL配置参数]     C --> C2[操作系统优化]          D -->...</div></div></div></a><a class="pagination-related" href="/posts/20200125/" title="Linux下MySQL安装配置指南：从基础到优化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-01-25</div><div class="info-item-2">Linux下MySQL安装配置指南：从基础到优化</div></div><div class="info-2"><div class="info-item-1">前言MySQL是世界上最流行的开源关系型数据库管理系统之一，广泛应用于Web应用、企业级应用和云服务等场景。本文将详细介绍MySQL在Linux环境下的安装、配置和基本优化，帮助读者快速部署一个高性能、安全可靠的MySQL服务。 安装前准备在安装MySQL之前，我们需要了解不同的安装方式和版本选择，并做好相应的准备工作。 版本选择MySQL目前主要有以下几个常用版本：    版本 特点 适用场景    MySQL Community 开源免费，社区维护 个人项目、中小型网站   MySQL Enterprise 商业版，提供额外支持和工具 企业级应用   MySQL Cluster 高可用性集群版本 需要高可用的场景   MariaDB MySQL的开源分支，完全兼容 寻求更开放替代方案   本教程将以MySQL Community 8.0版本为例进行安装。 系统要求 Linux操作系统(CentOS 7&#x2F;8, Ubuntu 18.04&#x2F;20.04等) 至少1GB...</div></div></div></a><a class="pagination-related" href="/posts/20201002/" title="Kafka性能优化与调优：提升吞吐量与可靠性的平衡"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-10-02</div><div class="info-item-2">Kafka性能优化与调优：提升吞吐量与可靠性的平衡</div></div><div class="info-2"><div class="info-item-1">前言随着大数据和实时处理需求的不断增长，Apache Kafka已成为许多企业处理高吞吐量数据流的核心基础设施。作为一个分布式流处理平台，Kafka的性能直接影响着整个数据管道的效率和可靠性。然而，默认配置下的Kafka往往无法满足高负载生产环境的性能需求，需要通过专业的调优来充分发挥其潜力。本文将全面介绍Kafka性能优化的各个方面，从硬件选择、集群配置到客户端优化，帮助读者在保证数据可靠性的同时，最大化Kafka的吞吐量和效率。 Kafka性能的关键影响因素影响Kafka性能的因素可以分为以下几个层面： graph TD     A[Kafka性能影响因素] --> B[硬件因素]     A --> C[集群配置]     A --> D[主题与分区设计]     A --> E[生产者优化]     A --> F[消费者优化]     A --> G[监控与维护]          B --> B1[磁盘I/O]     B --> B2[网络带宽]     B --> B3[内存]     B --> B4[CPU]          C -->...</div></div></div></a><a class="pagination-related" href="/posts/20210405/" title="Redis性能调优：内存与延迟的平衡之道"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-05</div><div class="info-item-2">Redis性能调优：内存与延迟的平衡之道</div></div><div class="info-2"><div class="info-item-1">前言Redis 作为高性能的内存数据库，以其卓越的速度和灵活的数据结构赢得了众多开发者的青睐。然而，随着业务规模的增长，Redis 实例可能面临性能瓶颈和内存压力。本文将深入探讨 Redis 性能调优的关键策略，帮助你在内存消耗与响应延迟之间找到最佳平衡点，打造高效稳定的 Redis 服务。 Redis 性能的关键因素内存管理与性能的关系Redis 作为内存数据库，其性能与内存管理息息相关。当内存使用接近上限时，Redis 的性能会显著下降，主要表现在以下几个方面：  内存碎片化：频繁的写入和删除操作会导致内存碎片 内存交换（Swap）：当物理内存不足时，操作系统将数据置换到磁盘，严重影响性能 内存淘汰策略：不同的淘汰策略对性能有不同影响  graph TD     A[Redis性能] --> B[内存管理]     A --> C[网络I/O]     A --> D[CPU利用率]     A --> E[持久化机制]     B --> F[内存碎片]     B --> G[内存淘汰策略]     B --> H[键空间设计]     E --> I[RDB持久化] ...</div></div></div></a><a class="pagination-related" href="/posts/20230225/" title="HBase性能调优实战：从配置到实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-25</div><div class="info-item-2">HBase性能调优实战：从配置到实践</div></div><div class="info-2"><div class="info-item-1">前言随着大数据应用的广泛落地，HBase作为一款分布式、可扩展的NoSQL数据库，在海量数据存储和实时查询场景中扮演着重要角色。然而，默认配置下的HBase往往难以满足生产环境的高性能需求。本文将深入探讨HBase性能优化的各个方面，从数据模型设计到系统配置调优，从客户端到服务端，全方位提升HBase集群的性能，帮助读者在实际应用中打造高效、稳定的HBase系统。 HBase性能优化策略行键设计优化行键(RowKey)设计是HBase性能优化的基础，其直接影响数据在集群中的分布和访问效率。 热点问题及解决方案graph LR     A[时间戳作前缀] -->|导致| B[Region热点]     C[散列前缀] -->|缓解| B     D[反转键值] -->|缓解| B     E[加盐设计] -->|缓解| B  在HBase中，当大量读写操作集中在特定Region时，就会产生”热点”问题。以下是几种常见的行键设计策略来避免热点： 1. 加盐策略（Salting）通过在行键前添加随机前缀（盐值），将数据分散到不同的Region： 12345// 原始行键String...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/assets/images/profile-photo.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Junly</div><div class="author-info-description">一个蹒跚学步的AI开发者</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">142</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">278</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/wujunbiao1002"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/wujunbiao1002" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:wujunbiao1002@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="http://wpa.qq.com/msgrd?v=3&amp;uin=820297837&amp;site=qq&amp;menu=yes" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">一个蹒跚学步的AI开发者</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ClickHouse-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">ClickHouse 解决什么问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%97%E5%BC%8F%E5%AD%98%E5%82%A8%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%AB"><span class="toc-number">3.</span> <span class="toc-text">列式存储为什么快</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ClickHouse-%E7%9A%84%E7%9C%9F%E5%AE%9E%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84%EF%BC%9A%E5%88%86%E5%8C%BA%E3%80%81Part%E3%80%81%E5%88%97%E6%96%87%E4%BB%B6%E3%80%81Granule-%E4%B8%8E-Mark"><span class="toc-number">3.1.</span> <span class="toc-text">ClickHouse 的真实存储结构：分区、Part、列文件、Granule 与 Mark</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E-MySQL-B-%E6%A0%91%E3%80%81PostgreSQL-%E5%A0%86%E8%A1%A8%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="toc-number">3.2.</span> <span class="toc-text">与 MySQL B+ 树、PostgreSQL 堆表的差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%9D%A1%E6%9F%A5%E8%AF%A2%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E8%BF%99%E4%BA%9B%E7%BB%93%E6%9E%84"><span class="toc-number">3.3.</span> <span class="toc-text">一条查询如何使用这些结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%B1%BB%E7%B4%A2%E5%BC%95%E5%90%84%E8%87%AA%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">3.4.</span> <span class="toc-text">三类索引各自解决什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E7%BC%96%E7%A0%81%E9%80%89%E6%8B%A9"><span class="toc-number">3.5.</span> <span class="toc-text">数据类型和编码选择</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MergeTree%E3%80%81%E5%88%86%E5%8C%BA%E3%80%81%E6%8E%92%E5%BA%8F%E9%94%AE%E5%92%8C%E7%B4%A2%E5%BC%95"><span class="toc-number">4.</span> <span class="toc-text">MergeTree、分区、排序键和索引</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E4%B8%AA%E6%A6%82%E5%BF%B5%E4%B8%8D%E8%83%BD%E6%B7%B7%E6%B7%86"><span class="toc-number">4.1.</span> <span class="toc-text">四个概念不能混淆</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E5%88%86%E5%8C%BA"><span class="toc-number">4.2.</span> <span class="toc-text">如何设计分区</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1-ORDER-BY"><span class="toc-number">4.3.</span> <span class="toc-text">如何设计 ORDER BY</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%B3%E8%BF%87%E7%B4%A2%E5%BC%95%E4%BD%95%E6%97%B6%E6%9C%89%E7%94%A8"><span class="toc-number">4.4.</span> <span class="toc-text">跳过索引何时有用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A1%A8%E5%BC%95%E6%93%8E%E4%B8%8E%E5%8E%BB%E9%87%8D%E8%AF%AD%E4%B9%89"><span class="toc-number">5.</span> <span class="toc-text">表引擎与去重语义</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%99%E5%85%A5%E3%80%81%E5%90%88%E5%B9%B6%E4%B8%8E%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE"><span class="toc-number">6.</span> <span class="toc-text">写入、合并与物化视图</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%B9%E9%87%8F%E5%86%99%E5%85%A5%E8%80%8C%E4%B8%8D%E6%98%AF%E9%80%90%E8%A1%8C-INSERT"><span class="toc-number">6.1.</span> <span class="toc-text">批量写入而不是逐行 INSERT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E5%8E%8B%E5%8A%9B%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD"><span class="toc-number">6.2.</span> <span class="toc-text">合并压力如何判断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%B8%8E%E9%A2%84%E8%81%9A%E5%90%88"><span class="toc-number">6.3.</span> <span class="toc-text">物化视图与预聚合</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1"><span class="toc-number">7.</span> <span class="toc-text">分布式部署与数据建模</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E8%B0%83%E4%BC%98%E4%B8%8E%E5%B8%B8%E8%A7%81%E9%99%B7%E9%98%B1"><span class="toc-number">8.</span> <span class="toc-text">查询调优与常见陷阱</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E7%BC%A9%E5%B0%8F%E6%89%AB%E6%8F%8F%E8%8C%83%E5%9B%B4"><span class="toc-number">8.1.</span> <span class="toc-text">优先缩小扫描范围</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JOIN-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">8.2.</span> <span class="toc-text">JOIN 的边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%BB%E9%87%8D%E4%B8%8E%E8%BF%91%E4%BC%BC%E8%AE%A1%E7%AE%97"><span class="toc-number">8.3.</span> <span class="toc-text">去重与近似计算</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E3%80%81%E6%9D%83%E9%99%90%E4%B8%8E%E8%BF%90%E7%BB%B4%E6%B2%BB%E7%90%86"><span class="toc-number">9.</span> <span class="toc-text">生命周期、权限与运维治理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#TTL-%E4%B8%8E%E5%86%B7%E7%83%AD%E5%88%86%E5%B1%82"><span class="toc-number">9.1.</span> <span class="toc-text">TTL 与冷热分层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E4%B8%8E%E8%B5%84%E6%BA%90%E9%9A%94%E7%A6%BB"><span class="toc-number">9.2.</span> <span class="toc-text">权限与资源隔离</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="toc-number">9.3.</span> <span class="toc-text">备份与恢复</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E9%A2%91%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">10.</span> <span class="toc-text">高频面试题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ClickHouse-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%AB%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">ClickHouse 为什么快？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ClickHouse-%E7%9A%84%E4%B8%BB%E9%94%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E6%98%AF-MySQL-%E7%9A%84-B-%E6%A0%91%E4%B8%BB%E9%94%AE%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">ClickHouse 的主键为什么不是 MySQL 的 B+ 树主键？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%9C%A8-ClickHouse-%E4%B8%AD%E6%80%8E%E6%A0%B7%E5%AD%98%E5%82%A8%E5%92%8C%E8%A2%AB%E7%B4%A2%E5%BC%95%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">一条数据在 ClickHouse 中怎样存储和被索引？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E9%94%AE%E5%92%8C%E6%8E%92%E5%BA%8F%E9%94%AE%E6%80%8E%E4%B9%88%E9%80%89%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">分区键和排序键怎么选？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ReplacingMergeTree-%E8%83%BD%E4%BF%9D%E8%AF%81%E5%AE%9E%E6%97%B6%E5%8E%BB%E9%87%8D%E5%90%97%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">ReplacingMergeTree 能保证实时去重吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-ClickHouse-%E4%B8%8D%E9%80%82%E5%90%88%E5%81%9A%E8%AE%A2%E5%8D%95%E4%B8%BB%E5%BA%93%EF%BC%9F"><span class="toc-number">10.6.</span> <span class="toc-text">为什么 ClickHouse 不适合做订单主库？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F-part-%E5%A4%AA%E5%A4%9A%E4%BC%9A%E9%80%A0%E6%88%90%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%8C%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="toc-number">10.7.</span> <span class="toc-text">小 part 太多会造成什么问题，怎么处理？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%88%86%E6%9E%90%E6%95%B0%E6%8D%AE%E4%B8%8E%E4%B8%BB%E5%BA%93%E4%B8%8D%E4%B8%80%E8%87%B4%EF%BC%9F"><span class="toc-number">10.8.</span> <span class="toc-text">如何处理分析数据与主库不一致？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260901/" title="Java Socket通信：核心原理、使用场景与协议设计">Java Socket通信：核心原理、使用场景与协议设计</a><time datetime="2026-08-31T16:00:00.000Z" title="发表于 2026-09-01 00:00:00">2026-09-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260831/" title="双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南">双因素认证（2FA）与 Google Authenticator：原理、配置和实践指南</a><time datetime="2026-08-30T16:00:00.000Z" title="发表于 2026-08-31 00:00:00">2026-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/tokenhub-home/" title="TokenHub —— 简洁易用的 AI API 中转站">TokenHub —— 简洁易用的 AI API 中转站</a><time datetime="2026-08-19T02:00:00.000Z" title="发表于 2026-08-19 10:00:00">2026-08-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/time-atlas/" title="时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河">时光星图 Time Atlas：把本地照片变成一片可以探索的 3D 记忆星河</a><time datetime="2026-07-22T16:00:00.000Z" title="发表于 2026-07-23 00:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/20260629/" title="Web接口业务数据加密传输方案：算法选型与落地实践">Web接口业务数据加密传输方案：算法选型与落地实践</a><time datetime="2026-06-28T16:00:00.000Z" title="发表于 2026-06-29 00:00:00">2026-06-29</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By Junly</div><div class="footer_custom_text">Hi, welcome to my <a href="https://junly.top/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const preMermaidEle = document.querySelectorAll('#article-container pre.mermaid')
+    const codeMermaidEle = document.querySelectorAll('#article-container pre > code.mermaid')
+    if (preMermaidEle.length === 0 && codeMermaidEle.length === 0) return
+
+    preMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.replaceWith(newEle)
+    })
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(function() {
+  const abcjsInit = function() {
+    const abcjsFn = function() {
+      setTimeout(function() {
+        const sheets = document.querySelectorAll(".abc-music-sheet")
+        for (let i = 0; i < sheets.length; i++) {
+          const ele = sheets[i]
+          if (ele.children.length > 0) continue
+
+          // Parse parameters from data-params attribute
+          let params = {}
+          const dp = ele.getAttribute("data-params")
+          if (dp) {
+            try {
+              params = JSON.parse(dp)
+            } catch (e) {
+              console.error("Failed to parse data-params:", e)
+            }
+          }
+
+          // Merge parsed parameters with the responsive option
+          // Ensures params content appears before responsive
+          const options = { ...params, responsive: "resize" }
+
+          // Render the music score using ABCJS.renderAbc
+          ABCJS.renderAbc(ele, ele.innerHTML, options)
+        }
+      }, 100)
+    }
+
+    if (typeof ABCJS === "object") {
+      abcjsFn()
+    } else {
+      btf.getScript("https://cdn.jsdelivr.net/npm/abcjs/dist/abcjs-basic-min.min.js").then(abcjsFn)
+    }
+  }
+
+  if (window.pjax) {
+    abcjsInit()
+  } else {
+    window.addEventListener("load", abcjsInit)
+  }
+
+  btf.addGlobalFn("encrypt", abcjsInit, "abcjs")
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  const initGitalk = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGitalk = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const gitalk = new Gitalk({
+      clientID: 'Ov23lidcX9iD6jBEI5L7',
+      clientSecret: '016b550ae68c0cb214b229032d9c4525642ae8f4',
+      repo: 'wujunbiao1002.github.io',
+      owner: 'wujunbiao1002',
+      admin: ['wujunbiao1002'],
+      updateCountCallback: commentCount,
+      ...option,
+      id: isShuoshuo ? path : (option && option.id) || 'a607d311e835f778275739ded172c323'
+    })
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async(el, path) => {
+    if (typeof Gitalk === 'function') initGitalk(el, path)
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Gitalk' === 'Gitalk'
+      ? window.shuoshuoComment = { loadComment: loadGitalk }
+      : window.loadOtherComment = loadGitalk
+    return
+  }
+
+  if ('Gitalk' === 'Gitalk' || !true) {
+    if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
